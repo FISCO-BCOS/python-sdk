@@ -67,13 +67,11 @@
 
 ## 获取项目代码：
 
-	git clone https://github.com/coderkentzhang/bcosliteclientpy.git
+	git clone https://github.com/FISCO-BCOS/python-sdk
 	
-目前代码在dev分支,建议在dev状态下运行console体验，进行二次开发。
-
 依次运行：
 	
-	cd bcosliteclientpy
+	cd python-sdk
 	
 	git checkout dev
 	
