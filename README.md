@@ -1,5 +1,6 @@
 # Python-SDK for FISCO BCOS 
-# - bcosliteclient（python）项目说明
+
+**- bcosliteclient（python）项目说明**
 
 本项目采用Python开发，用于和开源的金融级区块链底层平台FISCO BCOS( https://www.github.com/FISCO-BCOS/ ) 建立JSONRPC协议的通信。支持版本为FISCO BCOS 2.0 RC1~RC3以及后续版本。
 
@@ -13,7 +14,7 @@
 
 ----------------------------------------------------------------------------
 
-本项目已经适配的python版本:python 3.6.3, 3.7.x
+本项目已经适配的python版本:python 3.6.3, 3.7.x。python 2.7.x适配尚在进行中。
 
 ## linux环境准备：
 
