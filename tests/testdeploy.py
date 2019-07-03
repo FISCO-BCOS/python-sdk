@@ -74,7 +74,7 @@ print(signedTxResult )
 print(encode_hex(signedTxResult.rawTransaction) )
 
 import utils.rpc
-url = "http://119.29.114.153:8545"
+url = "http://127.0.0.1:8545"
 rpc = utils.rpc.HTTPProvider(url)
 if True:
     param = [1,encode_hex(signedTxResult.rawTransaction)]

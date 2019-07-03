@@ -2,7 +2,7 @@ import sys
 print (sys.path)
 import utils.rpc
 
-url = "http://119.29.114.153:8545"
+url = "http://127.0.0.1:8545"
 rpc = utils.rpc.HTTPProvider(url)
 rpc.isConnected()
 param=[1]
