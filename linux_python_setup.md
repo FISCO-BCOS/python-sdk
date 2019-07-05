@@ -8,6 +8,7 @@ pyenv是管理多个python版本的工具。
 	可能需要一个新的包libffi-devel，安装此包之后再次进行编译安装即可。
 
 	yum install libffi-devel -y
+	(如果是采用apt管理，即将yum换为apt-get即可，下同)
 
 	opencv 版本旧了,按指引安装新的
 
@@ -33,8 +34,8 @@ git clone https://github.com/yyuu/pyenv.git ~/.pyenv
 
 3.需要的依赖关系
 
-	sudo apt-get install -y build-essential zlib1g-dev libssl-dev
-	sudo apt-get install libsqlite3-dev libbz2-dev libreadline-dev 
+	sudo yum install -y build-essential zlib1g-dev libssl-dev
+	sudo yum install libsqlite3-dev libbz2-dev libreadline-dev 
 	
 4.pyenv的一些命令
 	
