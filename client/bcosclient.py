@@ -58,6 +58,8 @@ class BcosClient:
 
     def __init__(self):
         self.init()
+        
+    #load the account from keyfile
     def load_default_account(self):
         if(client_config.account_keyfile!=None):
             keystorefile = client_config.account_keyfile_path+"/"+client_config.account_keyfile
@@ -69,7 +71,7 @@ class BcosClient:
     def init(self):
         self.fiscoChainId = client_config.fiscoChainId
         self.groupid = client_config.groupid
-        #load the account from keyfile
+
         if(client_config.remote_rpcurl!=None):
             self.rpc = utils.rpc.HTTPProvider(client_config.remote_rpcurl)
             self.rpc.logger=self.logger
