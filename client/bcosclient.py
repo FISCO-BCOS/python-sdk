@@ -58,22 +58,25 @@ class BcosClient:
 
     def __init__(self):
         self.init()
-
-    def init(self):
-        #load the account from keyfile
+    def load_default_account(self):
         if(client_config.account_keyfile!=None):
-            self.fiscoChainId = client_config.fiscoChainId
-            self.groupid = client_config.groupid
             keystorefile = client_config.account_keyfile_path+"/"+client_config.account_keyfile
             with open(keystorefile, "r") as dump_f:
                 keytext = json.load(dump_f)
                 privkey = Account.decrypt(keytext, client_config.account_password)
                 self.client_account = Account.from_key(privkey)
+
+    def init(self):
+        self.fiscoChainId = client_config.fiscoChainId
+        self.groupid = client_config.groupid
+        #load the account from keyfile
         if(client_config.remote_rpcurl!=None):
             self.rpc = utils.rpc.HTTPProvider(client_config.remote_rpcurl)
             self.rpc.logger=self.logger
         return self.getinfo()
-    '''{  "error": {
+    '''
+    sample:
+    {  "error": {
         "code": 7,
         "data": null,
         "message": "Only pbft consensus supports the view property"
@@ -83,8 +86,10 @@ class BcosClient:
     def getinfo(self):
         info = "url:{}\n".format(client_config.remote_rpcurl)
         info = "rpc:{}\n".format(self.rpc)
-        info += "account address: {}\n".format(self.client_account.address)
         info += "groupid :{}\n".format(self.groupid)
+        if self.client_account!=None:
+            info += "account address: {}\n".format(self.client_account.address)
+
         return info
 
 
@@ -300,7 +305,8 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"getClientVersion","params":[],"i
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions
     def call(self,to_address,contract_abi,fn_name,args=None):
         cmd ="call"
-
+        if self.client_account == None:
+            self.load_default_account()
         functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
         callmap = dict()
         callmap["data"] = functiondata
@@ -336,6 +342,10 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"getClientVersion","params":[],"i
         if(to_address!=None and len(to_address)>0):
             from eth_utils import to_checksum_address
             to_address = to_checksum_address(to_address)
+
+        #load default account if not set .notice: account only use for sign transaction for sendRawTransaction
+        if self.client_account == None :
+            self.load_default_account()
         # 填写一个bcos transaction 的 mapping
         import random
         txmap = dict()
@@ -361,6 +371,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"getClientVersion","params":[],"i
         # 感受下transaction encode的原始数据
         print(encode_hex(rlp.encode(transaction)))
         '''
+
         # 实际上只需要用sign_transaction就可以获得rawTransaction的编码数据了,input :txmap,私钥
         signedTxResult = Account.sign_transaction(txmap, self.client_account.privateKey)
         # signedTxResult.rawTransaction是二进制的，要放到rpc接口里要encode下
