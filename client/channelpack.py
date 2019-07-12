@@ -17,11 +17,7 @@ seq	string	数据包序列号，32字节，SDK传入
 result	int	处理结果
 data	vector	数据本身
 
-'''
-from eth_utils import *
-type = 0x12
-data = "1234567890"
-'''
+
 lenght	uint32_t	数据包长度，含包头和数据，最大长度为10M Byte
 type	uint16_t	数据包类型
 seq	string	数据包序列号，32字节，SDK传入
@@ -30,26 +26,36 @@ data	vector	数据本身
 '''
 
 
-class ChannlePack:
+class ChannelPack:
     TYPE_RPC=0x12
+    TYPE_HEATBEAT = 0x13
+    TYPE_AMOP_REQ=0x30
+    TYPE_AMOP_RESP = 0x31
+    TYPE_TOPIC_REPORT = 0x32
+    TYPE_TX_COMMITED = 0x10000
+
     headerfmt = "!IH32sI"
     type = None
     result = None
     data = None
+    seq = None
+    totallen = None
+    def todetail(self):
+        msg ="len:{},type:{},result:{},seq:{},data:{}"\
+            .format(self.totallen,hex(self.type),hex(self.result),self.seq,self.data)
+        return msg
 
     @staticmethod
-    def pack(type,data):
-        headerlen = struct.calcsize(ChannlePack.headerfmt)
-        databytes = bytes(data, "utf-8")
+    def pack(type,seq,data):
+        headerlen = struct.calcsize(ChannelPack.headerfmt)
+        databytes = data
+        if not isinstance(databytes,bytes):
+            databytes = bytes(data,"utf-8")
         datalen = len(databytes)
-        seq = uuid.uuid1()
-        seq32 = "".join(str(seq).split("-")).upper()
-        seq32byte =bytes(seq32, encoding='utf-8')
-
         fmt = "!IH32sI%ds" % (len(data))
         totallen = headerlen + len(data)
         result = 0
-        buffer = struct.pack(fmt, totallen, type, seq32byte, result, databytes)
+        buffer = struct.pack(fmt, totallen, type, seq, result, databytes)
         return buffer
 
     @staticmethod
@@ -60,14 +66,16 @@ class ChannlePack:
         if(len(buffer) <totallen ):
             #no enough bytes to decode
             return (-1,0,None)
-        headerlen = struct.calcsize(ChannlePack.headerfmt)
+        headerlen = struct.calcsize(ChannelPack.headerfmt)
         datalen =  len(buffer) - headerlen
-        (totallen,type,seq,result) = struct.unpack_from(ChannlePack.headerfmt, buffer,0)
+        (totallen,type,seq,result) = struct.unpack_from(ChannelPack.headerfmt, buffer, 0)
         data = struct.unpack_from("%ds"%datalen,buffer,headerlen)[0]
-        cp = ChannlePack()
+        cp = ChannelPack()
         cp.result = result
-        cp.data = data.decode("utf-8")
+        cp.data = data
         cp.type = type
+        cp.seq = seq
+        cp.totallen = totallen
         return (0,totallen,cp)
 
 
