@@ -16,7 +16,7 @@ from eth_utils import to_checksum_address
 from client.datatype_parser import DatatypeParser
 
 client = BcosClient()
-info = client.init()
+info = client.getinfo()
 print(info)
 
 
@@ -91,3 +91,5 @@ if doQueryTest:
     print("getNodeIDList",client.getNodeIDList())
     print("\n>>---------------------------------------------------------------------")
     print("getGroupList",client.getGroupList())
+
+    print("demo get finish, total request {}".format(client.request_counter))

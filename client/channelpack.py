@@ -35,15 +35,25 @@ class ChannelPack:
     TYPE_TX_COMMITED = 0x10000
 
     headerfmt = "!IH32sI"
+    headerlen = 0
     type = None
     result = None
     data = None
     seq = None
     totallen = None
-    def todetail(self):
+
+
+    def detail(self):
         msg ="len:{},type:{},result:{},seq:{},data:{}"\
             .format(self.totallen,hex(self.type),hex(self.result),self.seq,self.data)
         return msg
+
+
+    @staticmethod
+    def getheaderlen():
+        if ChannelPack.headerfmt == 0:
+            ChannelPack.headerfmt = struct.calcsize(ChannelPack.headerfmt)
+        return ChannelPack.headerlen
 
     @staticmethod
     def pack(type,seq,data):
@@ -61,12 +71,14 @@ class ChannelPack:
     @staticmethod
     #return（code, 消耗的字节数，解析好的cp或None）
     def unpack(buffer):
+        headerlen = struct.calcsize(ChannelPack.headerfmt)
+        if(len(buffer) < headerlen):
+            return (-1,0,None)
         totallen = struct.unpack_from("!I",buffer,0)[0]
         clientlogger.logger.debug("total bytes to decode {}, datalen {}".format(totallen,len(buffer)))
         if(len(buffer) <totallen ):
             #no enough bytes to decode
             return (-1,0,None)
-        headerlen = struct.calcsize(ChannelPack.headerfmt)
         datalen =  len(buffer) - headerlen
         (totallen,type,seq,result) = struct.unpack_from(ChannelPack.headerfmt, buffer, 0)
         data = struct.unpack_from("%ds"%datalen,buffer,headerlen)[0]
