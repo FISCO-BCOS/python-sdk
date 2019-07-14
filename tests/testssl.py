@@ -1,6 +1,6 @@
 import ssl
 import socket
-from client.channelpack import ChannlePack
+from client.channelpack import ChannelPack
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 context.check_hostname = False
@@ -30,9 +30,11 @@ class client_ssl:
            #reply = sock.recv(4096)
            #print(reply)
             # 将socket打包成SSL socket
+           print("connect {}:{},as socket {}".format(host,port,sock))
            with context.wrap_socket(sock) as ssock:
+                print (ssock)
                 # 向服务端发送信息
-                buffer = ChannlePack.pack(ChannlePack.TYPE_RPC,testreq)
+                buffer = ChannelPack.pack(ChannelPack.TYPE_RPC, testreq)
                 ssock.send(buffer)
                 # 接收服务端返回的信息
                 responsePack = None
@@ -40,7 +42,7 @@ class client_ssl:
                 for i in [0,3]:
                     msg = ssock.recv(1024*10)
                     respbuffer+=msg
-                    (code,len,responsePack)= ChannlePack.unpack(bytes(respbuffer) )
+                    (code,len,responsePack)= ChannelPack.unpack(bytes(respbuffer))
                     i += 1
                     if code !=0 :
                         continue

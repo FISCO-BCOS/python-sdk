@@ -51,6 +51,7 @@ class BcosClient:
     fiscoChainId = None
     groupid = None
     logger =clientlogger.logger #logging.getLogger("BcosClient")
+    request_counter = itertools.count()
 
     def __init__(self):
         self.init()
@@ -79,20 +80,16 @@ class BcosClient:
                                                 client_config.channel_node_cert,
                                                 client_config.channel_node_key
                                                 )
-            self.channel_handler.connect(client_config.channel_host,client_config.channel_port)
+            self.channel_handler.start(client_config.channel_host, client_config.channel_port)
             self.channel_handler.logger = self.logger
 
         self.logger.info("using protocal "+client_config.client_protocal)
         print("ip:{},port:{}".format(client_config.channel_host,client_config.channel_port) )
         return self.getinfo()
-    '''
-    sample:
-    {  "error": {
-        "code": 7,
-        "data": null,
-        "message": "Only pbft consensus supports the view property"
-      },  "id": 1,  "jsonrpc": "2.0"
-    }'''
+
+    def finish(self):
+        if client_config.client_protocal==client_config.PROTOCAL_CHANNEL and self.channel_handler !=None:
+            self.channel_handler.close()
 
     def getinfo(self):
         info = "url:{}\n".format(client_config.remote_rpcurl)
@@ -120,6 +117,7 @@ class BcosClient:
         return None
 
     def common_request(self,cmd,params):
+        next(self.request_counter)
         stat = StatTool.begin()
         if client_config.client_protocal == client_config.PROTOCAL_RPC:
             response = self.rpc.make_request(cmd, params)
