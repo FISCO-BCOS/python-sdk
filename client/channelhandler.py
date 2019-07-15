@@ -60,6 +60,7 @@ class ChannelHandler:
         self.context = context
 
     def finish(self):
+        self.ssock.shutdown(socket.SHUT_RDWR)
         self.ssock.close()
         self.ssock = None
         self.recvThread.finish()
@@ -205,7 +206,7 @@ class ChannelRecvThread(threading.Thread):
         # 接收服务端返回的信息
         try:
             #print("channelHandler.ssock.recv begin.")
-            self.logger.debug("channelHandler.ssock.recv begin.")
+            self.logger.debug("{} channelHandler.ssock.recv begin.".format(self.name))
             msg = self.channelHandler.ssock.recv(1024 * 10)
             #print("channelHandler.ssock.recv len:{},{}".format(len(msg),msg))
             self.logger.debug("channelHandler.ssock.recv len:{},{}".format(len(msg),msg))
@@ -256,7 +257,7 @@ class ChannelRecvThread(threading.Thread):
         try:
             self.keepWorking = True
             self.logger.debug(self.name+":start thread-->")
-            while True:
+            while self.keepWorking:
                 bytesread = self.read_channel()
                 if self.keepWorking == False:
                     break
