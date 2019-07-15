@@ -9,25 +9,25 @@
 from client import clientlogger
 import time
 class StatTool:
-    begin = time.time()
-    end  = 0
-    timeused = 0
+    time_begin = time.time()
+    time_end  = 0
+    time_used = 0
     unit = "ms"
     @staticmethod
     def begin(unit="ms"):
         stat =  StatTool()
-        stat.begin =time.time()
+        stat.time_begin =time.time()
         stat.unit = unit
         return stat
 
     def done(self):
-        self.end = time.time()
-        self.timeused = self.end - self.begin
+        self.time_end = time.time()
+        self.time_used = self.time_end - self.time_begin
 
     def make_statmsg(self,msg):
-        if self.end ==0 :
+        if self.time_end ==0 :
             self.done()
-        timeused_toshow  = self.timeused
+        timeused_toshow  = self.time_used
 
         if self.unit=="ms":
             timeused_toshow = timeused_toshow *1000

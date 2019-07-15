@@ -12,6 +12,8 @@
 
 运行此客户端前应先安装FISCO BCOS节点，并组成一个可正常运行的链，参见[FISCO BCOS安装](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html)，顺利的话只需不到5分钟，也可以安装[官方控制台](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html#id7)进行体验
 
+update list：
+	2019.07 支持FISCO BCOS Channel协议，支持证书认证更安全，SDK和节点长连接的双向消息通信更高效，便于SDK接收节点主动推送和通知
 ----------------------------------------------------------------------------
 
 本项目已经适配的python版本:python 3.6.3, 3.7.x。python 2.7.x适配尚在进行中。
@@ -81,21 +83,22 @@
 
 修改配置文件。将client_config.py.template复制为client_config.py，修改client_config.py里的值：
 
-    remote_rpcurl="http://127.0.0.1:8545" #节点的JSON RPC端口，对应FISCO BCOS配置文件config.ini里的 [rpc]jsonrpc_listen_port项
-	
-    contract_info_file="bin/accounts/contract.ini" #保存已部署合约信息的文件
-	
-    account_keyfile_path="bin/accounts" #默认保存keystore文件的路径，在此路径下,keystore文件以 [name].keystore命名
-	
-    account_keyfile ="pyaccount.keystore" #默认的账号文件，用于交易签名
-	
-    account_password ="123456" #默认的账号文件的密码*实际使用时建议改为复杂密码
-	
-    fiscoChainId=1 #链ID
-	
-    groupid = 1 #群组ID，和要通信的节点*必须*一致，如和其他群组通信，修改这一项，或者设置bcosclient.py里对应的成员变量
-	
-	logdir = bin/logs    #默认在此目录下生成日志，此目录必须存在
+	contract_info_file="bin/contract.ini" #保存已部署合约信息的文件
+    account_keyfile_path="bin/accounts" #保存keystore文件的路径，在此路径下,keystore文件以 [name].keystore命名
+    account_keyfile ="pyaccount.keystore"
+    account_password ="123456" #实际使用时建议改为复杂密码
+    fiscoChainId=1 #链ID，和要通信的节点*必须*一致
+    groupid = 1  #群组ID，和要通信的节点*必须*一致，如和其他群组通信，修改这一项，或者设置bcosclient.py里对应的成员变量
+    logdir="bin/logs" #默认日志输出目录，该目录必须先建立
+    #---------client communication config--------------
+    client_protocal = PROTOCAL_CHANNEL  # or PROTOCAL_RPC
+    remote_rpcurl = "http://127.0.0.1:8585"  # 采用rpc通信时，节点的rpc端口,和要通信的节点*必须*一致，,**如采用channel协议通信，这里可以留空**
+    channel_host="127.0.0.1" #采用channel通信时，节点的channel ip地址
+    channel_port=20200  ##节点的channel 端口
+    channel_ca="bin/ca.crt"  #采用channel协议时，需要设置链证书,**如采用rpc协议通信，这里可以留空**
+    channel_node_cert="bin/node.crt"  #采用channel协议时，需要设置节点证书,**如采用rpc协议通信，这里可以留空**
+    channel_node_key="bin/node.key"   #采用channel协议时，需要设置节点key,**如采用rpc协议通信，这里可以留空**
+
 	
 修改配置后，运行一个简单命令确认和节点连接是否正常
 
@@ -225,6 +228,9 @@ demo_client.py和demo_get.py演示调用client/bcosclient.py里实现的接口�
 
 **client/stattool.py** 一个简单的统计数据收集和打印日志的工具类
 
+**client/ChannelPack.py** FISCO BCOS channel协议编码解码工具类,channel协议编解码参见[连接](https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage)
+
+**client/ChannelHandler.py** FISCO BCOS channel协议实现类，包括TLSv1.2认证，发送和接收线程和消息队列实现,channel协议是sdk和节点之间长连接和双向消息协议,处理起来比RPC复杂但更高效，支持证书认证，更安全，长连接便于接收即节点主动通知
 
 **bcosclient.py** 里实现的发送交易接口为：
 
@@ -301,5 +307,6 @@ todolist:
     1：更友好的交互和提示
     2：和节点之间的异步通信
     3：节点事件监听
-    4：AMOP Channel协议支持
+    4：Channel协议支持 (2019.07实现)
+	5：AMOP topic协议支持
     5：性能优化

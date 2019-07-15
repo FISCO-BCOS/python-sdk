@@ -1,11 +1,15 @@
 import sys
 print (sys.path)
 import utils.rpc
+import ssl
 
 url = "http://127.0.0.1:8545"
 rpc = utils.rpc.HTTPProvider(url)
 rpc.isConnected()
 param=[1]
+
+
+
 
 bn = rpc.make_request("getBlockNumber",param)
 if "error" in bn:
