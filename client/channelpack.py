@@ -42,12 +42,28 @@ class ChannelPack:
     seq = None
     totallen = None
 
+    def __init__(self,type,seq,result,data):
+        self.type=type
+        self.seq = seq
+        self.result = result
+        self.data = data
 
     def detail(self):
+        if self.totallen==None:
+            datalen = 0
+            if self.data != None:
+                datalen = len(self.data)
+            self.totallen = ChannelPack.getheaderlen()+datalen
         msg ="len:{},type:{},result:{},seq:{},data:{}"\
             .format(self.totallen,hex(self.type),hex(self.result),self.seq,self.data)
         return msg
 
+    @staticmethod
+    def make_seq32():
+        seq = uuid.uuid1()
+        seq32 = "".join(str(seq).split("-")).upper()
+        seq32bytes =bytes(seq32, encoding='utf-8')
+        return seq32bytes
 
     @staticmethod
     def getheaderlen():
@@ -55,8 +71,11 @@ class ChannelPack:
             ChannelPack.headerfmt = struct.calcsize(ChannelPack.headerfmt)
         return ChannelPack.headerlen
 
+    def pack(self):
+        return ChannelPack.pack_all(self.type, self.seq, self.result, self.data)
+
     @staticmethod
-    def pack(type,seq,data):
+    def pack_all(type, seq, result, data):
         headerlen = struct.calcsize(ChannelPack.headerfmt)
         databytes = data
         if not isinstance(databytes,bytes):
@@ -64,7 +83,6 @@ class ChannelPack:
         datalen = len(databytes)
         fmt = "!IH32sI%ds" % (len(data))
         totallen = headerlen + len(data)
-        result = 0
         buffer = struct.pack(fmt, totallen, type, seq, result, databytes)
         return buffer
 
@@ -82,11 +100,7 @@ class ChannelPack:
         datalen =  len(buffer) - headerlen
         (totallen,type,seq,result) = struct.unpack_from(ChannelPack.headerfmt, buffer, 0)
         data = struct.unpack_from("%ds"%datalen,buffer,headerlen)[0]
-        cp = ChannelPack()
-        cp.result = result
-        cp.data = data
-        cp.type = type
-        cp.seq = seq
+        cp = ChannelPack(type,seq,result,data)
         cp.totallen = totallen
         return (0,totallen,cp)
 

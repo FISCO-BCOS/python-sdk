@@ -34,7 +34,7 @@ class client_ssl:
            with context.wrap_socket(sock) as ssock:
                 print (ssock)
                 # 向服务端发送信息
-                buffer = ChannelPack.pack(ChannelPack.TYPE_RPC, testreq)
+                buffer = ChannelPack.pack_all(ChannelPack.TYPE_RPC, testreq)
                 ssock.send(buffer)
                 # 接收服务端返回的信息
                 responsePack = None
