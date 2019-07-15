@@ -13,7 +13,7 @@ class client_config:
     groupid = 1  #群组ID，和要通信的节点*必须*一致，如和其他群组通信，修改这一项，或者设置bcosclient.py里对应的成员变量
     logdir="bin/logs" #默认日志输出目录，该目录必须先建立
     #---------client communication config--------------
-    client_protocal = PROTOCAL_PRC  # or "rpc"
+    client_protocal = PROTOCAL_PRC  # or PROTOCAL_CHANNEL to use channel prototal
     #client_protocal = PROTOCAL_CHANNEL
     remote_rpcurl = "http://127.0.0.1:8585"  # 采用rpc通信时，节点的rpc端口,和要通信的节点*必须*一致
     channel_host="127.0.0.1" #采用channel通信时，节点的channel ip地址
