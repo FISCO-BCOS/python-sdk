@@ -13,7 +13,8 @@
 运行此客户端前应先安装FISCO BCOS节点，并组成一个可正常运行的链，参见[FISCO BCOS安装](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html)，顺利的话只需不到5分钟，也可以安装[官方控制台](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html#id7)进行体验
 
 update list：
-	2019.07 支持FISCO BCOS Channel协议，支持证书认证更安全，SDK和节点长连接的双向消息通信更高效，便于SDK接收节点主动推送和通知
+
+	2019.07:支持FISCO BCOS Channel协议，[Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage)支持证书认证更安全，SDK和节点长连接的双向消息通信更高效，便于SDK接收节点主动推送和通知
 ----------------------------------------------------------------------------
 
 本项目已经适配的python版本:python 3.6.3, 3.7.x。python 2.7.x适配尚在进行中。
