@@ -76,28 +76,31 @@ class BcosClient:
 
         if client_config.client_protocal== client_config.PROTOCAL_CHANNEL :
             self.channel_handler = ChannelHandler()
+            self.channel_handler.logger = self.logger
             self.channel_handler.initTLSContext(client_config.channel_ca,
                                                 client_config.channel_node_cert,
                                                 client_config.channel_node_key
                                                 )
             self.channel_handler.start(client_config.channel_host, client_config.channel_port)
-            self.channel_handler.logger = self.logger
+
 
         self.logger.info("using protocal "+client_config.client_protocal)
-        print("ip:{},port:{}".format(client_config.channel_host,client_config.channel_port) )
+        #print("ip:{},port:{}".format(client_config.channel_host,client_config.channel_port) )
         return self.getinfo()
 
     def finish(self):
         if client_config.client_protocal==client_config.PROTOCAL_CHANNEL and self.channel_handler !=None:
-            self.channel_handler.close()
+            self.channel_handler.finish()
 
     def getinfo(self):
-        info = "url:{}\n".format(client_config.remote_rpcurl)
-        info = "rpc:{}\n".format(self.rpc)
-        info += "groupid :{}\n".format(self.groupid)
+        info = ""
+        if client_config.client_protocal == client_config.PROTOCAL_RPC:
+            info = "rpc:{}\n".format(self.rpc)
+        if client_config.client_protocal == client_config.PROTOCAL_CHANNEL:
+            info = "channel {}:{}".format(self.channel_handler.host,self.channel_handler.port)
+        info += ",groupid :{}\n".format(self.groupid)
         if self.client_account!=None:
             info += "account address: {}\n".format(self.client_account.address)
-
         return info
 
 
@@ -159,7 +162,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"getClientVersion","params":[],"i
         cmd = "getBlockNumber"
         params= [self.groupid]
         num_hex =  self.common_request(cmd, params)
-        print("getBlockNumber hex:",num_hex)
+        #print("getBlockNumber hex:",num_hex)
         return int(num_hex,16)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpbftview
@@ -304,14 +307,14 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"getClientVersion","params":[],"i
 
                 blocknum = self.getBlockNumber()
                 oldblocknum=self.lastblocknum
-                print("last {},now {}".format(self.lastblocknum,blocknum))
+                #print("last {},now {}".format(self.lastblocknum,blocknum))
                 if blocknum >= self.lastblocknum:
                     self.lastblocknum = blocknum
                     self.logger.info("getBlocklimit:{},blocknum:{},old:{}".format(self.lastblocknum,blocknum,oldblocknum))
                     return self.lastblocknum+deltablocklimit
             except BcosError as e:
                 self.logger.error("getBlocklimit error {}, {}".format(e.code,e.message))
-                time.sleep(0.1)
+                time.sleep(0.2)
 
                 continue
         return self.lastblocklimit

@@ -16,7 +16,7 @@ from client.datatype_parser import DatatypeParser
 
 client = BcosClient()
 #info = client.init()
-#print(info)
+print(client.getinfo())
 
 
 #从文件加载abi定义
