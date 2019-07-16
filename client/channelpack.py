@@ -10,27 +10,8 @@ import uuid
 import struct
 from client import  clientlogger
 '''
-
-
-0x12	以太坊消息	SDK->节点
-0x13	心跳包	SDK->节点
-0x30	AMOP请求包	SDK->节点
-0x31	AMOP响应包	SDK->节点
-0x32	上报Topic信息	SDK->节点
-0x10000	交易上链回调	节点->SDK
-
-lenght	uint32_t	数据包长度，含包头和数据，最大长度为10M Byte
-type	uint16_t	数据包类型
-seq	string	数据包序列号，32字节，SDK传入
-result	int	处理结果
-data	vector	数据本身
-
-
-lenght	uint32_t	数据包长度，含包头和数据，最大长度为10M Byte
-type	uint16_t	数据包类型
-seq	string	数据包序列号，32字节，SDK传入
-result	int	处理结果
-data	vector	数据本身
+channel protocal ref:
+https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage
 '''
 
 
@@ -40,7 +21,9 @@ class ChannelPack:
     TYPE_AMOP_REQ=0x30
     TYPE_AMOP_RESP = 0x31
     TYPE_TOPIC_REPORT = 0x32
-    TYPE_TX_COMMITED = 0x10000
+    TYPE_TOPIC_MULTICAST =0x35
+    TYPE_TX_COMMITED = 0x1000
+    TYPE_TX_BLOCKNUM=0x1001
 
     headerfmt = "!IH32sI"
     headerlen = 0
