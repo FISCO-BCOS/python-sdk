@@ -6,6 +6,12 @@
   @author: kentzhang
   @date: 2019-06
 '''
+
+'''
+channel protocal ref: 
+https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage
+'''
+
 import ssl
 import socket
 from client.channelpack import ChannelPack
@@ -24,14 +30,7 @@ import json
 import time
 import traceback
 from queue import Empty
-'''
-    type:
-    0x12	以太坊消息	SDK->节点
-    0x13	心跳包	SDK->节点
-    0x30	AMOP请求包	SDK->节点
-    0x31	AMOP响应包	SDK->节点
-    0x32	上报Topic信息	SDK->节点
-    0x10000	交易上链回调	节点->SDK'''
+
 class ChannelHandler:
     context = None
     CA_File= None
