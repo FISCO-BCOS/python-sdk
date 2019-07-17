@@ -138,6 +138,30 @@ try:
     #--------------------------------------------------------------------------------------------
     # console cmd entity
     #--------------------------------------------------------------------------------------------
+    validcmds.append("showaccount")
+    usagemsg.append('''showaccount [name] [password]
+    指定帐户名字(不带后缀)和密码，打开配置文件里默认账户文件路径下的[name].keystore文件，打印公私钥和地址
+    ''')
+    if cmd == 'showaccount':
+        name = inputparams[0]
+        password = inputparams[1]
+        keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+        print("show account : {}, keyfile:{} ,password {}  ".format(name,keyfile, password))
+        with open(keyfile, "r") as dump_f:
+            keytext = json.load(dump_f)
+            stat = StatTool.begin()
+            privkey = Account.decrypt(keytext,password)
+            stat.done()
+            print("decrypt use time : %.3f s"%(stat.time_used))
+            ac2 = Account.from_key(privkey)
+            print("address:\t",ac2.address)
+            print("privkey:\t",encode_hex(ac2.key))
+            print("pubkey :\t",ac2.publickey)
+            print("\naccount store in file: [{}]".format(keyfile))
+            print("\n**** please remember your password !!! *****")
+
+
+
     validcmds.append("newaccount")
     usagemsg.append('''newaccount [name] [password] [save]
     创建一个新帐户，参数为帐户名(如alice,bob)和密码
@@ -150,7 +174,7 @@ try:
     if cmd == 'newaccount' :
         name=inputparams[0]
         password=inputparams[1]
-        print ("starting : {} {} {} ".format(name,name,password))
+        print ("starting : {} {} ".format(name,password))
         ac = Account.create(password)
         print("new address :\t",ac.address)
         print("new privkey :\t",encode_hex(ac.key) )
@@ -188,6 +212,7 @@ try:
         if forcewrite:
             with open(keyfile, "w") as dump_f:
                 json.dump(kf, dump_f)
+                dump_f.close()
         print(">>-------------------------------------------------------")
         print(">> read [{}] again after new account,address & keys in file:".format(keyfile))
         with open(keyfile, "r") as dump_f:
@@ -202,6 +227,7 @@ try:
             print("pubkey :\t",ac2.publickey)
             print("\naccount store in file: [{}]".format(keyfile))
             print("\n**** please remember your password !!! *****")
+            dump_f.close()
 
 
     #--------------------------------------------------------------------------------------------
