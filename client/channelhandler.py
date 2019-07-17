@@ -155,7 +155,6 @@ class ChannelHandler:
                            method, response)
         #print("response from server:",response)
         self.logger.debug("response from server: {}".format( response) )
-
         if "result" not in response:
             tempresp =dict()
             tempresp["result"] = response
