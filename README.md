@@ -160,6 +160,7 @@ demo_client.py和demo_get.py演示调用client/bcosclient.py里实现的接口�
 查看已经实现的命令，包括创建帐号，delploy/call/sendtx，JSON RPC查询接口等
 
 **采用创建帐号的命令创建帐号后，如需要做为默认帐号使用，注意修改client_config.py的account_keyfile和account_password配置项**
+
 	1): showaccount [name] [password]
 		指定帐户名字(不带后缀)和密码，打开配置文件里默认账户文件路径下的[name].keystore文件，打印公私钥和地址
 
