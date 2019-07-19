@@ -102,13 +102,13 @@
 **注意**
 如使用了channel协议，需要从节点的sdk目录下获取ca.crt,node.crt,node.key这三个文件，复制到python-sdk/bin目录下,这三个文件用于channel协议通信时，建立TLSv1.2安全连接握手。
 
-如需要连接的节点目录在/data/fisco-bcos/nodes/127.0.0.1/,当前目录已经在python-sdk目录下，则
+如需要连接的节点部署的目录在/data/fisco-bcos/nodes/127.0.0.1/,当前目录已经在python-sdk目录下，则
 
-   cp /data/fisco-bcos/nodes/127.0.0.1/sdk/ca.crt ./bin
+    cp /data/fisco-bcos/nodes/127.0.0.1/sdk/ca.crt ./bin
    
-   cp /data/fisco-bcos/nodes/127.0.0.1/sdk/node.crt ./bin
+    cp /data/fisco-bcos/nodes/127.0.0.1/sdk/node.crt ./bin
    
-   cp /data/fisco-bcos/nodes/127.0.0.1/sdk/node.key ./bin
+    cp /data/fisco-bcos/nodes/127.0.0.1/sdk/node.key ./bin
 
 	
 修改配置后，运行一个简单命令确认和节点连接是否正常
