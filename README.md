@@ -103,16 +103,15 @@
 
 1.首先请确保端口是开放的，可以本机或远程访问（如在防火墙后，则需要在防火墙上开通端口规则）,可以先使用telnet [ip] [port]指令（如telnet 127.0.0.1 8545或telnet 127.0.0.1 20200）确认网络连通ok。
 
-2.如使用了channel协议，需要从节点的sdk目录下获取ca.crt,node.crt,node.key这三个文件，复制到python-sdk/bin目录下,这三个文件用于channel协议通信时，建立TLSv1.2安全连接握手。而采用RPC方式连接，则不需要复制证书，直接使用明文json协议，和RPC端口通信。
+2.采用RPC方式连接，不需要设置证书，直接使用明文json协议，和RPC端口通信。
+
+3.如使用了channel协议，需要从节点的sdk目录下获取ca.crt,node.crt,node.key这三个文件，复制到python-sdk/bin目录下,这三个文件用于channel协议通信时，建立TLSv1.2安全连接握手。
 
 如需要连接的节点部署的目录在/data/fisco-bcos/nodes/127.0.0.1/,当前目录已经在python-sdk目录下，则
 
     cp /data/fisco-bcos/nodes/127.0.0.1/sdk/ca.crt ./bin
-   
     cp /data/fisco-bcos/nodes/127.0.0.1/sdk/node.crt ./bin
-   
     cp /data/fisco-bcos/nodes/127.0.0.1/sdk/node.key ./bin
-
 	
 修改配置后，运行一个简单命令确认和节点连接是否正常
 
