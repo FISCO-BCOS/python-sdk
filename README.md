@@ -76,9 +76,7 @@
 依次运行：
 	
 	cd python-sdk
-	
-	git checkout dev
-	
+
 	pip install -e .[dev]
 
 以上为获取分支安装依赖库(依赖库定义见setup.py文件)。
