@@ -15,7 +15,7 @@ class client_config:
     #---------client communication config--------------
     client_protocal = PROTOCAL_PRC  # or PROTOCAL_CHANNEL to use channel prototal
     #client_protocal = PROTOCAL_CHANNEL
-    remote_rpcurl = "http://127.0.0.1:8585"  # 采用rpc通信时，节点的rpc端口,和要通信的节点*必须*一致,**如采用channel协议通信，这里可以留空**
+    remote_rpcurl = "http://127.0.0.1:8545"  # 采用rpc通信时，节点的rpc端口,和要通信的节点*必须*一致,**如采用channel协议通信，这里可以留空**
     channel_host="127.0.0.1" #采用channel通信时，节点的channel ip地址,**如采用rpc协议通信，这里可以留空**
     channel_port=20200  ##节点的channel 端口,**如采用rpc协议通信，这里可以留空**
     channel_ca="bin/ca.crt"  #采用channel协议时，需要设置链证书,**如采用rpc协议通信，这里可以留空**
