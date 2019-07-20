@@ -26,8 +26,10 @@ class ContractNote:
         #write to file
         config = ConfigObj(client_config.contract_info_file,
                            encoding='UTF8')
-        if "addess" not in config:
+        if 'address' not in config:
+            #print("address not in config",config)
             config['address']={}
+
         config['address'][contractname] = newaddress
         #print (config)
         if blocknum!=None:
