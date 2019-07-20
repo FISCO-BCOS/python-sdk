@@ -13,7 +13,7 @@ use solc binary to compile solidity contract.output abi & bin files.
 '''
 import os
 import sys
-solc_bin="bin\solc\solc.exe"
+solc_bin="bin/solc/solc"
 solc_option = "--abi --bin --overwrite"
 solc_default_output = "./contracts"
 
