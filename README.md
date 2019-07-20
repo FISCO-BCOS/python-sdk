@@ -16,6 +16,8 @@
 
 2019.07:支持FISCO BCOS Channel协议，[Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage)支持证书认证更安全，SDK和节点长连接的双向消息通信更高效，便于SDK接收节点主动推送和通知
 
+2019.07:增加solc.py文件和bin/solc/README.md，帮助完成编译合约，输出abi,bin文件。需要依赖官方发布的solc二进制release，参见bin/solc/README.md
+
 ----------------------------------------------------------------------------
 
 本项目已经适配的python版本:python 3.6.3, 3.7.x。python 2.7.x适配尚在进行中。
