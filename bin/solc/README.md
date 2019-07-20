@@ -1,9 +1,23 @@
 
-¸ù¾İÏµÍ³ÀàĞÍ£¨linux/windows£©ÒÔ¼°ËùĞè±àÒëµÄsolidityºÏÔ¼µÄ°æ±¾£¬ÔÚÒÔÏÂÁ´½ÓÖĞÑ¡Ôñ¶ÔÓ¦µÄrelease·¢²¼°ü£¬ÏÂÔØµ½python-sdk/bin/solcÄ¿Â¼£¬½«ÏÂÔØµÄÎÄ¼ş½âÑ¹£¨ÈçÎªÑ¹Ëõ°ü£©²¢½«±àÒëÆ÷Ö´ĞĞÎÄ¼ş¸ÄÃûÎªsolc£¬»òĞŞ¸Äpython-sdk/solcpy.py ÎÄ¼şÀï¶ÔsolcÃû×Ö»òÂ·¾¶µÄ¶¨Òå¡£
+**åˆçº¦çš„ç¼–è¯‘æ–¹å¼åŒ…æ‹¬ **
 
-according system(linux/windows)and solidity contract version£¬download the solc binary release,save to here,unzip(optional), and change it¡¯s name to "solc",or change the solc path in python-sdk/solcpy.py file
+1) æ“ä½œç³»ç»Ÿç±»å‹ï¼Œlinux/windows 
 
-## solc release
+2) åˆçº¦æ‰€ç”¨çš„solidityè¯­è¨€ç‰ˆæœ¬ï¼Œå¦‚0.4.xæˆ–0.5.2+ 2ï¼‰
+
+3) æ˜¯å¦å›½å¯†ç‰ˆæœ¬
+
+**æ“ä½œæ¬¡åºï¼š**
+
+1.åœ¨ä»¥ä¸‹é“¾æ¥ä¸­é€‰æ‹©å¯¹åº”çš„releaseå‘å¸ƒåŒ…ï¼Œä¸‹è½½åˆ°python-sdk/bin/solcç›®å½•
+
+2.å°†ä¸‹è½½çš„æ–‡ä»¶è§£å‹ï¼ˆå¦‚ä¸ºå‹ç¼©åŒ…ï¼‰å¹¶å°†ç¼–è¯‘å™¨æ‰§è¡Œæ–‡ä»¶æ”¹åä¸ºsolc
+
+3.ç¡®è®¤python-sdk/solc.py æ–‡ä»¶é‡Œå¯¹solcåå­—æˆ–è·¯å¾„çš„å®šä¹‰å’Œè¿™é‡Œçš„solcèƒ½å®Œå…¨åŒ¹é…ã€‚
+
+according system(linux/windows)and solidity contract versionï¼Œdownload the solc binary release,save to here,unzip(optional), and change itâ€™s name to "solc",or change the solc path in python-sdk/solcpy.py file
+
+## solc release on github:
     https://github.com/FISCO-BCOS/solidity/releases
 
 ## linux:
