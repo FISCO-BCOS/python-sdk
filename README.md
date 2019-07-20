@@ -77,9 +77,9 @@
 	
 	cd python-sdk
 
-	pip install -e .[dev]
+	pip install -r requirements.txt
 
-以上为获取分支安装依赖库(依赖库定义见setup.py文件)。
+以上为安装依赖库
 
 修改配置文件。将client_config.py.template复制为client_config.py，修改client_config.py里的值：
 
@@ -91,7 +91,7 @@
     groupid = 1  #群组ID，和要通信的节点*必须*一致，如和其他群组通信，修改这一项，或者设置bcosclient.py里对应的成员变量
     logdir="bin/logs" #默认日志输出目录，该目录必须先建立
     #---------client communication config--------------
-    client_protocal = PROTOCAL_RPC  # or PROTOCAL_CHANNEL to use channel prototal
+    client_protocal = "rpc"  # or "channel" to use channel prototal
     remote_rpcurl = "http://127.0.0.1:8545"  # 采用rpc通信时，节点的rpc端口,和要通信的节点*必须*一致，,**如采用channel协议通信，这里可以留空**
     channel_host="127.0.0.1" #采用channel通信时，节点的channel ip地址,**如采用rpc协议通信，这里可以留空**
     channel_port=20200  ##节点的channel 端口,**如采用rpc协议通信，这里可以留空**
