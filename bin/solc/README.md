@@ -12,7 +12,11 @@
     2.将下载的文件解压（如为压缩包）并将编译器执行文件改名为solc。
     3.确认python-sdk/solc.py 文件里对solc名字或路径的定义和这里的solc能完全匹配，总之目的是使得编译命令行一定能找到对应的solc，设置为系统path变量也是可以的。
 
-according with system(linux/windows) and solidity contract version，download the solc binary release,save to python-sdk/bin/solc/,unzip(optional), and change binary file name to "solc",or change the solc path in python-sdk/solcpy.py file
+In English:
+
+1. Download the solc binary according to your OS type (e.g. Linux/Windows) and solidity version.
+2. Copy the solc binary to python-sdk/bin/solc/.
+3. Make sure that the name of solc binary file is renamed to "solc", or update the solc binary path constant in python-sdk/solcpy.py.
 
 ## solc release on github:
 
