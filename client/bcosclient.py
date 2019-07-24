@@ -69,12 +69,12 @@ class BcosClient:
         self.fiscoChainId = client_config.fiscoChainId
         self.groupid = client_config.groupid
 
-        if client_config.client_protocal == client_config.PROTOCAL_RPC \
+        if client_config.client_protocol == client_config.PROTOCOL_RPC \
                 and client_config.remote_rpcurl!=None:
             self.rpc = utils.rpc.HTTPProvider(client_config.remote_rpcurl)
             self.rpc.logger=self.logger
 
-        if client_config.client_protocal== client_config.PROTOCAL_CHANNEL :
+        if client_config.client_protocol== client_config.PROTOCOL_CHANNEL :
             self.channel_handler = ChannelHandler()
             self.channel_handler.logger = self.logger
             self.channel_handler.initTLSContext(client_config.channel_ca,
@@ -84,19 +84,19 @@ class BcosClient:
             self.channel_handler.start(client_config.channel_host, client_config.channel_port)
 
 
-        self.logger.info("using protocal "+client_config.client_protocal)
+        self.logger.info("using protocal "+client_config.client_protocol)
         #print("ip:{},port:{}".format(client_config.channel_host,client_config.channel_port) )
         return self.getinfo()
 
     def finish(self):
-        if client_config.client_protocal==client_config.PROTOCAL_CHANNEL and self.channel_handler !=None:
+        if client_config.client_protocol==client_config.PROTOCOL_CHANNEL and self.channel_handler !=None:
             self.channel_handler.finish()
 
     def getinfo(self):
         info = ""
-        if client_config.client_protocal == client_config.PROTOCAL_RPC:
+        if client_config.client_protocol == client_config.PROTOCOL_RPC:
             info = "rpc:{}\n".format(self.rpc)
-        if client_config.client_protocal == client_config.PROTOCAL_CHANNEL:
+        if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
             info = "channel {}:{}".format(self.channel_handler.host,self.channel_handler.port)
         info += ",groupid :{}\n".format(self.groupid)
         if self.client_account!=None:
@@ -122,9 +122,9 @@ class BcosClient:
     def common_request(self,cmd,params):
         next(self.request_counter)
         stat = StatTool.begin()
-        if client_config.client_protocal == client_config.PROTOCAL_RPC:
+        if client_config.client_protocol == client_config.PROTOCOL_RPC:
             response = self.rpc.make_request(cmd, params)
-        if client_config.client_protocal == client_config.PROTOCAL_CHANNEL:
+        if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
             response = self.channel_handler.make_request(cmd,params,ChannelPack.TYPE_RPC)
         error = self.is_error_reponse(response)
         memo  ="DONE"

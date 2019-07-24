@@ -1,0 +1,21 @@
+branches:
+  only:
+      - /.*/
+
+matrix:
+  fast_finish: true
+  include:
+      - os: linux
+        dist: xenial
+        sudo: required
+# sudo false implies containerized builds
+sudo: false
+language: python
+python:
+  - "3.7.3"
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+# command to run tests
+script:
+  bash ci/ci_check.sh
