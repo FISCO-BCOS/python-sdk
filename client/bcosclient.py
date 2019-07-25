@@ -86,7 +86,7 @@ class BcosClient:
             self.channel_handler.start(client_config.channel_host, client_config.channel_port)
 
 
-        self.logger.info("using protocal "+client_config.client_protocol)
+        self.logger.info("using protocol "+client_config.client_protocol)
         #print("ip:{},port:{}".format(client_config.channel_host,client_config.channel_port) )
         return self.getinfo()
 

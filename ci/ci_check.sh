@@ -29,7 +29,7 @@ LOG_INFO()
 
 cur_path=$(execute_cmd "pwd")
 
-# build blockchan
+# build blockchain
 function build_blockchain()
 {
   execute_cmd "rm -rf nodes"

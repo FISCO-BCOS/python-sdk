@@ -12,7 +12,7 @@ import uuid
 import struct
 from client import  clientlogger
 '''
-channel protocal ref:
+channel protocol ref:
 https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage
 '''
 

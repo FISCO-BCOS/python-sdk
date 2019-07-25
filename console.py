@@ -230,7 +230,7 @@ def usage(client_config):
     usagemsg.append('''deploy [contract_binary_file] [save]
         部署合约,合约来自编译后的bin文件（部署命令为了审慎起见，需要指定bin文件的全路径）。如给出'save'参数，新地址会写入本地记录文件
         ndeploy contract from a binary file,eg: deploy contracts/SimpleInfo.bin
-        if 'save' in args, so save addres to file''')
+        if 'save' in args, so save address to file''')
 
     usagemsg.append('''call [contractname] [address] [func]  [args...]
         call合约的一个只读接口,解析返回值
@@ -388,7 +388,7 @@ def main(argv):
                     ContractNote.save_address(name, address, blocknum)
                     print("address save to file: ",client_config.contract_info_file)
             else:
-                print("\nNOTE : if want to save new address as last addres for (call/sendtx)\nadd 'save' to cmdline and run again")
+                print("\nNOTE : if want to save new address as last address for (call/sendtx)\nadd 'save' to cmdline and run again")
             sys.exit(0)
 
 
