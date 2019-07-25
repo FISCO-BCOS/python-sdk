@@ -1,5 +1,6 @@
 parsimonious
 
+pycrypto
 Crypto
 attrdict
 bumpversion<1,>=0.5.3

@@ -71,13 +71,12 @@ install_pyenv()
     fi
     LOG_INFO "clone and init pyenv to install python 3.7.3 !"
     # clone pyenv
-    
     if [ ! -d "${pydir}" ];then
-        execute_cmd "git clone https://github.com/yyuu/pyenv.git ~/.pyenv"
+        execute_cmd "git clone https://github.com/pyenv/pyenv.git ~/.pyenv"
     fi
-    
+
     if [ ! -d "${pydir_virtual}" ];then
-		execute_cmd "git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv"
+		execute_cmd "git clone https://github.com/pyenv/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv"
     fi
     # export env
     execute_cmd "echo 'export PATH=~/.pyenv/bin:\$PATH' >> ${shell_rc}"
@@ -94,7 +93,7 @@ install_python3()
     version=3.7.3
 	python_versions=$(pyenv versions | grep "${version}")
 	if [ -z "${python_versions}" ];then
-         execute_cmd "wget https://www.python.org/ftp/python/$version/Python-$version.tar.xz -P ~/.pyenv/cache/;pyenv install $version"
+         execute_cmd "wget https://www.python.org/ftp/python/$version/Python-$version.tar.xz -P ~/.pyenv/cache/ && pyenv install $version"
     fi
 	python_versions=$(pyenv virtualenvs | grep "python-sdk")
 	if [ -z "${python_versions}" ];then
@@ -131,9 +130,12 @@ main()
     source ${shell_rc}
     install_python3 
   fi
-  source ${shell_rc}
-  execute_cmd "pyenv shell 3.7.3"
-  execute_cmd "pyenv rehash"
+  version="3.7.3"
+  python_versions=$(pyenv versions | grep "${version}")
+  if [ ! -z "${python_versions}" ];then
+    execute_cmd "pyenv shell 3.7.3"
+    execute_cmd "pyenv rehash"
+  fi
   upgrade_pip
   init_config
 }
