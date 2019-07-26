@@ -98,7 +98,7 @@ class BcosClient:
             info += "account address: {}\n".format(self.client_account.address)
         return info
 
-    def is_error_reponse(self, response):
+    def is_error_response(self, response):
         if response == None:
             e = BcosError(-1, None, "response is None")
             return e
@@ -108,7 +108,7 @@ class BcosClient:
             data = None
             if("data" in response["error"]):
                 data = response["error"]["data"]
-            self.logger.error("is_error_reponse code: {}, msg:{} ,data:{}".format(code, msg, data))
+            self.logger.error("is_error_response code: {}, msg:{} ,data:{}".format(code, msg, data))
             e = BcosError(code, data, msg)
             return e
         return None
@@ -120,7 +120,7 @@ class BcosClient:
             response = self.rpc.make_request(cmd, params)
         if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
             response = self.channel_handler.make_request(cmd, params, ChannelPack.TYPE_RPC)
-        error = self.is_error_reponse(response)
+        error = self.is_error_response(response)
         memo = "DONE"
         if(error != None):
             memo = "ERROR {}:{}".format(error.code, error.message)
