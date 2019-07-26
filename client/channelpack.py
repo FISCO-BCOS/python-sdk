@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 '''
   bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Free Software Foundation
-  This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-  Thanks for authors and contributors of eth-abi，eth-account，eth-hash，eth-keys，eth-typing，eth-utils，rlp, eth-rlp , hexbytes ...and relative projects
+  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  terms of the MIT License as published by the Free Software Foundation. This project is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
+  authors and contributors of eth-abi, eth-account, eth-hash，eth-keys, eth-typing, eth-utils,
+  rlp, eth-rlp , hexbytes ... and relative projects
   @author: kentzhang
   @date: 2019-06
 '''
@@ -42,11 +45,11 @@ class ChannelPack:
         self.data = data
 
     def detail(self):
-        if self.totallen == None:
+        if self.totallen is None:
             datalen = 0
-            if self.data != None:
+            if self.data is not None:
                 datalen = len(self.data)
-            self.totallen = ChannelPack.getheaderlen()+datalen
+            self.totallen = ChannelPack.getheaderlen() + datalen
         msg = "len:{},type:{},result:{},seq:{},data:{}"\
             .format(self.totallen, hex(self.type), hex(self.result), self.seq, self.data)
         return msg
@@ -73,7 +76,6 @@ class ChannelPack:
         databytes = data
         if not isinstance(databytes, bytes):
             databytes = bytes(data, "utf-8")
-        datalen = len(databytes)
         fmt = "!IH32sI%ds" % (len(data))
         totallen = headerlen + len(data)
         buffer = struct.pack(fmt, totallen, type, seq, result, databytes)
@@ -100,8 +102,8 @@ class ChannelPack:
 
 
 '''
-x	pad byte	no value	 	 
-c	char	string of length 1	1	 
+x	pad byte	no value
+c	char	string of length 1	1
 b	signed char	integer	1	(3)
 B	unsigned char	integer	1	(3)
 ?	_Bool	bool	1	(1)
@@ -115,7 +117,7 @@ q	long long	integer	8	(2), (3)
 Q	unsigned long long	integer	8	(2), (3)
 f	float	float	4	(4)
 d	double	float	8	(4)
-s	char[]	string	1	 
-p	char[]	string	 	 
+s	char[]	string	1
+p	char[]	string
 P	void *	integer	 	(5), (3)
 '''

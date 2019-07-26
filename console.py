@@ -2,10 +2,13 @@
 # PYTHON_ARGCOMPLETE_OK
 # -*- coding: utf-8 -*-
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/FISCO-BCOS)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Free Software Foundation
-  This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-  Thanks for authors and contributors of eth-abi，eth-account，eth-hash，eth-keys，eth-typing，eth-utils，rlp, eth-rlp , hexbytes ...and relative projects
+  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  terms of the MIT License as published by the Free Software Foundation. This project is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
+  authors and contributors of eth-abi, eth-account, eth-hash，eth-keys, eth-typing, eth-utils,
+  rlp, eth-rlp , hexbytes ... and relative projects
   @author: kentzhang
   @date: 2019-06
 '''
@@ -13,10 +16,8 @@ import argparse
 import sys
 import shutil
 import time
-import traceback
 import glob
 from client.stattool import StatTool
-from configobj import ConfigObj
 from client_config import client_config
 from eth_account.account import (
     Account
@@ -31,7 +32,6 @@ import os
 from client.datatype_parser import DatatypeParser
 from eth_utils import to_checksum_address
 import argcomplete
-from argcomplete import warn
 
 # --------------------------------------------------------------------------------------------
 # useful functions
@@ -57,7 +57,7 @@ def fill_params(params, paramsname):
 def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
     print("\nINFO >>  receipt logs : ")
     # 解析receipt里的log
-    if parser == None and len(contractname) > 0:
+    if parser is None and len(contractname) > 0:
         parser = DatatypeParser(default_abi_file(contractname))
     logresult = parser.parse_event_logs(receipt["logs"])
     i = 0
@@ -93,7 +93,8 @@ def format_args_by_abi(inputparams, inputabi):
             try:
                 paramformatted.append(to_checksum_address(param))
             except Exception as e:
-                print("ERROR >> covert {} to to_checksum_address failed".format(param))
+                print(("ERROR >> covert {} to to_checksum_address failed,"
+                       " exception: {}").format(param, e))
                 sys.exit(1)
             continue
         paramformatted.append(param)
@@ -128,7 +129,7 @@ def format_args_by_types(inputparams, types):
 
 
 def print_parse_transaction(tx, contractname, parser=None):
-    if parser == None:
+    if parser is None:
         parser = DatatypeParser(default_abi_file(contractname))
     inputdata = tx["input"]
     inputdetail = parser.parse_transaction_input(inputdata)
@@ -176,13 +177,16 @@ def common_cmd():
     getcmds["getNodeIDList"] = []
     getcmds["getGroupList"] = []
     getcmds["getBlockByHash"] = [["str", "bool"],
-                                 "hash : 区块Hash(hash string),是否查询交易数据(true/false for with transaction data)"]
+                                 ("hash : 区块Hash(hash string), "
+                                  "是否查询交易数据(true/false for with transaction data)")]
     getcmds["getBlockByNumber"] = [["hex", "bool"],
-                                   "number bool : 区块高度(number),是否查询交易数据(true/false for with transaction data)"]
+                                   ("number bool : 区块高度(number), "
+                                    "是否查询交易数据(true/false for with transaction data)")]
     getcmds["getBlockHashByNumber"] = [["hex"], "number : 区块高度(number)"]
     getcmds["getTransactionByHash"] = [["str"], "hash : 交易Hash(hash string)"]
     getcmds["getTransactionByBlockHashAndIndex"] = [["str", "hex"],
-                                                    "blockhash index : 区块Hash(hash string), 交易在区块里的位置(index)"]
+                                                    ("blockhash index :"
+                                                     " 区块Hash(hash string), 交易在区块里的位置(index)")]
     getcmds["getTransactionByBlockNumberAndIndex"] = [
         ["hex", "hex"], "blocknumber index : 区块高度(number),交易在区块里的位置(index)"]
     getcmds["getTransactionReceipt"] = [["str"], "hash: 交易hash(hash string)"]
@@ -190,7 +194,8 @@ def common_cmd():
     getcmds["getPendingTxSize"] = []
     getcmds["getCode"] = ["str"]
     getcmds["getTotalTransactionCount"] = []
-    getcmds["getSystemConfigByKey"] = [["str"], "name : 配置参数名(system param name),eg:tx_count_limit"]
+    getcmds["getSystemConfigByKey"] = [["str"], ("name : 配置参数名"
+                                                 "(system param name),eg:tx_count_limit")]
     return getcmds
 
 
@@ -221,19 +226,21 @@ def usage(client_config):
     generate usage list
     """
     usagemsg = []
-    usagemsg.append('''newaccount [name] [password] [save]
+    usagemsg.append(('''newaccount [name] [password] [save]
         创建一个新帐户，参数为帐户名(如alice,bob)和密码
         结果加密保存在配置文件指定的帐户目录 *如同目录下已经有同名帐户文件，旧文件会复制一个备份
         如输入了"save"参数在最后，则不做询问直接备份和写入
-        create a new account ,save to :[{}] (default) , the path in client_config.py:[account_keyfile_path]
+        create a new account ,save to :[{}] (default) ,
+        the path in client_config.py:[account_keyfile_path]
         if account file has exist ,then old file will save to a backup
-        if "save" arg follows,then backup file and write new without ask'''
+        if "save" arg follows,then backup file and write new without ask''')
                     .format(client_config.account_keyfile_path))
     usagemsg.append('''showaccount [name] [password]
         指定帐户名字(不带后缀)和密码，打开配置文件里默认账户文件路径下的[name].keystore文件，打印公私钥和地址
         ''')
     usagemsg.append('''deploy [contract_binary_file] [save]
-        部署合约,合约来自编译后的bin文件（部署命令为了审慎起见，需要指定bin文件的全路径）。如给出'save'参数，新地址会写入本地记录文件
+        部署合约,合约来自编译后的bin文件（部署命令为了审慎起见，需要指定bin文件的全路径）。
+        如给出'save'参数，新地址会写入本地记录文件
         ndeploy contract from a binary file,eg: deploy contracts/SimpleInfo.bin
         if 'save' in args, so save address to file''')
 
@@ -248,19 +255,21 @@ def usage(client_config):
     usagemsg.append('''sendtx [contractname]  [address] [func] [args...]
         发送交易调用指定合约的接口，交易如成功，结果会写入区块和状态
         send transaction,will commit to blockchain if success
-        eg: sendtx SimpleInfo 0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC set alice 100 0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC
+        eg: sendtx SimpleInfo 0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC
+        set alice 100 0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC
         if address is "last" ,then load last address from :{}
         eg: sendtx SimpleInfo last set 'test' 100 '0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC'
         '''.format(client_config.contract_info_file))
 
     usagemsg.append('''all the 'get' command for JSON RPC
         各种get接口，查询节点的各种状态（不一一列出，可用list指令查看接口列表和参数名）
-        neg: [getBlockByNumber 10 true]. 
+        neg: [getBlockByNumber 10 true].
         use 'python console.py list' to show all get cmds ''')
 
     usagemsg.append('''list
         列出所有支持的get接口名和参数
-        list: list all  getcmds  has implemented (getBlock...getTransaction...getReceipt..getOthers)''')
+        list: list all  getcmds  has implemented
+        (getBlock...getTransaction...getReceipt..getOthers)''')
 
     usagemsg.append('''int [hex number]
         输入一个十六进制的数字，转为十进制（考虑到json接口里很多数字都是十六进制的，所以提供这个功能）
@@ -273,7 +282,8 @@ def usage(client_config):
     usagemsg.append('''checkaddr [address]
         将普通地址转为自校验地址,自校验地址使用时不容易出错
         change address to checksum address according EIP55:
-        to_checksum_address: 0xf2c07c98a6829ae61f3cb40c69f6b2f035dd63fc -> 0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC
+        to_checksum_address: 0xf2c07c98a6829ae61f3cb40c69f6b2f035dd63fc
+        -> 0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC
         ''')
     return usagemsg
 
@@ -451,7 +461,8 @@ def main(argv):
                     else:
                         forcewrite = False
                         print(
-                            "SKIP write new account to file,use exists account for [{}]".format(name))
+                            '''SKIP write new account to file,
+                            use exists account for [{}]'''.format(name))
                 # forcewrite ,so do backup job
                 if(forcewrite):
                     filestat = os.stat(keyfile)
@@ -503,7 +514,8 @@ def main(argv):
                     print("address save to file: ", client_config.contract_info_file)
             else:
                 print(
-                    "\nNOTE : if want to save new address as last address for (call/sendtx)\nadd 'save' to cmdline and run again")
+                    '''\nNOTE : if want to save new address as last
+                    address for (call/sendtx)\nadd 'save' to cmdline and run again''')
             sys.exit(0)
 
         # --------------------------------------------------------------------------------------------
@@ -520,7 +532,7 @@ def main(argv):
             address = params["address"]
             if address == "last":
                 address = ContractNote.get_last(contractname)
-                if address == None:
+                if address is None:
                     sys.exit("can not get last address for [{}],break;".format(contractname))
             funcname = params["func"]
             inputabi = data_parser.func_abi_map_by_name[funcname]["inputs"]
@@ -544,13 +556,14 @@ def main(argv):
             address = params["address"]
             if address == "last":
                 address = ContractNote.get_last(contractname)
-                if address == None:
+                if address is None:
                     sys.exit("\ncan not get last address for [{}],break;\n".format(contractname))
             funcname = params["func"]
             inputabi = data_parser.func_abi_map_by_name[funcname]["inputs"]
             args = format_args_by_abi(args, inputabi)
-            #from eth_utils import to_checksum_address
-            #args = ['simplename', 2024, to_checksum_address('0x7029c502b4F824d19Bd7921E9cb74Ef92392FB1c')]
+            # from eth_utils import to_checksum_address
+            # args = ['simplename', 2024,
+            #        to_checksum_address('0x7029c502b4F824d19Bd7921E9cb74Ef92392FB1c')]
             print("sendtx {} , address: {}, func: {}, args:{}"
                   .format(contractname, address, funcname, args))
             receipt = client.sendRawTransactionGetReceipt(
@@ -570,7 +583,10 @@ def main(argv):
                 # make a default for getBlockBy...
                 if(len(inputparams) == 1):
                     inputparams.append("false")
-                    print("**NOTE >> for getBlockbyNumber/Hash , missing 2nd arg ,defaut (false) gave : withoud retrieve transactions detail.full command,eg: getBlockByNumber 10 true (or false)\n")
+                    print('''**NOTE >> for getBlockbyNumber/Hash ,
+                          missing 2nd arg ,defaut (false) gave :
+                          withoud retrieve transactions detail.
+                          full command,eg: getBlockByNumber 10 true (or false)\n''')
             try:
                 fmtargs = format_args_by_types(inputparams, types)
             except Exception as e:
@@ -580,7 +596,7 @@ def main(argv):
                     memo = " {} ".format(cmdinfo[1])
                 print("WARN >> args not match,should be : {} {},break\n".format(cmd, memo))
                 sys.exit("WARN >> please try again...")
-            #print("is a get :{},params:{}".format(cmd,fmtargs) )
+            # print("is a get :{},params:{}".format(cmd,fmtargs) )
             params = [client.groupid]
             params.extend(fmtargs)
             # print(params)
@@ -629,7 +645,7 @@ def main(argv):
                     abifile = inputparams[2]
                 if len(inputparams) == 2 and cmd == "getTransactionByHash":
                     abifile = inputparams[1]
-                if abifile != None:
+                if abifile is not None:
                     print_parse_transaction(result, abifile)
 
         # --------------------------------------------------------------------------------------------
@@ -642,9 +658,9 @@ def main(argv):
                 hint = "无参数(no args)"
                 if len(getcmds[cmd]) == 2:
                     hint = getcmds[cmd][1]
-                i = i+1
+                i = i + 1
                 print("{} ): {}\t{}".format(i, cmd, hint))
-                print("----------------------------------------------------------------------------------------")
+                print("--------------------------------------------------------------------")
 
         # --------------------------------------------------------------------------------------------
         # console cmd entity
@@ -686,7 +702,7 @@ def main(argv):
             print("console cmd  [{}]  not implement yet,see the usage\n".format(cmd))
     finally:
         client.finish()
-        #print(">--- console for FISCO-BCOS® 2.0 2019 ---<")
+        # print(">--- console for FISCO-BCOS® 2.0 2019 ---<")
 
 
 if __name__ == "__main__":

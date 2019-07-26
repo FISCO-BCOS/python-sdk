@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/FISCO-BCOS)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Free Software Foundation
-  This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-  Thanks for authors and contributors of eth-abi，eth-account，eth-hash，eth-keys，eth-typing，eth-utils，rlp, eth-rlp , hexbytes ...and relative projects
+  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  terms of the MIT License as published by the Free Software Foundation. This project is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
+  authors and contributors of eth-abi, eth-account, eth-hash，eth-keys, eth-typing, eth-utils,
+  rlp, eth-rlp , hexbytes ... and relative projects
   @author: kentzhang
   @date: 2019-06
 '''
@@ -15,10 +18,7 @@ from client.bcosclient import (
     BcosError
 )
 from client.stattool import StatTool
-import os
-from eth_utils import to_checksum_address
 from client.datatype_parser import DatatypeParser
-import time
 client = BcosClient()
 info = client.getinfo()
 print("client info:", info)
@@ -97,5 +97,5 @@ print("getGroupList", client.getGroupList())
 stat.done()
 reqcount = next(client.request_counter)
 print("demo get finish, total request {},usedtime {},avgtime:{}".format(
-    reqcount, stat.time_used, (stat.time_used/reqcount)))
+    reqcount, stat.time_used, (stat.time_used / reqcount)))
 client.finish()

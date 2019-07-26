@@ -3,36 +3,32 @@
 
 '''
   bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Free Software Foundation
-  This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-  Thanks for authors and contributors of eth-abi，eth-account，eth-hash，eth-keys，eth-typing，eth-utils，rlp, eth-rlp , hexbytes ...and relative projects
+  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  terms of the MIT License as published by the Free Software Foundation. This project is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
+  authors and contributors of eth-abi, eth-account, eth-hash，eth-keys, eth-typing, eth-utils,
+  rlp, eth-rlp , hexbytes ... and relative projects
   @author: kentzhang
   @date: 2019-06
+  channel protocol ref:
+  https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage
 '''
-
-'''
-channel protocol ref: 
-https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage
-'''
-
-
-
 
 import queue
 import threading
 from queue import Empty
-import traceback
 import time
-import json
-import uuid
 import itertools
 import ssl
 import socket
 from client.channelpack import ChannelPack
-from client.stattool import  StatTool
+from client.stattool import StatTool
 from utils.encoding import FriendlyJsonSerde
 from client.bcoserror import BcosError
-from eth_utils import (to_dict, to_text, to_bytes)
+from eth_utils import (to_text, to_bytes)
+
+
 class ChannelHandler:
     context = None
     CA_File = None
@@ -112,7 +108,7 @@ class ChannelHandler:
         stat = StatTool.begin()
         rpc_data = self.encode_rpc_request(method, params)
         self.logger.debug("request rpc_data : {}".format(rpc_data))
-        #print("request rpc_data", rpc_data)
+        # print("request rpc_data", rpc_data)
         request_pack = ChannelPack(type, ChannelPack.make_seq32(), 0, rpc_data)
 
         res = self.send_pack(request_pack)
@@ -123,18 +119,19 @@ class ChannelHandler:
                 theQueue = self.recvThread.getQueue(ChannelPack.TYPE_RPC)
                 responsepack = theQueue.get(block=True, timeout=3)  # pop msg from queue
             except Empty as e:
+                self.logger.warn("empty response, error information: {}".format(e))
                 continue
-            #print("got a pack from queue, detail:{}".format(responsepack.detail()))
+            # print("got a pack from queue, detail:{}".format(responsepack.detail()))
             self.logger.debug("got a pack from queue, detail:{}".format(responsepack.detail()))
             if responsepack.type == ChannelPack.TYPE_RPC and responsepack.seq == request_pack.seq:
                 responsematch = True
                 break
             else:
-                #print("*******SKIP!!!! pack ", responsepack.detail())
+                # print("*******SKIP!!!! pack ", responsepack.detail())
                 self.logger.debug("*******SKIP!!!! pack {}".format(responsepack.detail()))
                 responsepack = None
                 continue
-        if responsematch == False:
+        if responsematch is False:
             raise BcosError(102, None, "timeout")
 
         result = responsepack.result
@@ -151,7 +148,7 @@ class ChannelHandler:
         stat.debug("make_request:{}".format(method))
         self.logger.debug("GetResponse. %s, Response: %s",
                           method, response)
-        #print("response from server:",response)
+        # print("response from server:",response)
         self.logger.debug("response from server: {}".format(response))
         if "result" not in response:
             tempresp = dict()
@@ -189,7 +186,7 @@ class ChannelRecvThread(threading.Thread):
 
     def __init__(self, handler, name="ChannelRecvThread"):
         threading.Thread.__init__(self)
-        #self.threadID = threadID
+        # self.threadID = threadID
         self.name = name
         self.channelHandler = handler
         self.logger = handler.logger
@@ -199,12 +196,12 @@ class ChannelRecvThread(threading.Thread):
     def read_channel(self):
         # 接收服务端返回的信息
         try:
-            #print("channelHandler.ssock.recv begin.")
+            # print("channelHandler.ssock.recv begin.")
             self.logger.debug("{} channelHandler.ssock.recv begin.".format(self.name))
             msg = self.channelHandler.ssock.recv(1024 * 10)
-            #print("channelHandler.ssock.recv len:{},{}".format(len(msg),msg))
+            # print("channelHandler.ssock.recv len:{},{}".format(len(msg),msg))
             self.logger.debug("channelHandler.ssock.recv len:{},{}".format(len(msg), msg))
-            if msg == None:
+            if msg is None:
                 return -1
             if len(msg) == 0:
                 return 0
@@ -218,13 +215,14 @@ class ChannelRecvThread(threading.Thread):
 
         code = 0
         # decode all packs in buffer from node,maybe got N packs on one read
-        while code != -1:  # -1 means no enough bytes for decode, should break to  continue read and wait
+        # -1 means no enough bytes for decode, should break to  continue read and wait
+        while code != -1:
             (code, decodelen, responsePack) = ChannelPack.unpack(bytes(self.respbuffer))
             if decodelen > 0:
                 # cut the buffer from last decode  pos
                 self.respbuffer = self.respbuffer[decodelen:]
-            if code != -1 and responsePack != None:  # got a pack
-                #print("get a pack from node, put to queue {}".format(responsePack.detail()))
+            if code != -1 and responsePack is not None:  # got a pack
+                # print("get a pack from node, put to queue {}".format(responsePack.detail()))
                 theQueue = self.getQueue(responsePack.type)
                 self.logger.debug("{}:pack from node, put queue(qsize{}),detail {}".format(
                     self.name, theQueue.qsize(), responsePack.detail()))
@@ -247,16 +245,16 @@ class ChannelRecvThread(threading.Thread):
 
     def run(self):
         lockres = ChannelRecvThread.threadLock.acquire(blocking=False)
-        if(lockres == False):  # other thread has got the lock and running
-            #print(self.name+":other thread has got the lock and running ")
-            self.logger.error(self.name+":other thread has got the lock and running ")
+        if lockres is False:  # other thread has got the lock and running
+            # print(self.name + ":other thread has got the lock and running ")
+            self.logger.error(self.name + ":other thread has got the lock and running ")
             return
         try:
             self.keepWorking = True
-            self.logger.debug(self.name+":start thread-->")
+            self.logger.debug(self.name + ":start thread-->")
             while self.keepWorking:
                 bytesread = self.read_channel()
-                if self.keepWorking == False:
+                if self.keepWorking is False:
                     break
                 if bytesread == 0:  # if async read, maybe return 0
                     time.sleep(0.1)
@@ -313,21 +311,22 @@ class ChannelSendThread(threading.Thread):
 
     def run(self):
         lockres = ChannelSendThread.threadLock.acquire(blocking=False)
-        if(lockres == False):  # other thread has got the lock and running
-            print(self.name+":other thread has got the lock and running ")
+        if lockres is False:  # other thread has got the lock and running
+            print(self.name + ":other thread has got the lock and running ")
             return
         try:
             self.keepWorking = True
-            self.logger.debug(self.name+":start thread-->")
+            self.logger.debug(self.name + ":start thread-->")
             while self.keepWorking:
                 try:
                     pack = self.packQueue.get(block=True, timeout=0.2)
                 except Empty as e:
+                    self.logger.debug("the queue is empyt, info {}".format(e))
                     self.check_heatbeat()
                     continue
                 self.lastheatbeattime = time.time()  # reset heatbeat time
                 self.logger.debug("{} send pack {}".format(self.name, pack.detail()))
-                #print("{} send pack {}".format(self.name,pack.detail()))
+                # print("{} send pack {}".format(self.name,pack.detail()))
                 buffer = pack.pack()
                 try:
                     res = self.channelHandler.ssock.send(buffer)

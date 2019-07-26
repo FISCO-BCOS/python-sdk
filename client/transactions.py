@@ -10,9 +10,6 @@ from cytoolz import (
     partial,
     pipe,
 )
-from eth_rlp import (
-    HashableRLP,
-)
 from eth_rlp.HashableRLP import (
     HashableRLP
 )

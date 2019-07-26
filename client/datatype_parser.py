@@ -1,25 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/FISCO-BCOS)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Free Software Foundation
-  This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-  Thanks for authors and contributors of eth-abi，eth-account，eth-hash，eth-keys，eth-typing，eth-utils，rlp, eth-rlp , hexbytes ...and relative projects
+  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  terms of the MIT License as published by the Free Software Foundation. This project is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
+  authors and contributors of eth-abi, eth-account, eth-hash，eth-keys, eth-typing, eth-utils,
+  rlp, eth-rlp , hexbytes ... and relative projects
   @author: kentzhang
   @date: 2019-06
 '''
 
 # codec for abi,block,transaction,receipt,logs
 import json
-from eth_abi import(
-    encode_single,
-    encode_abi,
-    decode_single,
-    decode_abi
-)
-from eth_utils.abi import (
-    collapse_if_tuple,
-)
+from eth_abi import decode_single
 from eth_utils import (
     function_signature_to_4byte_selector,
     event_abi_to_log_topic,
@@ -28,13 +23,8 @@ from eth_utils import (
 from utils.abi import (
     filter_by_type,
     abi_to_signature,
-    get_abi_output_types,
-    get_fn_abi_types,
     get_fn_abi_types_single,
-    exclude_indexed_event_inputs,
-    exclude_indexed_event_inputs_to_abi,
-    exclude_indexed_event_inputs_to_single,
-    data_tree_map)
+    exclude_indexed_event_inputs_to_single)
 
 
 class DatatypeParser:
@@ -44,7 +34,7 @@ class DatatypeParser:
     event_abi_map = dict()
 
     def __init__(self, abi_file=None):
-        if abi_file != None:
+        if abi_file is not None:
             self.load_abi_file(abi_file)
 
     def from_text(self, abitext):
@@ -74,7 +64,7 @@ class DatatypeParser:
             selector = function_signature_to_4byte_selector(signature)
             # print(func)
             # print(signature)
-            #print(encode_hex(selector) )
+            # print(encode_hex(selector) )
             self.func_abi_map_by_selector[encode_hex(selector)] = func
             self.func_abi_map_by_name[func['name']] = func
 
@@ -82,7 +72,7 @@ class DatatypeParser:
         for event in eventlist:
             topic = event_abi_to_log_topic(event)
             # print(event)
-            #print(encode_hex(topic) )
+            # print(encode_hex(topic) )
             self.event_abi_map[encode_hex(topic)] = event
 
     # 用于receipt，解析eventlog数组，在原数据中增加解析后的 eventname，eventdata两个数据
@@ -96,9 +86,9 @@ class DatatypeParser:
                 continue
             eventabi = self.event_abi_map[topic]
             # print(eventabi)
-            if(eventabi == None):
+            if eventabi is None:
                 continue
-            #args_abi = get_fn_abi_types(eventabi,'inputs')
+            # args_abi = get_fn_abi_types(eventabi,'inputs')
             argslist = exclude_indexed_event_inputs_to_single(eventabi)
             # print(argslist)
             result = decode_single(argslist, decode_hex(log['data']))
@@ -140,5 +130,5 @@ class DatatypeParser:
     def get_func_signature(self, name):
         if(name not in self.func_abi_map_by_name):
             return None
-        abi = self.func_abi_map_by_name[name]
+        # abi = self.func_abi_map_by_name[name]
         return abi_to_signature(name)
