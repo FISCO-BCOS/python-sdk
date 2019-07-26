@@ -114,7 +114,7 @@ TRANSACTION_FORMATTERS = {
     'data': hexstr_if_str(to_bytes),
     'fiscoChainId': hexstr_if_str(to_int),
     'groupId': hexstr_if_str(to_int),
-    'extraData':hexstr_if_str(to_bytes),
+    'extraData': hexstr_if_str(to_bytes),
     'v': hexstr_if_str(to_int),
     'r': hexstr_if_str(to_int),
     's': hexstr_if_str(to_int),

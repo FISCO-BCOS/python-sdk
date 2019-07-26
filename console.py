@@ -33,156 +33,169 @@ from eth_utils import to_checksum_address
 import argcomplete
 from argcomplete import warn
 
-#--------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 # useful functions
-#--------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
+
+
 def default_abi_file(contractname):
-        abi_file = contractname
-        if not abi_file.endswith(".abi"): #default from contracts/xxxx.abi,if only input a name
-            abi_file = contracts_dir + "/" + contractname + ".abi"
-        return abi_file
-
-def fill_params(params,paramsname):
-        index = 0
-        result=dict()
-        for name in paramsname:
-            result[name]=params[index]
-            index+=1
-        return result
-    
-
-def print_receipt_logs_and_txoutput(client, receipt,contractname,parser=None):
-        print("\nINFO >>  receipt logs : ")
-        # 解析receipt里的log
-        if parser == None and len(contractname) > 0:
-            parser = DatatypeParser(default_abi_file(contractname))
-        logresult = parser.parse_event_logs(receipt["logs"])
-        i = 0
-        for log in logresult:
-            if 'eventname' in log:
-                i = i + 1
-                print("{}): log name: {} , data: {}".format(i, log['eventname'], log['eventdata']))
-        txhash = receipt["transactionHash"]
-        txresponse = client.getTransactionByHash(txhash)
-        inputdetail = print_parse_transaction(txresponse, "", parser)
-        # 解析该交易在receipt里输出的output,即交易调用的方法的return值
-        outputresult = parser.parse_receipt_output(inputdetail['name'], receipt['output'])
-        print("receipt output :", outputresult)
-
-def format_args_by_abi(inputparams,inputabi):
-        paramformatted = []
-        index=-1
-        #print(inputabi)
-        #print(inputparams)
-        for input in inputabi:
-            #print(input)
-            index +=1
-            param = inputparams[index]
-            if '\'' in param:
-                param = param.replace('\'',"")
-            if "int" in input["type"]:
-                paramformatted.append(int(param,10))
-                continue
-            #print(input)
-            if "address" in input["type"]:
-                print ("to checksum address ",param)
-                try:
-                    paramformatted.append(to_checksum_address(param))
-                except Exception as e:
-                    print("ERROR >> covert {} to to_checksum_address failed".format(param))
-                    sys.exit(1)            
-                continue
-            paramformatted.append(param)
-        print("INFO >> param formatted by abi:",paramformatted)
-        return paramformatted
-
-def format_args_by_types(inputparams,types):
-        index = -1;
-        newparam=[]
-        #print(types)
-        for type in types:
-            index += 1
-            v = inputparams[index]
-            if type=="str":
-                if '\'' in v:
-                    v = v.replace('\'','')
-                newparam.append(v)
-                continue
-            if type=="hex":
-                newparam.append(hex(int(v,10)))
-                continue
-            if type=="bool":
-                if v.lower()=="true":
-                    newparam.append(True)
-                else:
-                    newparam.append(False)
-
-                continue
-        #print(newparam)
-        return newparam
+    abi_file = contractname
+    if not abi_file.endswith(".abi"):  # default from contracts/xxxx.abi,if only input a name
+        abi_file = contracts_dir + "/" + contractname + ".abi"
+    return abi_file
 
 
-def print_parse_transaction(tx,contractname,parser=None):
-        if parser == None:
-            parser = DatatypeParser(default_abi_file(contractname) )
-        inputdata = tx["input"]
-        inputdetail = parser.parse_transaction_input(inputdata)
-        print("INFO >> transaction hash : ", tx["hash"])
-        print("tx input data detail:\n {}".format(inputdetail))
-        return (inputdetail)
+def fill_params(params, paramsname):
+    index = 0
+    result = dict()
+    for name in paramsname:
+        result[name] = params[index]
+        index += 1
+    return result
+
+
+def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
+    print("\nINFO >>  receipt logs : ")
+    # 解析receipt里的log
+    if parser == None and len(contractname) > 0:
+        parser = DatatypeParser(default_abi_file(contractname))
+    logresult = parser.parse_event_logs(receipt["logs"])
+    i = 0
+    for log in logresult:
+        if 'eventname' in log:
+            i = i + 1
+            print("{}): log name: {} , data: {}".format(i, log['eventname'], log['eventdata']))
+    txhash = receipt["transactionHash"]
+    txresponse = client.getTransactionByHash(txhash)
+    inputdetail = print_parse_transaction(txresponse, "", parser)
+    # 解析该交易在receipt里输出的output,即交易调用的方法的return值
+    outputresult = parser.parse_receipt_output(inputdetail['name'], receipt['output'])
+    print("receipt output :", outputresult)
+
+
+def format_args_by_abi(inputparams, inputabi):
+    paramformatted = []
+    index = -1
+    # print(inputabi)
+    # print(inputparams)
+    for input in inputabi:
+        # print(input)
+        index += 1
+        param = inputparams[index]
+        if '\'' in param:
+            param = param.replace('\'', "")
+        if "int" in input["type"]:
+            paramformatted.append(int(param, 10))
+            continue
+        # print(input)
+        if "address" in input["type"]:
+            print("to checksum address ", param)
+            try:
+                paramformatted.append(to_checksum_address(param))
+            except Exception as e:
+                print("ERROR >> covert {} to to_checksum_address failed".format(param))
+                sys.exit(1)
+            continue
+        paramformatted.append(param)
+    print("INFO >> param formatted by abi:", paramformatted)
+    return paramformatted
+
+
+def format_args_by_types(inputparams, types):
+    index = -1
+    newparam = []
+    # print(types)
+    for type in types:
+        index += 1
+        v = inputparams[index]
+        if type == "str":
+            if '\'' in v:
+                v = v.replace('\'', '')
+            newparam.append(v)
+            continue
+        if type == "hex":
+            newparam.append(hex(int(v, 10)))
+            continue
+        if type == "bool":
+            if v.lower() == "true":
+                newparam.append(True)
+            else:
+                newparam.append(False)
+
+            continue
+    # print(newparam)
+    return newparam
+
+
+def print_parse_transaction(tx, contractname, parser=None):
+    if parser == None:
+        parser = DatatypeParser(default_abi_file(contractname))
+    inputdata = tx["input"]
+    inputdetail = parser.parse_transaction_input(inputdata)
+    print("INFO >> transaction hash : ", tx["hash"])
+    print("tx input data detail:\n {}".format(inputdetail))
+    return (inputdetail)
 
 
 def check_result(result):
-        """
-        check result
-        """
-        if isinstance(result, dict) and 'error' in result.keys():
-            return True
-        return False
+    """
+    check result
+    """
+    if isinstance(result, dict) and 'error' in result.keys():
+        return True
+    return False
+
 
 def get_validcmds():
     """
     get valid cmds
     """
-    validcmds=["showaccount", "newaccount", "deploy", "call", "sendtx", "list", "int", "txinput", "checkaddr", "usage"]
+    validcmds = ["showaccount", "newaccount", "deploy", "call",
+                 "sendtx", "list", "int", "txinput", "checkaddr", "usage"]
     return validcmds
+
 
 def common_cmd():
     """
     common cmd
     """
-    #--------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------
     # console cmd entity
-    #--------------------------------------------------------------------------------------------
-    #用比较通用的方式处理所有getXXX接口，处理少量特例
-    getcmds=dict()
-    getcmds["getNodeVersion"]=[]
-    getcmds["getBlockNumber"]=[]
-    getcmds["getPbftView"]=[]
-    getcmds["getSealerList"]=[]
-    getcmds["getObserverList"]=[]
-    getcmds["getConsensusStatus"]=[]
-    getcmds["getSyncStatus"]=[]
-    getcmds["getPeers"]=[]
-    getcmds["getGroupPeers"]=[]
-    getcmds["getNodeIDList"]=[]
-    getcmds["getGroupList"]=[]
-    getcmds["getBlockByHash"]=[["str","bool"],"hash : 区块Hash(hash string),是否查询交易数据(true/false for with transaction data)"]
-    getcmds["getBlockByNumber"]=[["hex","bool"],"number bool : 区块高度(number),是否查询交易数据(true/false for with transaction data)"]
-    getcmds["getBlockHashByNumber"]=[["hex"],"number : 区块高度(number)"]
-    getcmds["getTransactionByHash"]=[["str"],"hash : 交易Hash(hash string)"]
-    getcmds["getTransactionByBlockHashAndIndex"]=[["str","hex"],"blockhash index : 区块Hash(hash string), 交易在区块里的位置(index)"]
-    getcmds["getTransactionByBlockNumberAndIndex"]=[["hex","hex"],"blocknumber index : 区块高度(number),交易在区块里的位置(index)"]
-    getcmds["getTransactionReceipt"]=[["str"],"hash: 交易hash(hash string)"]
-    getcmds["getPendingTransactions"]=[]
-    getcmds["getPendingTxSize"]=[]
-    getcmds["getCode"]=["str"]
-    getcmds["getTotalTransactionCount"]=[]
-    getcmds["getSystemConfigByKey"]=[["str"],"name : 配置参数名(system param name),eg:tx_count_limit"]
+    # --------------------------------------------------------------------------------------------
+    # 用比较通用的方式处理所有getXXX接口，处理少量特例
+    getcmds = dict()
+    getcmds["getNodeVersion"] = []
+    getcmds["getBlockNumber"] = []
+    getcmds["getPbftView"] = []
+    getcmds["getSealerList"] = []
+    getcmds["getObserverList"] = []
+    getcmds["getConsensusStatus"] = []
+    getcmds["getSyncStatus"] = []
+    getcmds["getPeers"] = []
+    getcmds["getGroupPeers"] = []
+    getcmds["getNodeIDList"] = []
+    getcmds["getGroupList"] = []
+    getcmds["getBlockByHash"] = [["str", "bool"],
+                                 "hash : 区块Hash(hash string),是否查询交易数据(true/false for with transaction data)"]
+    getcmds["getBlockByNumber"] = [["hex", "bool"],
+                                   "number bool : 区块高度(number),是否查询交易数据(true/false for with transaction data)"]
+    getcmds["getBlockHashByNumber"] = [["hex"], "number : 区块高度(number)"]
+    getcmds["getTransactionByHash"] = [["str"], "hash : 交易Hash(hash string)"]
+    getcmds["getTransactionByBlockHashAndIndex"] = [["str", "hex"],
+                                                    "blockhash index : 区块Hash(hash string), 交易在区块里的位置(index)"]
+    getcmds["getTransactionByBlockNumberAndIndex"] = [
+        ["hex", "hex"], "blocknumber index : 区块高度(number),交易在区块里的位置(index)"]
+    getcmds["getTransactionReceipt"] = [["str"], "hash: 交易hash(hash string)"]
+    getcmds["getPendingTransactions"] = []
+    getcmds["getPendingTxSize"] = []
+    getcmds["getCode"] = ["str"]
+    getcmds["getTotalTransactionCount"] = []
+    getcmds["getSystemConfigByKey"] = [["str"], "name : 配置参数名(system param name),eg:tx_count_limit"]
     return getcmds
 
+
 def check_cmd(cmd, validcmds, common_cmd):
-    if (cmd not in validcmds) and  (cmd not in common_cmd):
+    if (cmd not in validcmds) and (cmd not in common_cmd):
         print("console cmd  [{}]  not implement yet,see the usage\n".format(cmd))
         return False
     return True
@@ -199,8 +212,9 @@ def printusage(usagemsg):
         ''')
     index = 0
     for msg in usagemsg:
-        index+=1
-        print("{}): {}\n".format(index,msg) )
+        index += 1
+        print("{}): {}\n".format(index, msg))
+
 
 def usage(client_config):
     """
@@ -214,7 +228,7 @@ def usage(client_config):
         create a new account ,save to :[{}] (default) , the path in client_config.py:[account_keyfile_path]
         if account file has exist ,then old file will save to a backup
         if "save" arg follows,then backup file and write new without ask'''
-                        .format(client_config.account_keyfile_path))
+                    .format(client_config.account_keyfile_path))
     usagemsg.append('''showaccount [name] [password]
         指定帐户名字(不带后缀)和密码，打开配置文件里默认账户文件路径下的[name].keystore文件，打印公私钥和地址
         ''')
@@ -263,11 +277,13 @@ def usage(client_config):
         ''')
     return usagemsg
 
+
 contracts_dir = "contracts"
 # get supported command
 validcmds = get_validcmds()
 getcmds = common_cmd()
 allcmds = validcmds + [*getcmds.keys()]
+
 
 def get_functions_by_contract(contract_name):
     """
@@ -276,11 +292,13 @@ def get_functions_by_contract(contract_name):
     data_parser = DatatypeParser(default_abi_file(contract_name))
     return [*data_parser.func_abi_map_by_name.keys()]
 
+
 def list_address(contract_name):
     """
     get address according to contract_name
     """
     return ContractNote.get_contract_addresses(contract_name)
+
 
 def list_contracts_bin():
     """
@@ -290,15 +308,17 @@ def list_contracts_bin():
     contracts_bin = [f for f in glob.glob(contracts_bin_path)]
     return contracts_bin
 
+
 def list_api(file_pattern):
     """
     return list according to file_pattern
     """
     file_list = [f for f in glob.glob(file_pattern)]
-    targets=[]
+    targets = []
     for file in file_list:
         targets.append(os.path.basename(file).split(".")[0])
     return targets
+
 
 def list_contracts():
     """
@@ -306,11 +326,13 @@ def list_contracts():
     """
     return list_api(contracts_dir + "/*.bin")
 
+
 def list_accounts():
     """
     list all accounts
     """
     return list_api("bin/accounts/*.keystore")
+
 
 def completion(prefix, parsed_args, **kwargs):
     """
@@ -321,10 +343,10 @@ def completion(prefix, parsed_args, **kwargs):
     # deploy contract
     if parsed_args.cmd[0] == "deploy":
         return list_contracts_bin()
-    
+
     # call and sendtx
-    #warn(parsed_args)
-    if parsed_args.cmd[0] == "call" or parsed_args.cmd[0] == "sendtx" :
+    # warn(parsed_args)
+    if parsed_args.cmd[0] == "call" or parsed_args.cmd[0] == "sendtx":
         # only list the contract name
         if len(parsed_args.cmd) == 1:
             return list_contracts()
@@ -334,29 +356,30 @@ def completion(prefix, parsed_args, **kwargs):
         # list functions
         if len(parsed_args.cmd) == 3:
             return get_functions_by_contract(parsed_args.cmd[1])
-    
+
     # call showaccount
     if parsed_args.cmd[0] == "showaccount":
         return list_accounts()
 
     # other interfaces
     return []
-    
+
+
 def parse_commands(argv):
     """
     parse the input command
     """
     # 首先创建一个ArgumentParser对象
-    parser = argparse.ArgumentParser(description='FISCO BCOS 2.0 lite client @python')  
+    parser = argparse.ArgumentParser(description='FISCO BCOS 2.0 lite client @python')
     parsed_args = argparse.Namespace()
-    cmd = parser.add_argument('cmd', nargs="+" ,       # 添加参数
-                        help='the command for console')
+    cmd = parser.add_argument('cmd', nargs="+",       # 添加参数
+                              help='the command for console')
     cmd.completer = completion
-    
-    argcomplete.autocomplete(parser) 
-    args = parser.parse_args() 
-    
-    print("\nINFO >> user input : {}\n".format(args.cmd) )
+
+    argcomplete.autocomplete(parser)
+    args = parser.parse_args()
+
+    print("\nINFO >> user input : {}\n".format(args.cmd))
     cmd = args.cmd[0]
     inputparams = args.cmd[1:]
     return cmd, inputparams
@@ -372,177 +395,179 @@ def main(argv):
     valid = check_cmd(cmd, validcmds, getcmds)
     if valid is False:
         printusage(usage)
-        return    
-    client = BcosClient ()
-    #---------------------------------------------------------------------------
-    #start command functions
+        return
+    client = BcosClient()
+    # ---------------------------------------------------------------------------
+    # start command functions
 
-    #--------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------
     # console cmd entity
-    #--------------------------------------------------------------------------------------------
-    try:       
+    # --------------------------------------------------------------------------------------------
+    try:
         if cmd == 'showaccount':
             name = inputparams[0]
             password = inputparams[1]
             keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
-            print("show account : {}, keyfile:{} ,password {}  ".format(name,keyfile, password))
+            print("show account : {}, keyfile:{} ,password {}  ".format(name, keyfile, password))
             with open(keyfile, "r") as dump_f:
                 keytext = json.load(dump_f)
                 stat = StatTool.begin()
-                privkey = Account.decrypt(keytext,password)
+                privkey = Account.decrypt(keytext, password)
                 stat.done()
-                print("decrypt use time : %.3f s"%(stat.time_used))
+                print("decrypt use time : %.3f s" % (stat.time_used))
                 ac2 = Account.from_key(privkey)
-                print("address:\t",ac2.address)
-                print("privkey:\t",encode_hex(ac2.key))
-                print("pubkey :\t",ac2.publickey)
+                print("address:\t", ac2.address)
+                print("privkey:\t", encode_hex(ac2.key))
+                print("pubkey :\t", ac2.publickey)
                 print("\naccount store in file: [{}]".format(keyfile))
                 print("\n**** please remember your password !!! *****")
-        
-        
-        if cmd == 'newaccount' :
-            name=inputparams[0]
-            password=inputparams[1]
-            print ("starting : {} {} ".format(name,password))
+
+        if cmd == 'newaccount':
+            name = inputparams[0]
+            password = inputparams[1]
+            print("starting : {} {} ".format(name, password))
             ac = Account.create(password)
-            print("new address :\t",ac.address)
-            print("new privkey :\t",encode_hex(ac.key) )
-            print("new pubkey :\t",ac.publickey )
+            print("new address :\t", ac.address)
+            print("new privkey :\t", encode_hex(ac.key))
+            print("new pubkey :\t", ac.publickey)
 
             stat = StatTool.begin()
             kf = Account.encrypt(ac.privateKey, password)
             stat.done()
-            print("encrypt use time : %.3f s"%(stat.time_used))
-            keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path,name)
-            print("save to file : [{}]".format(keyfile) )
+            print("encrypt use time : %.3f s" % (stat.time_used))
+            keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+            print("save to file : [{}]".format(keyfile))
             forcewrite = False
             if not os.access(keyfile, os.F_OK):
                 forcewrite = True
             else:
-                #old file exist,move to backup file first
-                if(len(inputparams)==3 and inputparams[2] == "save"):
+                # old file exist,move to backup file first
+                if(len(inputparams) == 3 and inputparams[2] == "save"):
                     forcewrite = True
                 else:
-                    str = input("INFO >> file [{}] exist , continue (y/n): ".format(keyfile));
+                    str = input("INFO >> file [{}] exist , continue (y/n): ".format(keyfile))
                     if (str.lower() == "y"):
                         forcewrite = True
                     else:
                         forcewrite = False
-                        print("SKIP write new account to file,use exists account for [{}]".format(name))
-                #forcewrite ,so do backup job
+                        print(
+                            "SKIP write new account to file,use exists account for [{}]".format(name))
+                # forcewrite ,so do backup job
                 if(forcewrite):
                     filestat = os.stat(keyfile)
-                    filetime = time.strftime("%Y%m%d%H%M%S", time.localtime(filestat.st_ctime) )
-                    backupfile = "{}.{}".format(keyfile,filetime)
-                    print("backup [{}] to [{}]".format(keyfile,backupfile))
-                    shutil.move(keyfile,backupfile)
+                    filetime = time.strftime("%Y%m%d%H%M%S", time.localtime(filestat.st_ctime))
+                    backupfile = "{}.{}".format(keyfile, filetime)
+                    print("backup [{}] to [{}]".format(keyfile, backupfile))
+                    shutil.move(keyfile, backupfile)
 
             if forcewrite:
                 with open(keyfile, "w") as dump_f:
                     json.dump(kf, dump_f)
                     dump_f.close()
             print(">>-------------------------------------------------------")
-            print("INFO >> read [{}] again after new account,address & keys in file:".format(keyfile))
+            print(
+                "INFO >> read [{}] again after new account,address & keys in file:".format(keyfile))
             with open(keyfile, "r") as dump_f:
                 keytext = json.load(dump_f)
                 stat = StatTool.begin()
-                privkey = Account.decrypt(keytext,password)
+                privkey = Account.decrypt(keytext, password)
                 stat.done()
-                print("decrypt use time : %.3f s"%(stat.time_used))
+                print("decrypt use time : %.3f s" % (stat.time_used))
                 ac2 = Account.from_key(privkey)
-                print("address:\t",ac2.address)
-                print("privkey:\t",encode_hex(ac2.key))
-                print("pubkey :\t",ac2.publickey)
+                print("address:\t", ac2.address)
+                print("privkey:\t", encode_hex(ac2.key))
+                print("pubkey :\t", ac2.publickey)
                 print("\naccount store in file: [{}]".format(keyfile))
                 print("\n**** please remember your password !!! *****")
                 dump_f.close()
 
-
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
-        if cmd=="deploy":
+        # --------------------------------------------------------------------------------------------
+        if cmd == "deploy":
             '''deploy abi bin file'''
-            abibinfile=inputparams[0]
-            with open(abibinfile,"r") as f:
+            abibinfile = inputparams[0]
+            with open(abibinfile, "r") as f:
                 contractbin = f.read()
             result = client.deploy(contractbin)
-            print ("deploy result  for [{}] is:\n {}".format(abibinfile,json.dumps(result,indent=4) ))
+            print("deploy result  for [{}] is:\n {}".format(
+                abibinfile, json.dumps(result, indent=4)))
             name = contractname = os.path.splitext(os.path.basename(abibinfile))[0]
             address = result['contractAddress']
-            blocknum = int(result["blockNumber"],16)
+            blocknum = int(result["blockNumber"], 16)
             ContractNote.save_contract_address(name, address)
-            print("on block : {},address: {} ".format(blocknum,address))
+            print("on block : {},address: {} ".format(blocknum, address))
             if len(inputparams) == 2:
-                if inputparams[1]=="save":
+                if inputparams[1] == "save":
                     ContractNote.save_address(name, address, blocknum)
-                    print("address save to file: ",client_config.contract_info_file)
+                    print("address save to file: ", client_config.contract_info_file)
             else:
-                print("\nNOTE : if want to save new address as last address for (call/sendtx)\nadd 'save' to cmdline and run again")
+                print(
+                    "\nNOTE : if want to save new address as last address for (call/sendtx)\nadd 'save' to cmdline and run again")
             sys.exit(0)
 
-
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
-        if cmd=="call":
+        # --------------------------------------------------------------------------------------------
+        if cmd == "call":
             paramsname = ["contractname", "address", "func"]
-            params = fill_params(inputparams,paramsname)
+            params = fill_params(inputparams, paramsname)
             args = inputparams[len(paramsname):]
             contractname = params["contractname"]
             data_parser = DatatypeParser(default_abi_file(contractname))
             contract_abi = data_parser.contract_abi
 
             address = params["address"]
-            if address=="last":
+            if address == "last":
                 address = ContractNote.get_last(contractname)
                 if address == None:
                     sys.exit("can not get last address for [{}],break;".format(contractname))
-            funcname =params["func"]
+            funcname = params["func"]
             inputabi = data_parser.func_abi_map_by_name[funcname]["inputs"]
-            args = format_args_by_abi(args,inputabi)
-            print ("INFO >> call {} , address: {}, func: {}, args:{}"
-                .format(contractname,address,funcname,args))
-            result = client.call(address,contract_abi,funcname,args)
+            args = format_args_by_abi(args, inputabi)
+            print("INFO >> call {} , address: {}, func: {}, args:{}"
+                  .format(contractname, address, funcname, args))
+            result = client.call(address, contract_abi, funcname, args)
             print("INFO >> call result: {}".format(''.join(result)))
 
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
-        if cmd=="sendtx":
+        # --------------------------------------------------------------------------------------------
+        if cmd == "sendtx":
             paramsname = ["contractname", "address", "func"]
-            params = fill_params(inputparams,paramsname)
+            params = fill_params(inputparams, paramsname)
             args = inputparams[len(paramsname):]
             contractname = params["contractname"]
             data_parser = DatatypeParser(default_abi_file(contractname))
             contract_abi = data_parser.contract_abi
 
             address = params["address"]
-            if address=="last":
+            if address == "last":
                 address = ContractNote.get_last(contractname)
                 if address == None:
                     sys.exit("\ncan not get last address for [{}],break;\n".format(contractname))
             funcname = params["func"]
             inputabi = data_parser.func_abi_map_by_name[funcname]["inputs"]
-            args = format_args_by_abi(args,inputabi)
+            args = format_args_by_abi(args, inputabi)
             #from eth_utils import to_checksum_address
             #args = ['simplename', 2024, to_checksum_address('0x7029c502b4F824d19Bd7921E9cb74Ef92392FB1c')]
-            print ("sendtx {} , address: {}, func: {}, args:{}"
-                .format(contractname,address,funcname,args))
-            receipt = client.sendRawTransactionGetReceipt(address,contract_abi,params["func"],args)
-            print("\n\nsendtx receipt: ",json.dumps(receipt,indent=4) )
-            #解析receipt里的log 和 相关的tx ,output
-            print_receipt_logs_and_txoutput(client, receipt,"",data_parser)
+            print("sendtx {} , address: {}, func: {}, args:{}"
+                  .format(contractname, address, funcname, args))
+            receipt = client.sendRawTransactionGetReceipt(
+                address, contract_abi, params["func"], args)
+            print("\n\nsendtx receipt: ", json.dumps(receipt, indent=4))
+            # 解析receipt里的log 和 相关的tx ,output
+            print_receipt_logs_and_txoutput(client, receipt, "", data_parser)
 
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         if cmd in getcmds:
-            types=[]
+            types = []
             if len(getcmds[cmd]) > 0:
                 types = getcmds[cmd][0]
             if "getBlockBy" in cmd:
-                #make a default for getBlockBy...
+                # make a default for getBlockBy...
                 if(len(inputparams) == 1):
                     inputparams.append("false")
                     print("**NOTE >> for getBlockbyNumber/Hash , missing 2nd arg ,defaut (false) gave : withoud retrieve transactions detail.full command,eg: getBlockByNumber 10 true (or false)\n")
@@ -550,23 +575,23 @@ def main(argv):
                 fmtargs = format_args_by_types(inputparams, types)
             except Exception as e:
                 cmdinfo = getcmds[cmd]
-                memo=" no args"
-                if(len(cmdinfo)==2):
-                    memo =" {} ".format(cmdinfo[1])
-                print("WARN >> args not match,should be : {} {},break\n".format(cmd,memo) )
+                memo = " no args"
+                if(len(cmdinfo) == 2):
+                    memo = " {} ".format(cmdinfo[1])
+                print("WARN >> args not match,should be : {} {},break\n".format(cmd, memo))
                 sys.exit("WARN >> please try again...")
             #print("is a get :{},params:{}".format(cmd,fmtargs) )
             params = [client.groupid]
             params.extend(fmtargs)
-            #print(params)
+            # print(params)
             sendcmd = cmd
-            if cmd=="getNodeVersion": #getNodeVersion is a alias for getClientVersion
+            if cmd == "getNodeVersion":  # getNodeVersion is a alias for getClientVersion
                 sendcmd = "getClientVersion"
-            result  = client.common_request(sendcmd,params)
-            
+            result = client.common_request(sendcmd, params)
+
             # print the message
-            print("INFO >> get result:",json.dumps(result,indent=4))
-            
+            print("INFO >> get result:", json.dumps(result, indent=4))
+
             # if error, return directly
             is_error = check_result(result)
             if is_error is True:
@@ -575,95 +600,94 @@ def main(argv):
             if cmd == "getTransactionReceipt":
                 if len(inputparams) == 2:
                     contractname = inputparams[1]
-                    print_receipt_logs_and_txoutput(client, result,contractname)
+                    print_receipt_logs_and_txoutput(client, result, contractname)
 
             if cmd == "getBlockNumber":
-                print("INFO >> blockNumber:\t{}".format(int(result,16)))
-            
-            # transfer pbftView to Dec 
+                print("INFO >> blockNumber:\t{}".format(int(result, 16)))
+
+            # transfer pbftView to Dec
             if cmd == "getPbftView":
-                print("INFO >> pbftView:\t{}".format(int(result,16)))	    
-            
+                print("INFO >> pbftView:\t{}".format(int(result, 16)))
+
             if cmd == "getPendingTxSize":
-                print("INFO >> pendingTxSize:\t{}".format(int(result,16)))
-                
+                print("INFO >> pendingTxSize:\t{}".format(int(result, 16)))
+
             if cmd == "getTotalTransactionCount":
                 print("INFO >> getTotalTransactionCount: ")
-                print("INFO >> blockNumber:\t{}".format(int(result["blockNumber"],16)))
-                print("INFO >> failedTxSum:\t{}".format(int(result["failedTxSum"],16)))
-                print("INFO >> txSum:\t{}".format(int(result["txSum"],16)))
-                
-            
+                print("INFO >> blockNumber:\t{}".format(int(result["blockNumber"], 16)))
+                print("INFO >> failedTxSum:\t{}".format(int(result["failedTxSum"], 16)))
+                print("INFO >> txSum:\t{}".format(int(result["txSum"], 16)))
+
             if "getBlockBy" in cmd:
-                blocknum = int(result["number"],16)
-                print("INFO >> blocknumber : ",blocknum)
+                blocknum = int(result["number"], 16)
+                print("INFO >> blocknumber : ", blocknum)
                 print("INFO >> blockhash   : ", result["hash"])
-            if "getTransactionBy" in cmd :
-                #print(inputparams)
-                abifile=None
+            if "getTransactionBy" in cmd:
+                # print(inputparams)
+                abifile = None
                 if len(inputparams) == 3:
                     abifile = inputparams[2]
                 if len(inputparams) == 2 and cmd == "getTransactionByHash":
                     abifile = inputparams[1]
-                if abifile!=None:
-                    print_parse_transaction(result,abifile)
+                if abifile != None:
+                    print_parse_transaction(result, abifile)
 
-
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         if cmd == "list":
             i = 0
             print("query commands:")
             for cmd in getcmds:
                 hint = "无参数(no args)"
-                if len(getcmds[cmd])==2:
+                if len(getcmds[cmd]) == 2:
                     hint = getcmds[cmd][1]
-                i=i+1
-                print ("{} ): {}\t{}".format(i,cmd,hint))
+                i = i+1
+                print("{} ): {}\t{}".format(i, cmd, hint))
                 print("----------------------------------------------------------------------------------------")
 
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         if cmd == 'int':
-            print(int(inputparams[0],16))
+            print(int(inputparams[0], 16))
 
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
-        if cmd =="txinput":
+        # --------------------------------------------------------------------------------------------
+        if cmd == "txinput":
             contractname = inputparams[0]
             inputdata = inputparams[1]
-            dataParser = DatatypeParser(default_abi_file(contractname) )
-            #print(dataParser.func_abi_map_by_selector)
+            dataParser = DatatypeParser(default_abi_file(contractname))
+            # print(dataParser.func_abi_map_by_selector)
             result = dataParser.parse_transaction_input(inputdata)
-            print("\nabifile : ",default_abi_file(contractname))
+            print("\nabifile : ", default_abi_file(contractname))
             print("parse result: {}".format(result))
 
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         if cmd == "checkaddr":
             address = inputparams[0]
             result = to_checksum_address(address)
-            print("{} -->\n{}".format(address,result) )
+            print("{} -->\n{}".format(address, result))
 
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------
         if cmd == "usage":
             printusage(usagemsg)
-            
-        #--------------------------------------------------------------------------------------------
+
+        # --------------------------------------------------------------------------------------------
         # console cmd entity
-        #--------------------------------------------------------------------------------------------
-        if (cmd not in validcmds) and  (cmd not in getcmds):
+        # --------------------------------------------------------------------------------------------
+        if (cmd not in validcmds) and (cmd not in getcmds):
             printusage(usagemsg)
             print("console cmd  [{}]  not implement yet,see the usage\n".format(cmd))
     finally:
         client.finish()
         #print(">--- console for FISCO-BCOS® 2.0 2019 ---<")
-    
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -9,9 +9,10 @@
   @date: 2019-06
 '''
 from client_config import client_config
-from configobj import  ConfigObj
+from configobj import ConfigObj
 import time
 import os
+
 
 class ContractNote:
     @staticmethod
@@ -25,26 +26,26 @@ class ContractNote:
 
     @staticmethod
     def save_address(contractname, newaddress, blocknum=None, memo=None):
-        
-        #write to file
+
+        # write to file
         config = ConfigObj(client_config.contract_info_file,
                            encoding='UTF8')
         if 'address' not in config:
             #print("address not in config",config)
-            config['address']={}
+            config['address'] = {}
 
         config['address'][contractname] = newaddress
         #print (config)
-        if blocknum!=None:
+        if blocknum != None:
             if "history" not in config:
-                config["history"]={}
-            timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime());
-            detail="{}:{},block:{}".format(contractname,timestr,blocknum)
-            if memo !=None: #
-                detail="{},{}".format(detail,memo)
+                config["history"] = {}
+            timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            detail = "{}:{},block:{}".format(contractname, timestr, blocknum)
+            if memo != None:
+                detail = "{},{}".format(detail, memo)
             config["history"][newaddress] = detail
         config.write()
-        
+
     @staticmethod
     def save_contract_address(contract_name, newadddress):
         """
@@ -57,8 +58,8 @@ class ContractNote:
         fp = open(cache_file, 'a')
         fp.write(newadddress + "\n")
         fp.close()
-        
-    @staticmethod    
+
+    @staticmethod
     def get_contract_addresses(contract_name):
         """
         get contract address according to the file
@@ -70,9 +71,9 @@ class ContractNote:
         # get addresses
         fp = open(cache_file, 'r')
         lines = fp.readlines()
-        contract_addresses=[]
+        contract_addresses = []
         for line in lines:
-            line=line.strip('\n')
+            line = line.strip('\n')
             contract_addresses.append(line)
         fp.close()
         return contract_addresses

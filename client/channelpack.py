@@ -10,7 +10,7 @@
 '''
 import uuid
 import struct
-from client import  clientlogger
+from client import clientlogger
 '''
 channel protocol ref:
 https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage
@@ -18,14 +18,14 @@ https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/pr
 
 
 class ChannelPack:
-    TYPE_RPC=0x12
+    TYPE_RPC = 0x12
     TYPE_HEATBEAT = 0x13
-    TYPE_AMOP_REQ=0x30
+    TYPE_AMOP_REQ = 0x30
     TYPE_AMOP_RESP = 0x31
     TYPE_TOPIC_REPORT = 0x32
-    TYPE_TOPIC_MULTICAST =0x35
+    TYPE_TOPIC_MULTICAST = 0x35
     TYPE_TX_COMMITED = 0x1000
-    TYPE_TX_BLOCKNUM=0x1001
+    TYPE_TX_BLOCKNUM = 0x1001
 
     headerfmt = "!IH32sI"
     headerlen = 0
@@ -35,27 +35,27 @@ class ChannelPack:
     seq = None
     totallen = None
 
-    def __init__(self,type,seq,result,data):
-        self.type=type
+    def __init__(self, type, seq, result, data):
+        self.type = type
         self.seq = seq
         self.result = result
         self.data = data
 
     def detail(self):
-        if self.totallen==None:
+        if self.totallen == None:
             datalen = 0
             if self.data != None:
                 datalen = len(self.data)
             self.totallen = ChannelPack.getheaderlen()+datalen
-        msg ="len:{},type:{},result:{},seq:{},data:{}"\
-            .format(self.totallen,hex(self.type),hex(self.result),self.seq,self.data)
+        msg = "len:{},type:{},result:{},seq:{},data:{}"\
+            .format(self.totallen, hex(self.type), hex(self.result), self.seq, self.data)
         return msg
 
     @staticmethod
     def make_seq32():
         seq = uuid.uuid1()
         seq32 = "".join(str(seq).split("-")).upper()
-        seq32bytes =bytes(seq32, encoding='utf-8')
+        seq32bytes = bytes(seq32, encoding='utf-8')
         return seq32bytes
 
     @staticmethod
@@ -71,8 +71,8 @@ class ChannelPack:
     def pack_all(type, seq, result, data):
         headerlen = struct.calcsize(ChannelPack.headerfmt)
         databytes = data
-        if not isinstance(databytes,bytes):
-            databytes = bytes(data,"utf-8")
+        if not isinstance(databytes, bytes):
+            databytes = bytes(data, "utf-8")
         datalen = len(databytes)
         fmt = "!IH32sI%ds" % (len(data))
         totallen = headerlen + len(data)
@@ -80,23 +80,23 @@ class ChannelPack:
         return buffer
 
     @staticmethod
-    #return（code, 消耗的字节数，解析好的cp或None）
+    # return（code, 消耗的字节数，解析好的cp或None）
     def unpack(buffer):
         headerlen = struct.calcsize(ChannelPack.headerfmt)
         if(len(buffer) < headerlen):
-            return (-1,0,None)
-        totallen = struct.unpack_from("!I",buffer,0)[0]
-        clientlogger.logger.debug("total bytes to decode {}, datalen {}".format(totallen,len(buffer)))
-        if(len(buffer) <totallen ):
-            #no enough bytes to decode
-            return (-1,0,None)
-        datalen =  len(buffer) - headerlen
-        (totallen,type,seq,result) = struct.unpack_from(ChannelPack.headerfmt, buffer, 0)
-        data = struct.unpack_from("%ds"%datalen,buffer,headerlen)[0]
-        cp = ChannelPack(type,seq,result,data)
+            return (-1, 0, None)
+        totallen = struct.unpack_from("!I", buffer, 0)[0]
+        clientlogger.logger.debug(
+            "total bytes to decode {}, datalen {}".format(totallen, len(buffer)))
+        if(len(buffer) < totallen):
+            # no enough bytes to decode
+            return (-1, 0, None)
+        datalen = len(buffer) - headerlen
+        (totallen, type, seq, result) = struct.unpack_from(ChannelPack.headerfmt, buffer, 0)
+        data = struct.unpack_from("%ds" % datalen, buffer, headerlen)[0]
+        cp = ChannelPack(type, seq, result, data)
         cp.totallen = totallen
-        return (0,totallen,cp)
-
+        return (0, totallen, cp)
 
 
 '''

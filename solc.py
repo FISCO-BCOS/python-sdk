@@ -15,33 +15,38 @@ use solc binary to compile solidity contract.output abi & bin files.
 '''
 import os
 import sys
-solc_bin="bin/solc/solc"
+solc_bin = "bin/solc/solc"
 solc_option = "--abi --bin --overwrite"
 solc_default_output = "./contracts"
 
-#sample: bin/solc/solc.exe --abi --bin --allow-paths=./contracts contracts/AddressTableWorker.sol -o ./tmp
-def sol_cmdline(solfile,outputpath,option=solc_option):
+# sample: bin/solc/solc.exe --abi --bin --allow-paths=./contracts contracts/AddressTableWorker.sol -o ./tmp
+
+
+def sol_cmdline(solfile, outputpath, option=solc_option):
     solpath = os.path.dirname(solfile)
-    allowpath=""
-    if(len(solpath)>0):
-        allowpath="--allow-paths="+solpath
-    cmdline = "{} {} {} -o {} {}".format(solc_bin,option,allowpath,outputpath,solfile)
+    allowpath = ""
+    if(len(solpath) > 0):
+        allowpath = "--allow-paths="+solpath
+    cmdline = "{} {} {} -o {} {}".format(solc_bin, option, allowpath, outputpath, solfile)
     return cmdline
+
 
 def run_cmd(cmdline):
     res = os.popen(cmdline).readlines()
     return res
 
-def run_solc(solfile,outputpath,option=solc_option):
-    cmdline = sol_cmdline(solfile,outputpath,option)
+
+def run_solc(solfile, outputpath, option=solc_option):
+    cmdline = sol_cmdline(solfile, outputpath, option)
     print(cmdline)
     res = run_cmd(cmdline)
-    if len(res)>0:
+    if len(res) > 0:
         print(res)
+
 
 if __name__ == '__main__':
     #print (sys.argv)
-    if(len(sys.argv)==1):
+    if(len(sys.argv) == 1):
         print("\nusage: python solc.py [contract file (with path)] [output dir]\n")
         print("** Read bin/solc/README.md , to download solc binary release first **")
         sys.exit(0)
@@ -49,9 +54,6 @@ if __name__ == '__main__':
     outputdir = solc_default_output
     if (len(sys.argv) == 3):
         outputdir = sys.argv[2]
-    print("compile [{}],output to [{}]".format(solfile,outputdir))
-    run_solc(solfile,outputdir)
-    print("** please check the output dir ->[ {} ]".format(outputdir) )
-
-
-
+    print("compile [{}],output to [{}]".format(solfile, outputdir))
+    run_solc(solfile, outputdir)
+    print("** please check the output dir ->[ {} ]".format(outputdir))
