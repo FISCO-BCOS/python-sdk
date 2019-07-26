@@ -1,0 +1,28 @@
+language: python
+branches:
+  only:
+      - /.*/
+matrix:
+    fast_finish: true
+    include:
+        - name: "ubuntu16.04"
+          os: linux
+          dist: xenial
+          python: 3.7.3
+          sudo: required
+          install:
+            - pip install -r requirements.txt
+          script:
+            - bash ci/ci_check.sh
+        - name: "macOS"
+          os: osx
+          osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
+          language: shell       # 'language: python' is an error on Travis CI macOS
+          install:
+            - bash init_env.sh
+            - source ~/.bashrc
+            - pyenv global 3.7.3
+            - python --version
+            - pip3 install -r requirements.txt
+          script:
+            - bash ci/ci_check.sh

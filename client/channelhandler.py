@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 '''
   bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
   bcosliteclientpy is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Free Software Foundation
@@ -8,7 +11,7 @@
 '''
 
 '''
-channel protocal ref: 
+channel protocol ref: 
 https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage
 '''
 
@@ -47,9 +50,9 @@ class ChannelHandler:
 
 
     def initTLSContext(self,ca_file,node_crt_file,node_key_file,
-                       protocal=ssl.PROTOCOL_TLSv1_2,
+                       protocol=ssl.PROTOCOL_TLSv1_2,
                        verify_mode=ssl.CERT_REQUIRED):
-        context = ssl.SSLContext(protocal)
+        context = ssl.SSLContext(protocol)
         context.check_hostname = False
         context.load_verify_locations(ca_file)
         context.load_cert_chain(node_crt_file, node_key_file)
