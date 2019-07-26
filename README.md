@@ -66,10 +66,10 @@ cp client-config.py.template client-config.py
 **SDK使用示例**
 ```bash
 # 查看SDK使用方法
-python console.py usage
+./console.py usage
 
 # 获取节点版本
-python console.py getNodeVersion
+./console.py getNodeVersion
 ```
 
 ## 开启命令行自动补全
