@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
 # -*- coding: utf-8 -*-
 '''
   bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/FISCO-BCOS)
@@ -13,6 +14,7 @@ import sys
 import shutil
 import time
 import traceback
+import glob
 from client.stattool import StatTool
 from configobj import ConfigObj
 from client_config import client_config
@@ -28,6 +30,8 @@ import json
 import os
 from client.datatype_parser import DatatypeParser
 from eth_utils import to_checksum_address
+import argcomplete
+from argcomplete import warn
 
 #--------------------------------------------------------------------------------------------
 # useful functions
@@ -135,19 +139,6 @@ def check_result(result):
         if isinstance(result, dict) and 'error' in result.keys():
             return True
         return False
-
-def parse_commands(argv):
-    """
-    parse the input command
-    """
-    parser = argparse.ArgumentParser(description='FISCO BCOS 2.0 lite client @python')   # 首先创建一个ArgumentParser对象
-    parser.add_argument('cmd', nargs="+" ,       # 添加参数
-                        help='the command for console')
-    parsed_args = parser.parse_args(argv)   
-    print("\nINFO >> user input : {}\n".format(parsed_args.cmd) )
-    cmd = parsed_args.cmd[0]
-    inputparams = parsed_args.cmd[1:]
-    return cmd, inputparams
 
 def get_validcmds():
     """
@@ -273,6 +264,104 @@ def usage(client_config):
     return usagemsg
 
 contracts_dir = "contracts"
+# get supported command
+validcmds = get_validcmds()
+getcmds = common_cmd()
+allcmds = validcmds + [*getcmds.keys()]
+
+def get_functions_by_contract(contract_name):
+    """
+    get functions according to contract_name
+    """
+    data_parser = DatatypeParser(default_abi_file(contract_name))
+    return [*data_parser.func_abi_map_by_name.keys()]
+
+def list_address(contract_name):
+    """
+    get address according to contract_name
+    """
+    return ContractNote.get_contract_addresses(contract_name)
+
+def list_contracts_bin():
+    """
+    list all contracts for deploy
+    """
+    contracts_bin_path = contracts_dir + "/*.bin"
+    contracts_bin = [f for f in glob.glob(contracts_bin_path)]
+    return contracts_bin
+
+def list_api(file_pattern):
+    """
+    return list according to file_pattern
+    """
+    file_list = [f for f in glob.glob(file_pattern)]
+    targets=[]
+    for file in file_list:
+        targets.append(os.path.basename(file).split(".")[0])
+    return targets
+
+def list_contracts():
+    """
+    list all contractname for call
+    """
+    return list_api(contracts_dir + "/*.bin")
+
+def list_accounts():
+    """
+    list all accounts
+    """
+    return list_api("bin/accounts/*.keystore")
+
+def completion(prefix, parsed_args, **kwargs):
+    """
+    complete the shell
+    """
+    if parsed_args.cmd is None:
+        return allcmds
+    # deploy contract
+    if parsed_args.cmd[0] == "deploy":
+        return list_contracts_bin()
+    
+    # call and sendtx
+    #warn(parsed_args)
+    if parsed_args.cmd[0] == "call" or parsed_args.cmd[0] == "sendtx" :
+        # only list the contract name
+        if len(parsed_args.cmd) == 1:
+            return list_contracts()
+        # list the contract address
+        if len(parsed_args.cmd) == 2:
+            return list_address(parsed_args.cmd[1])
+        # list functions
+        if len(parsed_args.cmd) == 3:
+            return get_functions_by_contract(parsed_args.cmd[1])
+    
+    # call showaccount
+    if parsed_args.cmd[0] == "showaccount":
+        return list_accounts()
+
+    # other interfaces
+    return []
+    
+def parse_commands(argv):
+    """
+    parse the input command
+    """
+    # 首先创建一个ArgumentParser对象
+    parser = argparse.ArgumentParser(description='FISCO BCOS 2.0 lite client @python')  
+    parsed_args = argparse.Namespace()
+    cmd = parser.add_argument('cmd', nargs="+" ,       # 添加参数
+                        help='the command for console')
+    cmd.completer = completion
+    
+    argcomplete.autocomplete(parser) 
+    args = parser.parse_args() 
+    
+    print("\nINFO >> user input : {}\n".format(args.cmd) )
+    cmd = args.cmd[0]
+    inputparams = args.cmd[1:]
+    return cmd, inputparams
+
+
 def main(argv):
     cmd, inputparams = parse_commands(argv)
     # get supported command
@@ -382,6 +471,7 @@ def main(argv):
             name = contractname = os.path.splitext(os.path.basename(abibinfile))[0]
             address = result['contractAddress']
             blocknum = int(result["blockNumber"],16)
+            ContractNote.save_contract_address(name, address)
             print("on block : {},address: {} ".format(blocknum,address))
             if len(inputparams) == 2:
                 if inputparams[1]=="save":

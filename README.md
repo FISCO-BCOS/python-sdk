@@ -45,6 +45,8 @@ git clone https://github.com/FISCO-BCOS/python-sdk
 ```bash
 # 判断python版本，并为不符合条件的python环境安装python 3.7.3的虚拟环境，命名为python-sdk
 # 若python环境符合要求，可以跳过此步
+# 若脚本执行出错，请检查是否参考[依赖软件]说明安装了依赖
+# 提示：安装python-3.7.3可能耗时比较久
 cd python-sdk && bash init_env.sh
 
 # 激活python-sdk虚拟环境
@@ -56,6 +58,11 @@ source ~/.bashrc && pyenv activate python-sdk
 pip install -r requirements.txt
 ```
 
+**拷贝配置**
+```bash
+cp client-config.py.template client-config.py
+```
+
 **SDK使用示例**
 ```bash
 # 查看SDK使用方法
@@ -63,6 +70,15 @@ python console.py usage
 
 # 获取节点版本
 python console.py getNodeVersion
+```
+
+## 开启命令行自动补全
+
+Python SDK引入[argcomplete](https://argcomplete.readthedocs.io/en/latest/)支持命令行补全，运行如下命令开启此功能(**bashrc仅需设置一次，设置之后每次登陆自动生效**)
+
+```bash
+echo "eval \"\$(register-python-argcomplete ./console.py)\"" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ## 文档
