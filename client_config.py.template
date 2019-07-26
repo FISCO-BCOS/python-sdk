@@ -1,8 +1,8 @@
 #- * - coding: utf - 8 -
 class client_config:
 #类成员变量，便于用.调用和区分命名空间
-    PROTOCAL_RPC="rpc" #const,dont change this
-    PROTOCAL_CHANNEL="channel" #const,dont change this
+    PROTOCOL_RPC="rpc" #const,dont change this
+    PROTOCOL_CHANNEL="channel" #const,dont change this
     #--------------------------------------
     # configure below
     contract_info_file="bin/contract.ini" #保存已部署合约信息的文件
@@ -13,8 +13,8 @@ class client_config:
     groupid = 1  #群组ID，和要通信的节点*必须*一致，如和其他群组通信，修改这一项，或者设置bcosclient.py里对应的成员变量
     logdir="bin/logs" #默认日志输出目录，该目录必须先建立
     #---------client communication config--------------
-    client_protocal = "rpc"  # or PROTOCAL_CHANNEL to use channel prototal
-    #client_protocal = PROTOCAL_CHANNEL
+    client_protocol = "rpc"  # or PROTOCOL_CHANNEL to use channel prototol
+    #client_protocol = PROTOCOL_CHANNEL
     remote_rpcurl = "http://127.0.0.1:8545"  # 采用rpc通信时，节点的rpc端口,和要通信的节点*必须*一致,**如采用channel协议通信，这里可以留空**
     channel_host="127.0.0.1" #采用channel通信时，节点的channel ip地址,**如采用rpc协议通信，这里可以留空**
     channel_port=20200  ##节点的channel 端口,**如采用rpc协议通信，这里可以留空**
