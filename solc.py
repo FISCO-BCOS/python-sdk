@@ -15,9 +15,15 @@
 '''
 import os
 import sys
-solc_bin = "bin/solc/solc"
+import sys
+solc_bin = "./bin/solc/solc"
 solc_option = "--abi --bin --overwrite"
 solc_default_output = "./contracts"
+
+sysplat = sys.platform
+print("system is ",sysplat)
+if sysplat.startswith("win"):
+    solc_bin = solc_bin.replace("/","\\")
 
 
 # sample:

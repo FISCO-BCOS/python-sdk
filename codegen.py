@@ -3,15 +3,9 @@ from client.bcosclient import BcosClient
 from client.datatype_parser import  DatatypeParser
 from utils.abi import  (
 	filter_by_type, #通过类型选择一组元素，如"function","event"等
-	abi_to_signature, #输入方法名，输出可读的方法定义如 "set(uint256,string)"
-	get_abi_output_types, #获取abi的输出定义
-	get_fn_abi_types, #获取abi的输入输出定义,适配encode_abi/decode_abi，用参数“inputs” "outpus"选择
-	get_fn_abi_types_single,#获取abi的输入输出定义，适配encode_single/decde_single，用参数“inputs” "outpus"选择
-	exclude_indexed_event_inputs, #排除event定义中声明为indexed的参数，这些参数不进入logs数据里只存在于topics里
-	exclude_indexed_event_inputs_to_abi, #声明为indexed之外的参数，封装为encode_abi/decode_abi接受的参数
-	exclude_indexed_event_inputs_to_single,#声明为indexed之外的参数，封装为encode_single/decode_single接受的参数
 	)
 import os
+
 
 class ABICodegen:
     parser = DatatypeParser()
@@ -51,14 +45,14 @@ class ABICodegen:
         func_lines.append(func_def)
         func_lines.append("{}func_name='{}'".format(self.indent,func_abi["name"]))
         func_lines.append("{}args=[{}]".format(self.indent, args_value))
-        if func_abi["constant"] == False:
+        if func_abi["constant"] is False:
             func_lines.append(self.indent+"receipt = self.client.sendRawTransactionGetReceipt(self.address,self.contract_abi,func_name,args)")
             if "outputs" in func_abi:
                 func_lines.append(self.indent+"outputresult  = self.data_parser.parse_receipt_output(func_name, receipt['output'])")
                 func_lines.append(self.indent+"return (outputresult,receipt)")
             else:
                 func_lines.append(self.indent + "return (receipt)")
-        if func_abi["constant"] == True:
+        if func_abi["constant"] is True:
             func_lines.append(self.indent+"result = self.client.call(self.address,self.contract_abi,func_name,args)")
             func_lines.append(self.indent+"return result")
 
@@ -121,12 +115,14 @@ if __name__ == '__main__':
     outputfile = os.path.join(outputdir, name)
     print(" output file : {}".format(outputfile))
 
-    if os.access(outputfile, os.F_OK) and forcewrite == False:
+    if os.access(outputfile, os.F_OK) and forcewrite is False:
         str = input(">> file [{}] exist , continue (y/n): ".format(outputfile));
         if (str.lower() == "y"):
             forcewrite = True
         else:
             forcewrite = False
+    else:
+        forcewrite = True
     if forcewrite:
         with open(outputfile,"wb") as f:
             f.write(bytes(template,"utf-8") )
