@@ -34,7 +34,6 @@ from client.bcoserror import BcosError, CompileError, PrecompileError, Arguments
 from client.common.transaction_exception import TransactionException
 import argcomplete
 
-
 # --------------------------------------------------------------------------------------------
 # useful functions
 # --------------------------------------------------------------------------------------------
@@ -186,6 +185,7 @@ def usage(client_config):
     return usagemsg
 
 
+
 def get_functions_by_contract(contract_name):
     """
     get functions according to contract_name
@@ -199,6 +199,7 @@ def list_address(contract_name):
     get address according to contract_name
     """
     return ContractNote.get_contract_addresses(contract_name)
+
 
 
 def list_api(file_pattern):
@@ -217,6 +218,7 @@ def list_contracts():
     list all contractname for call
     """
     return list_api(contracts_dir + "/*.sol")
+
 
 
 def list_accounts():
