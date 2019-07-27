@@ -133,7 +133,7 @@ logger配置参见client/clientlogger.py。默认在bin/logs下生成滚动日�
 
 ## 合约相关：
 
-后缀名为.sol的solidity合约代码文件（本客户端不实现编译功能，sol文件仅供参考查看），请采用fisco-bcos的控制台，[对合约sol代码文件进行编译](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/tutorial/sdk_application.html?highlight=%E7%BC%96%E8%AF%91#id7)
+后缀名为.sol的solidity合约代码文件，可用solc.py结合solc二进制编译器进行编译，或采用fisco-bcos的控制台，[对合约sol代码文件进行编译](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/tutorial/sdk_application.html?highlight=%E7%BC%96%E8%AF%91#id7)
 
 合约编译后，在控制台console/contracts/sdk目录以及对应子目录下，有对应指定合约且后缀名为.abi,.bin的文件，将其复制到本客户端的contracts目录下，bin文件供console.py和demo_transaction.py用于部署合约,abi文件则用于调用接口、解析数据。
 
