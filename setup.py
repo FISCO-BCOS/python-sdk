@@ -44,24 +44,24 @@ extras_require['doc'] = [
 extras_require['dev'] = merge_lists(
     [
         "bumpversion>=0.5.3,<1",
-        #"pytest-watch>=4.1.0,<5",
-        #"wheel",
-        #"twine",
-        #"ipython",
-		"cytoolz",
-		"toolz",
-		"requests",
-		"attrdict",
-		"Crypto",
-		"pycryptodome",
+        # "pytest-watch>=4.1.0,<5",
+        # "wheel",
+        # "twine",
+        # "ipython",
+        "cytoolz",
+        "toolz",
+        "requests",
+        "attrdict",
+        "Crypto",
+        "pycryptodome",
         "lru-dict",
-		#"lru",
+        # "lru",
         "configobj",
-		"parsimonious",
+        "parsimonious",
     ],
-    #extras_require['test'],
-    #extras_require['lint'],
-    #extras_require['doc'],
+    # extras_require['test'],
+    # extras_require['lint'],
+    # extras_require['doc'],
 )
 
 setup(
@@ -76,7 +76,7 @@ setup(
     install_requires=[
         'parsimonious',
     ],
-    setup_requires=[''], #setuptools-markdown
+    setup_requires=[''],  # setuptools-markdown
     python_requires='>=3.6, <4',
     extras_require=extras_require,
     py_modules=['bcosliteclientpy'],
@@ -93,7 +93,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-		'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
 )
