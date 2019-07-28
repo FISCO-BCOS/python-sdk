@@ -111,7 +111,7 @@ class ChannelHandler:
         # print("request rpc_data", rpc_data)
         request_pack = ChannelPack(type, ChannelPack.make_seq32(), 0, rpc_data)
 
-        res = self.send_pack(request_pack)
+        self.send_pack(request_pack)
         starttime = time.time()
         responsematch = False
         while time.time() - starttime < 10:  # spend max 10 sec to wait a correct response
@@ -175,7 +175,7 @@ class ChannelRecvThread(threading.Thread):
     channelHandler = None
     queueMapping = dict()
     keepWorking = True
-    threadLock = threading.RLock()
+    # threadLock = threading.RLock()
     logger = None
 
     def getQueue(self, type):
@@ -244,11 +244,11 @@ class ChannelRecvThread(threading.Thread):
         self.keepWorking = False
 
     def run(self):
-        lockres = ChannelRecvThread.threadLock.acquire(blocking=False)
-        if lockres is False:  # other thread has got the lock and running
-            # print(self.name + ":other thread has got the lock and running ")
-            self.logger.error(self.name + ":other thread has got the lock and running ")
-            return
+        # lockres = ChannelRecvThread.threadLock.acquire(blocking=False)
+        # if lockres is False:  # other thread has got the lock and running
+        # print(self.name + ":other thread has got the lock and running ")
+        #    self.logger.error(self.name + ":other thread has got the lock and running ")
+        #    return
         try:
             self.keepWorking = True
             self.logger.debug(self.name + ":start thread-->")
@@ -266,7 +266,7 @@ class ChannelRecvThread(threading.Thread):
         finally:
             self.logger.debug("{}:thread finished ,keepWorking = {}".format(
                 self.name, self.keepWorking))
-            ChannelRecvThread.threadLock.release()
+            # ChannelRecvThread.threadLock.release()
 
 # -----------------------------------------------------------
 # -----------------------------------------------------------
@@ -280,7 +280,7 @@ class ChannelSendThread(threading.Thread):
     channelHandler = None
     packQueue = None
     keepWorking = True
-    threadLock = threading.RLock()
+    # threadLock = threading.RLock()
     heatbeatStamp = 3  # heatbeat very N sec
     logger = None
 
@@ -310,10 +310,10 @@ class ChannelSendThread(threading.Thread):
         self.keepWorking = False
 
     def run(self):
-        lockres = ChannelSendThread.threadLock.acquire(blocking=False)
-        if lockres is False:  # other thread has got the lock and running
-            print(self.name + ":other thread has got the lock and running ")
-            return
+        # lockres = ChannelSendThread.threadLock.acquire(blocking=False)
+        # if lockres is False:  # other thread has got the lock and running
+        #    print(self.name + ":other thread has got the lock and running ")
+        #    return
         try:
             self.keepWorking = True
             self.logger.debug(self.name + ":start thread-->")
@@ -341,4 +341,4 @@ class ChannelSendThread(threading.Thread):
         finally:
             self.logger.debug("{}:thread finished ,keepWorking = {}".format(
                 self.name, self.keepWorking))
-            ChannelSendThread.threadLock.release()
+            # ChannelSendThread.threadLock.release()

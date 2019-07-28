@@ -25,3 +25,21 @@ class BcosError(Exception):
 
     def info(self):
         return "code :{},data :{},message : {}".format(self.code, self.data, self.message)
+
+
+class PrecompileError(Exception):
+    """
+    PrecompileError
+    """
+
+    def __init__(self, msg=None):
+        super().__init__(msg)
+
+
+class ArgumentsError(Exception):
+    """
+    PrecompileError
+    """
+
+    def __init__(self, msg=None):
+        super().__init__(msg)

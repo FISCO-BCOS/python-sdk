@@ -31,7 +31,9 @@ import json
 import os
 from client.datatype_parser import DatatypeParser
 from eth_utils import to_checksum_address
+from console_utils.precompile import Precompile
 import argcomplete
+
 
 # --------------------------------------------------------------------------------------------
 # useful functions
@@ -401,12 +403,15 @@ def main(argv):
     validcmds = get_validcmds()
     getcmds = common_cmd()
     usagemsg = usage(client_config)
+    client = BcosClient()
+    precompile = Precompile(cmd, inputparams, contracts_dir)
+    validcmds = validcmds + precompile.get_all_cmd()
+
     # check cmd
     valid = check_cmd(cmd, validcmds, getcmds)
     if valid is False:
-        printusage(usage)
+        printusage(usagemsg)
         return
-    client = BcosClient()
     # ---------------------------------------------------------------------------
     # start command functions
 
@@ -414,6 +419,15 @@ def main(argv):
     # console cmd entity
     # --------------------------------------------------------------------------------------------
     try:
+        # try to callback cns precompile
+        precompile.call_cns()
+        # try to callback consensus precompile
+        precompile.call_consensus()
+        # try to callback config precompile
+        precompile.call_sysconfig_precompile()
+        # try to callback permission precompile
+        precompile.call_permission_precompile()
+
         if cmd == 'showaccount':
             name = inputparams[0]
             password = inputparams[1]
@@ -589,7 +603,7 @@ def main(argv):
                           full command,eg: getBlockByNumber 10 true (or false)\n''')
             try:
                 fmtargs = format_args_by_types(inputparams, types)
-            except Exception as e:
+            except Exception:
                 cmdinfo = getcmds[cmd]
                 memo = " no args"
                 if(len(cmdinfo) == 2):
