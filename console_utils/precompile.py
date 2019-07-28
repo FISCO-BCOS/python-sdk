@@ -264,9 +264,9 @@ class Precompile:
         except ArgumentsError:
             self.print_sysconfig_usage()
 
-    def exec_permission_cmd(self):
+    def exec_grant_cmd(self, index=0):
         """
-        execute permission cmd
+        exec_grant_cmd
         """
         index = 0
         # grantUserTableManager
@@ -294,6 +294,12 @@ class Precompile:
             self.check_param_num(1)
             self.premisson_service.grantSysConfigManager(self._args[0])
         index = index + 1
+        return index
+
+    def exec_revoke_cmd(self, index):
+        """
+        execute revoke cmds
+        """
         # revokeUserTableManager
         if self._cmd == self.functions["permission"][index]:
             self.check_param_num(2)
@@ -324,6 +330,12 @@ class Precompile:
             self.check_param_num(1)
             self.premisson_service.revokeSysConfigManager(self._args[0])
         index = index + 1
+        return index
+
+    def exec_list_cmd(self, index):
+        """
+        execute list cmds
+        """
         # listUserTableManager
         if self._cmd == self.functions["permission"][index]:
             self.premisson_service.listUserTableManager()
@@ -347,6 +359,16 @@ class Precompile:
         # listSysConfigManager
         if self._cmd == self.functions["permission"][index]:
             self.premisson_service.listSysConfigManager()
+        index = index + 1
+        return index
+
+    def exec_permission_cmd(self):
+        """
+        execute permission cmd
+        """
+        index = self.exec_grant_cmd()
+        index = self.exec_revoke_cmd(index)
+        self.exec_list_cmd(index)
 
     def call_permission_precompile(self):
         """
