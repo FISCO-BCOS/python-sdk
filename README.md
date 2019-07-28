@@ -67,7 +67,7 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
 **拷贝配置**
 ```bash
-cp client-config.py.template client-config.py
+cp client_config.py.template client_config.py
 ```
 
 **SDK使用示例**
