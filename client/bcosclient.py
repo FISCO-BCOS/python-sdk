@@ -43,6 +43,8 @@ class BcosClient:
 
     def __init__(self):
         self.init()
+        self.lastblocknum = 0
+        self.lastblocklimittime = 0
 
     # load the account from keyfile
     def load_default_account(self):
@@ -281,9 +283,6 @@ class BcosClient:
         params = [self.groupid, key]
         return self.common_request(cmd, params)
 
-    lastblocknum = 0
-    lastblocklimittime = 0
-
     def getBlocklimit(self):
         tick = time.time()
         deltablocklimit = 500
@@ -307,7 +306,7 @@ class BcosClient:
                 time.sleep(0.2)
 
                 continue
-        return self.lastblocklimit
+        return self.lastblocknum
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions
     def call(self, to_address, contract_abi, fn_name, args=None):
