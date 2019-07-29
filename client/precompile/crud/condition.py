@@ -30,6 +30,7 @@ class Condition:
     """
     implementation of Condition
     """
+
     def __init__(self):
         self.conditions = {}
 

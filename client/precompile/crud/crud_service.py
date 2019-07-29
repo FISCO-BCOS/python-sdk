@@ -106,16 +106,17 @@ class CRUDService:
         self.tableFactory_address = "0x0000000000000000000000000000000000001001"
         self.crud_address = "0x0000000000000000000000000000000000001002"
         self.contract_path = contract_path
-        self.tableFactory_abi = self.contract_path + "/TableFactory.abi"
-        self.crud_abi = self.contract_path + "/CRUD.abi"
-        self.client = transaction_common.TransactionCommon(self.crud_address)
-        self.tableFactory_client = transaction_common.TransactionCommon(self.tableFactory_address)
+        self.client = transaction_common.TransactionCommon(
+            self.crud_address, contract_path, "TableFactory")
+        self.tableFactory_client = transaction_common.TransactionCommon(
+            self.tableFactory_address, contract_path, "CRUD")
 
     def __del__(self):
         """
         finish the client
         """
         self.client.finish()
+        self.tableFactory_client.finish()
 
     def define_const(self):
         """
@@ -130,8 +131,7 @@ class CRUDService:
         """
         fn_name = "createTable"
         fn_args = [table.get_table_name(), table.get_table_key(), table.get_table_fields()]
-        return self.tableFactory_client.send_transaction_getReceipt(self.tableFactory_abi,
-                                                                    fn_name, fn_args)
+        return self.tableFactory_client.send_transaction_getReceipt(fn_name, fn_args)
 
     def check_key_length(self, key):
         """
@@ -150,7 +150,7 @@ class CRUDService:
         self.check_key_length(table.get_table_key())
         fn_name = "insert"
         fn_args = [table.get_table_name(), table.get_table_key(), json.dump(entry.get_fields())]
-        return self.client.send_transaction_getReceipt(self.crud_abi, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
     def update(self, table, entry, condition):
         """
@@ -162,7 +162,7 @@ class CRUDService:
         fn_args = [table.get_table_name(), table.get_table_key(),
                    json.dump(entry.get_fields()), json.dumps(condition.get_conditions()),
                    table.get_optional()]
-        return self.client.send_transaction_getReceipt(self.crud_abi, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
     def remove(self, table, condition):
         """
@@ -173,7 +173,7 @@ class CRUDService:
         fn_name = "remove"
         fn_args = [table.get_table_name(), table.get_table_key(),
                    json.dumps(condition.get_conditions()), table.get_optional()]
-        return self.client.send_transaction_getReceipt(self.crud_abi, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
     def select(self, table, condition):
         """
