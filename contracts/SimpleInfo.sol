@@ -10,7 +10,7 @@ contract SimpleInfo{
     event on_reset(int retcode,string indexed name) anonymous;
 	
 
-    constructor()
+    constructor() public
     {
     }
 
@@ -33,6 +33,10 @@ contract SimpleInfo{
 	
 	function getcounter() constant public returns(uint256){
         return counter;
+    }
+    function setbalance(uint256 b) public {
+        balance = b;
+        emit on_set(0,name,balance,addr,"balance set");
     }
 
     function set(string n,uint256 b,address a) public returns(int){

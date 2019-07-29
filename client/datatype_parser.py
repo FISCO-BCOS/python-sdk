@@ -46,11 +46,11 @@ class DatatypeParser:
         self.parse_abi()
 
     def load_abi_file(self, abi_file):
-
         with open(abi_file, 'r') as load_f:
-            self.contract_abi = json.load(load_f)
+            contract_abi = json.load(load_f)
             load_f.close()
-            self.parse_abi()
+            self.set_abi(contract_abi)
+
 
     def parse_abi(self):
         '''for item in self.contract_abi:
