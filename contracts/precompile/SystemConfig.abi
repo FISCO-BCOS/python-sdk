@@ -1,0 +1,25 @@
+[
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "key",
+				"type": "string"
+			},
+			{
+				"name": "value",
+				"type": "string"
+			}
+		],
+		"name": "setValueByKey",
+		"outputs": [
+			{
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]

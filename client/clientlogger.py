@@ -15,9 +15,12 @@
 from client_config import client_config
 import logging
 from logging import handlers
+import os
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.DEBUG)
 logfile = client_config.logdir + "/client.log"
+if os.path.exists(client_config.logdir) is False:
+    os.mkdir(client_config.logdir)
 # handler = logging.FileHandler(logfile)
 handler = logging.handlers.TimedRotatingFileHandler(logfile, 'D', 1, 0)  # 切割日志
 handler.suffix = '%Y%m%d'  # 切割后的日志设置后缀
