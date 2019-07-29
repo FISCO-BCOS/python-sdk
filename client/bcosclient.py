@@ -427,3 +427,9 @@ class BcosClient:
         # blocknum = result['blockNumber']
         # print("onblock : %d newaddr : %s "%(int(blocknum,16),newaddr))
         return result
+
+    def deployFromFile(self,contractbinfile):
+        with open(contractbinfile, "r") as f:
+            contractbin = f.read()
+        result = self.deploy(contractbin)
+        return result
