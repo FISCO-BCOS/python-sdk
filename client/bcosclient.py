@@ -322,17 +322,20 @@ class BcosClient:
         params = [1, callmap]
         # 发送
         response = self.common_request(cmd, params)
-        outputdata = response["output"]
-        # 取得方法的abi，签名，参数 和返回类型，进行call返回值的解析
-        fn_abi, fn_selector, fn_arguments = get_function_info(
-            fn_name, contract_abi, None, args, None,
-        )
-        # print("fn_selector",fn_selector)
-        # print("fn_arguments",fn_arguments)
-        fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
-        # print("output types str:", fn_output_types)
-        decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
-        return decoderesult
+        if "output" in response.keys():
+            outputdata = response["output"]
+            # 取得方法的abi，签名，参数 和返回类型，进行call返回值的解析
+            fn_abi, fn_selector, fn_arguments = get_function_info(
+                fn_name, contract_abi, None, args, None,
+            )
+            # print("fn_selector",fn_selector)
+            # print("fn_arguments",fn_arguments)
+            fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
+            # print("output types str:", fn_output_types)
+            decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
+            return decoderesult
+        else:
+            return response
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions
     '''
@@ -427,7 +430,7 @@ class BcosClient:
         # print("onblock : %d newaddr : %s "%(int(blocknum,16),newaddr))
         return result
 
-    def deployFromFile(self,contractbinfile):
+    def deployFromFile(self, contractbinfile):
         with open(contractbinfile, "r") as f:
             contractbin = f.read()
         result = self.deploy(contractbin)
