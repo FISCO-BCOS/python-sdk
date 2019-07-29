@@ -85,8 +85,9 @@ def encode_intended_validator(
     """
     if not is_valid_address(validator_address):
         raise ValidationError(
-            "Cannot encode message with 'Validator Address': {validator_address}. "
+            "Cannot encode message with 'Validator Address': {}. "
             "It must be a checksum address, or an address converted to bytes."
+            .format(validator_address)
         )
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     return SignableMessage(
