@@ -16,19 +16,19 @@
 import os
 import json
 from eth_utils import to_checksum_address
-from client.bcoserror import PrecompileError
-from client.bcoserror import ArgumentsError
 from client.common.transaction_exception import TransactionException
 from client.precompile.cns.cns_service import CnsService
 from client.precompile.consensus.consensus_precompile import ConsensusPrecompile
 from client.precompile.config.config_precompile import ConfigPrecompile
 from client.precompile.permission.permission_service import PermissionService
+from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError
 
 
 class Precompile:
     """
     """
     functions = {}
+
     def __init__(self, cmd, args, contract_path):
         self._cmd = cmd
         self._args = args
@@ -48,14 +48,15 @@ class Precompile:
         Precompile.functions["sysconfig"] = ["setSystemConfigByKey"]
         # permission precompile
         Precompile.functions["permission"] = ["grantUserTableManager", "grantPermissionManager",
-                                        "grantNodeManager", "grantCNSManager",
-                                        "grantSysConfigManager", "revokeUserTableManager",
-                                        "revokeDeployAndCreateManager", "revokePermissionManager",
-                                        "revokeNodeManager", "revokeCNSManager",
-                                        "revokeSysConfigManager", "listUserTableManager",
-                                        "listDeployAndCreateManager",
-                                        "listPermissionManager", "listNodeManager",
-                                        "listSysConfigManager"]
+                                              "grantNodeManager", "grantCNSManager",
+                                              "grantSysConfigManager", "revokeUserTableManager",
+                                              "revokeDeployAndCreateManager",
+                                              "revokePermissionManager",
+                                              "revokeNodeManager", "revokeCNSManager",
+                                              "revokeSysConfigManager", "listUserTableManager",
+                                              "listDeployAndCreateManager",
+                                              "listPermissionManager", "listNodeManager",
+                                              "listSysConfigManager"]
 
     def print_cns_usage(self, print_all=False):
         """
@@ -67,7 +68,7 @@ class Precompile:
             prefix = "\t"
         if print_all is True or self._cmd == self.functions["cns"][0]:
             print(("{} {} [contract_name] [contract_address]"
-                  " [contract_version]").format(prefix, self.functions["cns"][0]))
+                   " [contract_version]").format(prefix, self.functions["cns"][0]))
         if print_all is True or self._cmd == self.functions["cns"][1]:
             print("{} {} [contract_name]".
                   format(prefix, self.functions["cns"][1]))
@@ -121,10 +122,10 @@ class Precompile:
         for cmd in Precompile.functions["permission"]:
             if cmd.startswith("grantUserTable") or cmd.startswith("revokeUserTable"):
                 print('''\t{} [tableName] [account_adddress]'''.
-                  format(cmd))
+                      format(cmd))
             else:
                 print('''\t{} [account_adddress]'''.format(cmd))
-    
+
     @staticmethod
     def get_all_cmd():
         """
@@ -228,6 +229,12 @@ class Precompile:
                     self.print_succ_msg()
                 except TransactionException as e:
                     self.print_transaction_exception(e)
+                except PrecompileError as e:
+                    self.print_error_msg(e)
+                except BcosError as e:
+                    self.print_error_msg(e)
+                except CompileError as e:
+                    self.print_error_msg(e)
                 return
             # query cns information by name
             if self._cmd == self.functions["cns"][1]:
@@ -243,6 +250,8 @@ class Precompile:
                 return
         except ArgumentsError:
             self.print_cns_usage()
+        finally:
+            self.cns_service.__del__()
 
     def call_consensus(self):
         """
@@ -268,8 +277,16 @@ class Precompile:
             self.print_succ_msg()
         except TransactionException as e:
             self.print_transaction_exception(e)
+        except PrecompileError as e:
+            self.print_error_msg(e)
         except ArgumentsError:
             self.print_consensus_usage()
+        except BcosError as e:
+            self.print_error_msg(e)
+        except CompileError as e:
+            self.print_error_msg(e)
+        finally:
+            self.consensus_precompile.__del__()
 
     def call_sysconfig_precompile(self):
         """
@@ -287,8 +304,16 @@ class Precompile:
                 self.print_succ_msg()
         except TransactionException as e:
             self.print_transaction_exception(e)
+        except PrecompileError as e:
+            self.print_error_msg(e)
+        except BcosError as e:
+            self.print_error_msg(e)
+        except CompileError as e:
+            self.print_error_msg(e)
         except ArgumentsError:
             self.print_sysconfig_usage()
+        finally:
+            self.config_precompile.__del__()
 
     def exec_grant_cmd(self, index=0):
         """
@@ -410,5 +435,11 @@ class Precompile:
             self.print_transaction_exception(e)
         except PrecompileError as e:
             self.print_error_msg(e)
+        except BcosError as e:
+            self.print_error_msg(e)
+        except CompileError as e:
+            self.print_error_msg(e)
         except ArgumentsError:
             self.print_permission_usage()
+        finally:
+            self.premisson_service.__del__()

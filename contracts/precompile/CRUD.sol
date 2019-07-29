@@ -7,4 +7,3 @@ contract CRUD
     function remove(string tableName, string key, string condition, string optional) public returns(int);
     function select(string tableName, string key, string condition, string optional) public constant returns(string);
 }
-~

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # - * - coding: utf - 8 -
+import os
 
 
 class client_config:
@@ -28,3 +29,6 @@ class client_config:
     channel_ca = "bin/ca.crt"  # 采用channel协议时，需要设置链证书,如采用rpc协议通信，这里可以留空
     channel_node_cert = "bin/node.crt"  # 采用channel协议时，需要设置节点证书,如采用rpc协议通信，这里可以留空
     channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置节点key,如采用rpc协议通信，这里可以留空
+    # path of solc compiler
+    solc_path = os.environ["HOME"] + "/.py-solc/solc-v0.4.25/bin/solc"
+    solcjs_path = "node_modules/solc/solcjs"

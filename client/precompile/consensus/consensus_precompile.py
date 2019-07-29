@@ -26,8 +26,9 @@ class ConsensusPrecompile:
         init the address for Consensus contract
         """
         self._consensus_address = "0x0000000000000000000000000000000000001003"
-        self._consensus_abi_path = contract_path + "/Consensus.abi"
-        self.client = transaction_common.TransactionCommon(self._consensus_address)
+        self.contract_name = "Consensus"
+        self.client = transaction_common.TransactionCommon(
+            self._consensus_address, contract_path, self.contract_name)
 
     def __del__(self):
         """
@@ -41,7 +42,7 @@ class ConsensusPrecompile:
         """
         fn_name = "addSealer"
         fn_args = [nodeId]
-        return self.client.send_transaction_getReceipt(self._consensus_abi_path, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
     def addObserver(self, nodeId):
         """
@@ -49,7 +50,7 @@ class ConsensusPrecompile:
         """
         fn_name = "addObserver"
         fn_args = [nodeId]
-        return self.client.send_transaction_getReceipt(self._consensus_abi_path, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
     def removeNode(self, nodeId):
         """
@@ -57,4 +58,4 @@ class ConsensusPrecompile:
         """
         fn_name = "remove"
         fn_args = [nodeId]
-        return self.client.send_transaction_getReceipt(self._consensus_abi_path, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)

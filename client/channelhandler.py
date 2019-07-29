@@ -56,9 +56,10 @@ class ChannelHandler:
         self.context = context
 
     def finish(self):
-        self.ssock.shutdown(socket.SHUT_RDWR)
-        self.ssock.close()
-        self.ssock = None
+        if self.ssock is not None:
+            self.ssock.shutdown(socket.SHUT_RDWR)
+            self.ssock.close()
+            self.ssock = None
         self.recvThread.finish()
         self.recvThread.join(timeout=2)
         self.sendThread.finish()

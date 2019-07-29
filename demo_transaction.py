@@ -17,20 +17,24 @@ from client.bcosclient import BcosClient
 import os
 from eth_utils import to_checksum_address
 from client.datatype_parser import DatatypeParser
+from client.common.compiler import Compiler
+from client_config import client_config
 
 client = BcosClient()
-#info = client.init()
 print(client.getinfo())
 
 
 # 从文件加载abi定义
+if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
+    Compiler.compile_file("contracts/HelloWorld.sol")
+    Compiler.compile_file("contracts/SimpleInfo.sol")
 abi_file = "contracts/SimpleInfo.abi"
 data_parser = DatatypeParser()
 data_parser.load_abi_file(abi_file)
 contract_abi = data_parser.contract_abi
 
 # 部署合约
-print("\n>>Deploy:---------------------------------------------------------------------")
+print("\n>>Deploy:----------------------------------------------------------")
 with open("contracts/SimpleInfo.bin", 'r') as load_f:
     contract_bin = load_f.read()
     load_f.close()
@@ -38,14 +42,15 @@ result = client.deploy(contract_bin)
 print("deploy", result)
 print("new address : ", result["contractAddress"])
 contract_name = os.path.splitext(os.path.basename(abi_file))[0]
-memo = "tx:"+result["transactionHash"]
+memo = "tx:" + result["transactionHash"]
 # 把部署结果存入文件备查
-ContractNote.save_address(contract_name, result["contractAddress"], int(
-    result["blockNumber"], 16), memo)
+ContractNote.save_address(contract_name,
+                          result["contractAddress"],
+                          int(result["blockNumber"], 16), memo)
 
 
 # 发送交易，调用一个改写数据的接口
-print("\n>>sendRawTransaction:----------------------------------------------------------")
+print("\n>>sendRawTransaction:----------------------------------------------------")
 to_address = result['contractAddress']  # use new deploy address
 args = ['simplename', 2024, to_checksum_address('0x7029c502b4F824d19Bd7921E9cb74Ef92392FB1c')]
 
@@ -53,7 +58,7 @@ receipt = client.sendRawTransactionGetReceipt(to_address, contract_abi, "set", a
 print("receipt:", receipt)
 
 # 解析receipt里的log
-print("\n>>parse receipt and transaction:----------------------------------------------------------")
+print("\n>>parse receipt and transaction:--------------------------------------")
 txhash = receipt['transactionHash']
 print("transaction hash: ", txhash)
 logresult = data_parser.parse_event_logs(receipt["logs"])

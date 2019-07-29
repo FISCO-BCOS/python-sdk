@@ -32,8 +32,9 @@ class CnsService:
         self._max_version_len = 40
         self.define_error_code()
         # define bcosclient
-        self.client = transaction_common.TransactionCommon(self._cns_address)
-        self.cns_abi_path = contract_path + "/CNS.abi"
+        self.contract_name = "CNS"
+        self.client = transaction_common.TransactionCommon(
+            self._cns_address, contract_path, self.contract_name)
 
     def __del__(self):
         """
@@ -69,7 +70,7 @@ class CnsService:
         # function definition: insert(string,string,string,string)
         fn_name = "insert"
         fn_args = [name, version, address, json.dumps(abi)]
-        return self.client.send_transaction_getReceipt(self.cns_abi_path, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
     def query_cns_by_name(self, name):
         """
@@ -78,7 +79,7 @@ class CnsService:
         """
         fn_name = "selectByName"
         fn_args = [name]
-        return self.client.call_and_decode(self.cns_abi_path, fn_name, fn_args)
+        return self.client.call_and_decode(fn_name, fn_args)
 
     def query_cns_by_nameAndVersion(self, name, version):
         """
@@ -87,4 +88,4 @@ class CnsService:
         """
         fn_name = "selectByNameAndVersion"
         fn_args = [name, version]
-        return self.client.call_and_decode(self.cns_abi_path, fn_name, fn_args)
+        return self.client.call_and_decode(fn_name, fn_args)
