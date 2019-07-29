@@ -26,7 +26,7 @@ if platsys.lower().startswith("win"):
 def sol_cmdline(solfile, outputpath, option=solc_option):
     solpath = os.path.dirname(solfile)
     allowpath = ""
-    if(len(solpath) > 0):
+    if solpath == "":
         allowpath = "--allow-paths=" + solpath
     cmdline = "{} {} {} -o {} {}".format(solc_bin, option, allowpath, outputpath, solfile)
     return cmdline
@@ -44,17 +44,36 @@ def run_solc(solfile, outputpath, option=solc_option):
     if len(res) > 0:
         print(res)
 
+
 solc_url_win = []
-solc_url_win.append(("v0.4   ", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-windows.zip"))
-solc_url_win.append(("v0.4 gm", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-gm-windows.exe"))
-solc_url_win.append(("v0.5   ", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-windows.zip"))
-solc_url_win.append(("v0.5 gm", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-gm-windows.exe"))
+solc_url_win.append(
+    ("v0.4   ",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-windows.zip"))
+solc_url_win.append(
+    ("v0.4 gm",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-gm-windows.exe"))
+solc_url_win.append(
+    ("v0.5   ",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-windows.zip"))
+solc_url_win.append(
+    ("v0.5 gm",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-gm-windows.exe"))
 solc_url_linux = []
-solc_url_linux.append(("v0.4   ", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-static-linux"))
-solc_url_linux.append(("v0.4 gm", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-gm-static-linux"))
-solc_url_linux.append(("v0.5", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-linux"))
-solc_url_linux.append(("v0.5 gm centos", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-gm-centos"))
-solc_url_linux.append(("v0.5 gm ubuntu", "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-gm-ubuntu"))
+solc_url_linux.append(
+    ("v0.4   ",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-static-linux"))
+solc_url_linux.append(
+    ("v0.4 gm",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-gm-static-linux"))
+solc_url_linux.append(
+    ("v0.5",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-linux"))
+solc_url_linux.append(
+    ("v0.5 gm centos",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-gm-centos"))
+solc_url_linux.append(
+    ("v0.5 gm ubuntu",
+     "https://github.com/FISCO-BCOS/solidity/releases/download/v0.5.2/solc-gm-ubuntu"))
 
 
 def print_solc_url():
@@ -71,7 +90,8 @@ def print_solc_url():
     print("\n>>>TIPS:")
     print('''1. Download the solc binary according to your OS type (e.g. Linux/Windows) and solidity version.
 2. Copy the solc binary to {python-sdk}/bin/solc/.
-3. Make sure that the name of solc binary file is renamed to "solc", or update the solc binary path constant in python-sdk/solcpy.py.''')
+3. Make sure that the name of solc binary file is renamed to "solc",
+or update the solc binary path constant in python-sdk/solcpy.py.''')
 
 
 if __name__ == '__main__':

@@ -30,8 +30,9 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 
 **依赖软件**
 
-- **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev`
-- **CentOS**：`sudo yum install -y zlib-devel libffi-devel`
+- **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget`
+- **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget`
+- **MacOs**: `brew install wget`
 
 
 **拉取源代码**
@@ -70,6 +71,13 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 cp client_config.py.template client_config.py
 ```
 
+**安装solc编译器**
+
+```bash
+# 安装编译器
+python -m solc.install v0.4.25
+```
+
 **SDK使用示例**
 ```bash
 # 查看SDK使用方法
@@ -81,8 +89,8 @@ cp client_config.py.template client_config.py
 
 **部署HelloWorld合约**
 ```bash
-$ ./console.py deploy contracts/HelloWorld.bin
->> user input : ['deploy', 'contracts/HelloWorld.bin', 'save']
+$ ./console.py deploy HelloWorld
+>> user input : ['deploy', 'HelloWorld', 'save']
 
 deploy result  for [contracts/HelloWorld.bin] is:
  {

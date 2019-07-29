@@ -17,14 +17,20 @@ from client.bcosclient import (
     BcosClient,
     BcosError
 )
+import os
 from client.stattool import StatTool
 from client.datatype_parser import DatatypeParser
+from client.common.compiler import Compiler
+from client_config import client_config
 client = BcosClient()
 info = client.getinfo()
 print("client info:", info)
 
 
 # 从文件加载abi定义
+if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
+    Compiler.compile_file("contracts/HelloWorld.sol")
+    Compiler.compile_file("contracts/SimpleInfo.sol")
 abi_file = "contracts/SimpleInfo.abi"
 data_parser = DatatypeParser()
 data_parser.load_abi_file(abi_file)
