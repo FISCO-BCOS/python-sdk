@@ -17,9 +17,10 @@ matrix:
       osx_image: xcode10.14.3  # Python 3.7.2 running on macOS 10.14.3
       language: shell       # 'language: python' is an error on Travis CI macOS
       before_install:
-        - bash init_env.sh
+        - bash init_env.sh -p
         - source ~/.bashrc
         - pyenv global 3.7.3
+        - bash init_env.sh -i
     # - name: "Python 3.7.3 on Windows"
     #   os: windows           # Windows 10.0.17134 N/A Build 17134
     #   language: shell       # 'language: python' is an error on Travis CI Windows
@@ -32,12 +33,16 @@ addons:
   apt:
     packages:
     - openssl
+    - curl
+    - npm
   homebrew:
     packages:
     - openssl
+    - curl
+    - npm
 install:
   - python --version
-  - pip3 install -r requirements.txt
+  - bash init_env.sh -i
 script: |
   bash ci/ci_check.sh
 

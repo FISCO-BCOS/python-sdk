@@ -109,11 +109,22 @@ upgrade_pip()
 init_config()
 {
 	if [ ! -f "client_config.py" ];then
+        LOG_INFO "copy config file..."
         execute_cmd "cp client_config.py.template client_config.py"
 	fi
+    solc_path=".py-solc/solc-v0.4.25/bin/solc"
+    execute_cmd "pip3 install -r requirements.txt"
+    if [ ! -f "${solc_path}" ];then
+        LOG_INFO "install solc v0.4.25..."
+        python -m solc.install v0.4.25
+        if [ $? -eq 1 ];then
+            LOG_INFO "install solc v0.4.25 failed, try to install slocjs"
+            execute_cmd "npm install solc@0.4.24"
+        fi
+    fi
 }
 
-main()
+python_init()
 {
   shell_env=$(echo $SHELL)
   if [ "${shell_env}" = "${ZSH}" ] || [ "${shell_env}" = "${REALZSH}" ];then
@@ -137,6 +148,28 @@ main()
     execute_cmd "pyenv rehash"
   fi
   upgrade_pip
-  init_config
 }
-main
+
+function help()
+{
+    echo $1
+    cat << EOF
+    Usage:
+        -p <Optional>   init python environment, install python-3.7.3 if current python version is lower than python-3.6
+        -i <Required>   init the basic environment
+EOF
+}
+
+main()
+{
+    while getopts "pih" option; do
+        case ${option} in
+        p) python_init
+        ;;
+        i) init_config
+        ;;
+        h) help
+        esac
+    done
+}
+main $@
