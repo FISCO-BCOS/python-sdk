@@ -38,7 +38,25 @@ class PrecompileError(Exception):
 
 class ArgumentsError(Exception):
     """
-    PrecompileError
+    ArgumentsError
+    """
+
+    def __init__(self, msg=None):
+        super().__init__(msg)
+
+
+class CompileError(Exception):
+    """
+    CompileError
+    """
+
+    def __init__(self, msg=None):
+        super().__init__(msg)
+
+
+class CompilerNotFound(Exception):
+    """
+    CompileError
     """
 
     def __init__(self, msg=None):

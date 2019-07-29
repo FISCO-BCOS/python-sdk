@@ -46,6 +46,12 @@ class BcosClient:
         self.lastblocknum = 0
         self.lastblocklimittime = 0
 
+    def __del__(self):
+        """
+        release the resources
+        """
+        self.finish()
+
     # load the account from keyfile
     def load_default_account(self):
         if client_config.account_keyfile is not None:
@@ -334,8 +340,7 @@ class BcosClient:
             # print("output types str:", fn_output_types)
             decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
             return decoderesult
-        else:
-            return response
+        return response
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions
     '''

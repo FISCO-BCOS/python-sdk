@@ -86,8 +86,7 @@ function test_contract()
     LOG_INFO "## test contract..."
     init_blockNumber=$(getBlockNumber)
     # deploy and get contract address
-    local contract_addr=$(execute_cmd "python console.py deploy contracts/HelloWorld.bin save | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
-    #execute_cmd "python console.py deploy contracts/HelloWorld.bin save"
+    local contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
     updated_blockNumber=$(getBlockNumber)
     if [ $(($init_blockNumber + 1)) -ne $((updated_blockNumber)) ];then
         LOG_ERROR "deploy contract failed for blockNumber hasn't increased"
@@ -100,18 +99,18 @@ function test_contract()
     LOG_INFO "queryCNSByName..."
     query_addr=$(execute_cmd "python console.py queryCNSByName HelloWorld | grep "ContractAddress"|  tail -n 1 | awk -F':' '{print \$2}' | awk '\$1=\$1'")
     
-    if [ $(echo ${query_addr} | tr [a-z] [A-Z]) != $(echo ${contract_addr} | tr [a-z] [A-Z]) ];then
+    if [ $(echo ${query_addr} | tr 'a-z' 'A-Z') != $(echo ${contract_addr} | tr 'a-z' 'A-Z') ];then
         LOG_ERROR "queryCNSByName failed for inconsistent contract address"
     fi
     LOG_INFO "queryCNSByNameAndVersion..."
     query_addr=$(execute_cmd "python console.py queryCNSByNameAndVersion HelloWorld \"\$version\" | grep "ContractAddress"|  awk -F':' '{print \$2}' | awk '\$1=\$1'")
-    if [ $(echo ${query_addr} | tr [a-z] [A-Z]) != $(echo ${contract_addr} | tr [a-z] [A-Z]) ];then
+    if [ $(echo ${query_addr} | tr 'a-z' 'A-Z') != $(echo ${contract_addr} | tr 'a-z' 'A-Z') ];then
         LOG_ERROR "queryCNSByName failed for inconsistent contract addresss"
     fi
     # test getBlockByNumber
     execute_cmd "python console.py getBlockByNumber \$((\$updated_blockNumber))"
     # test call HelloWord
-    local ret=$(execute_cmd "python console.py call HelloWorld \${contract_addr} \"get\" | grep "Hello" ")
+    local ret=$(execute_cmd "python console.py call HelloWorld \${contract_addr} \"get\"| grep "Hello" ")
     # check call result
     if [ -z "${ret}" ];then
         LOG_ERROR "call HelloWorld failed!"
@@ -119,7 +118,7 @@ function test_contract()
     # test sendtx
     execute_cmd "python console.py sendtx HelloWorld  \${contract_addr} \"set\" \"Hello,FISCO\""
     # check call result
-    local ret=$(execute_cmd "python console.py call HelloWorld \${contract_addr} \"get\" | grep "Hello,FISCO"")
+    local ret=$(execute_cmd "python console.py call HelloWorld \${contract_addr} \"get\"| grep "Hello,FISCO"")
     # check result
     if [ -z "${ret}" ];then
         LOG_ERROR "sendtx failed to set HelloWorld failed!"

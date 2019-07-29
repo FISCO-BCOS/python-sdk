@@ -27,8 +27,8 @@ class PermissionService:
         """
         self.permission_address = "0x0000000000000000000000000000000000001005"
         self.contract_path = contract_path
-        self.permission_abi = self.contract_path + "/permission.abi"
-        self.client = transaction_common.TransactionCommon(self.permission_abi)
+        self.client = transaction_common.TransactionCommon(
+            self.permission_abi, contract_path, "permission")
 
     def __del__(self):
         """
@@ -44,7 +44,7 @@ class PermissionService:
         """
         fn_name = "insert"
         fn_args = [table_name, account_address]
-        return self.client.send_transaction_getReceipt(self.permission_abi, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
     def revoke(self, table_name, account_address):
         """
@@ -54,7 +54,7 @@ class PermissionService:
         """
         fn_name = "remove"
         fn_args = [table_name, account_address]
-        return self.client.send_transaction_getReceipt(self.permission_abi, fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
     def list_permission(self, table_name):
         """
@@ -64,7 +64,7 @@ class PermissionService:
         """
         fn_name = "queryByName"
         fn_args = [table_name]
-        return self.client.call_and_decode(self.permission_abi, fn_name, fn_args)
+        return self.client.call_and_decode(fn_name, fn_args)
 
     def grantUserTableManager(self, table_name, account_address):
         """

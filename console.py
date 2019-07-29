@@ -32,6 +32,10 @@ import os
 from client.datatype_parser import DatatypeParser
 from eth_utils import to_checksum_address
 from console_utils.precompile import Precompile
+from client.common import transaction_common
+from client.common import common
+from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError
+from client.common.transaction_exception import TransactionException
 import argcomplete
 
 
@@ -208,7 +212,7 @@ def check_cmd(cmd, validcmds, common_cmd):
     return True
 
 
-def printusage(usagemsg, precompile = None):
+def printusage(usagemsg, precompile=None):
     """
     print usage
     """
@@ -227,6 +231,7 @@ def printusage(usagemsg, precompile = None):
     precompile.print_consensus_usage(True)
     precompile.print_sysconfig_usage(True)
     precompile.print_all_permission_usage()
+
 
 def usage(client_config):
     """
@@ -294,6 +299,7 @@ def usage(client_config):
         ''')
     return usagemsg
 
+
 def get_functions_by_contract(contract_name):
     """
     get functions according to contract_name
@@ -307,15 +313,6 @@ def list_address(contract_name):
     get address according to contract_name
     """
     return ContractNote.get_contract_addresses(contract_name)
-
-
-def list_contracts_bin():
-    """
-    list all contracts for deploy
-    """
-    contracts_bin_path = contracts_dir + "/*.bin"
-    contracts_bin = [f for f in glob.glob(contracts_bin_path)]
-    return contracts_bin
 
 
 def list_api(file_pattern):
@@ -333,7 +330,7 @@ def list_contracts():
     """
     list all contractname for call
     """
-    return list_api(contracts_dir + "/*.bin")
+    return list_api(contracts_dir + "/*.sol")
 
 
 def list_accounts():
@@ -341,6 +338,7 @@ def list_accounts():
     list all accounts
     """
     return list_api("bin/accounts/*.keystore")
+
 
 # get supported command
 validcmds = get_validcmds()
@@ -350,6 +348,7 @@ validcmds = validcmds + Precompile.get_all_cmd()
 allcmds = validcmds + [*getcmds.keys()]
 contracts_dir = "contracts"
 
+
 def completion(prefix, parsed_args, **kwargs):
     """
     complete the shell
@@ -358,7 +357,7 @@ def completion(prefix, parsed_args, **kwargs):
         return allcmds
     # deploy contract
     if parsed_args.cmd[0] == "deploy":
-        return list_contracts_bin()
+        return list_contracts()
 
     # call and sendtx
     # warn(parsed_args)
@@ -376,7 +375,7 @@ def completion(prefix, parsed_args, **kwargs):
     # call showaccount
     if parsed_args.cmd[0] == "showaccount":
         return list_accounts()
-    
+
     # registerCNS [contract_name] [contract_address] [contract_version]
     if parsed_args.cmd[0] == "registerCNS":
         # list contract name
@@ -396,7 +395,7 @@ def completion(prefix, parsed_args, **kwargs):
             return list_contracts()
     # sysconfig
     if parsed_args.cmd[0] == "setSystemConfigByKey" or parsed_args.cmd[0] == "getSystemConfigByKey":
-        return ["tx_count_limit", "tx_gas_limit"]        
+        return ["tx_count_limit", "tx_gas_limit"]
     return []
 
 
@@ -419,11 +418,30 @@ def parse_commands(argv):
     inputparams = args.cmd[1:]
     return cmd, inputparams
 
+
+def print_error_msg(cmd, e):
+    """
+    print error msg
+    """
+    print("ERROR >> execute {} failed\nERROR >> error information: {}".format(cmd, e))
+
+
+def check_param_num(args, expected):
+    """
+    check param num
+    """
+    if len(args) < expected:
+        raise ArgumentsError(
+            '''invalid arguments, expected num: {},
+            real num: {}'''.format(expected, len(args)))
+
+
 def main(argv):
+    allcmds = validcmds + [*getcmds.keys()]
     usagemsg = usage(client_config)
     cmd, inputparams = parse_commands(argv)
     precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
-    
+
     # check cmd
     valid = check_cmd(cmd, validcmds, getcmds)
     if valid is False:
@@ -447,6 +465,7 @@ def main(argv):
         precompile.call_permission_precompile()
 
         if cmd == 'showaccount':
+            check_param_num(inputparams, 2)
             name = inputparams[0]
             password = inputparams[1]
             keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
@@ -465,6 +484,7 @@ def main(argv):
                 print("\n**** please remember your password !!! *****")
 
         if cmd == 'newaccount':
+            check_param_num(inputparams, 2)
             name = inputparams[0]
             password = inputparams[1]
             print("starting : {} {} ".format(name, password))
@@ -487,22 +507,7 @@ def main(argv):
                 if(len(inputparams) == 3 and inputparams[2] == "save"):
                     forcewrite = True
                 else:
-                    str = input("INFO >> file [{}] exist , continue (y/n): ".format(keyfile))
-                    if (str.lower() == "y"):
-                        forcewrite = True
-                    else:
-                        forcewrite = False
-                        print(
-                            '''SKIP write new account to file,
-                            use exists account for [{}]'''.format(name))
-                # forcewrite ,so do backup job
-                if(forcewrite):
-                    filestat = os.stat(keyfile)
-                    filetime = time.strftime("%Y%m%d%H%M%S", time.localtime(filestat.st_ctime))
-                    backupfile = "{}.{}".format(keyfile, filetime)
-                    print("backup [{}] to [{}]".format(keyfile, backupfile))
-                    shutil.move(keyfile, backupfile)
-
+                    forcewrite = common.backup_file(keyfile)
             if forcewrite:
                 with open(keyfile, "w") as dump_f:
                     json.dump(kf, dump_f)
@@ -529,13 +534,14 @@ def main(argv):
         # --------------------------------------------------------------------------------------------
         if cmd == "deploy":
             '''deploy abi bin file'''
-            abibinfile = inputparams[0]
-            with open(abibinfile, "r") as f:
-                contractbin = f.read()
-            result = client.deploy(contractbin)
+            check_param_num(inputparams, 1)
+            contractname = inputparams[0].strip()
+            trans_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
+            result = trans_client.send_transaction_getReceipt(None, None, True)
+
             print("deploy result  for [{}] is:\n {}".format(
-                abibinfile, json.dumps(result, indent=4)))
-            name = contractname = os.path.splitext(os.path.basename(abibinfile))[0]
+                contractname, json.dumps(result, indent=4)))
+            name = contractname
             address = result['contractAddress']
             blocknum = int(result["blockNumber"], 16)
             ContractNote.save_contract_address(name, address)
@@ -548,61 +554,35 @@ def main(argv):
                 print(
                     '''\nNOTE : if want to save new address as last
                     address for (call/sendtx)\nadd 'save' to cmdline and run again''')
-            sys.exit(0)
 
         # --------------------------------------------------------------------------------------------
         # console cmd entity
         # --------------------------------------------------------------------------------------------
-        if cmd == "call":
+        if cmd == "call" or cmd == "sendtx":
+            check_param_num(inputparams, 3)
             paramsname = ["contractname", "address", "func"]
             params = fill_params(inputparams, paramsname)
-            args = inputparams[len(paramsname):]
             contractname = params["contractname"]
-            data_parser = DatatypeParser(default_abi_file(contractname))
-            contract_abi = data_parser.contract_abi
-
             address = params["address"]
             if address == "last":
                 address = ContractNote.get_last(contractname)
                 if address is None:
                     sys.exit("can not get last address for [{}],break;".format(contractname))
-            funcname = params["func"]
-            inputabi = data_parser.func_abi_map_by_name[funcname]["inputs"]
-            args = format_args_by_abi(args, inputabi)
-            print("INFO >> call {} , address: {}, func: {}, args:{}"
-                  .format(contractname, address, funcname, args))
-            result = client.call(address, contract_abi, funcname, args)
-            print("INFO >> call result: {}".format(''.join(result)))
 
-        # --------------------------------------------------------------------------------------------
-        # console cmd entity
-        # --------------------------------------------------------------------------------------------
-        if cmd == "sendtx":
-            paramsname = ["contractname", "address", "func"]
-            params = fill_params(inputparams, paramsname)
-            args = inputparams[len(paramsname):]
-            contractname = params["contractname"]
-            data_parser = DatatypeParser(default_abi_file(contractname))
-            contract_abi = data_parser.contract_abi
-
-            address = params["address"]
-            if address == "last":
-                address = ContractNote.get_last(contractname)
-                if address is None:
-                    sys.exit("\ncan not get last address for [{}],break;\n".format(contractname))
-            funcname = params["func"]
-            inputabi = data_parser.func_abi_map_by_name[funcname]["inputs"]
-            args = format_args_by_abi(args, inputabi)
-            # from eth_utils import to_checksum_address
-            # args = ['simplename', 2024,
-            #        to_checksum_address('0x7029c502b4F824d19Bd7921E9cb74Ef92392FB1c')]
-            print("sendtx {} , address: {}, func: {}, args:{}"
-                  .format(contractname, address, funcname, args))
-            receipt = client.sendRawTransactionGetReceipt(
-                address, contract_abi, params["func"], args)
-            print("\n\nsendtx receipt: ", json.dumps(receipt, indent=4))
-            # 解析receipt里的log 和 相关的tx ,output
-            print_receipt_logs_and_txoutput(client, receipt, "", data_parser)
+            tx_client = transaction_common.TransactionCommon(
+                params["address"], contracts_dir, contractname)
+            fn_name = params["func"]
+            fn_args = inputparams[3:]
+            print("INFO >> {} {} , address: {}, func: {}, args:{}"
+                  .format(cmd, contractname, address, fn_name, fn_args))
+            if cmd == "call":
+                result = tx_client.call_and_decode(fn_name, fn_args)
+                print("INFO >> {} result: {}".format(cmd, ''.join(result)))
+            if cmd == "sendtx":
+                receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)
+                data_parser = DatatypeParser(default_abi_file(contractname))
+                # 解析receipt里的log 和 相关的tx ,output
+                print_receipt_logs_and_txoutput(client, receipt, "", data_parser)
 
         # --------------------------------------------------------------------------------------------
         # console cmd entity
@@ -732,6 +712,16 @@ def main(argv):
         if (cmd not in validcmds) and (cmd not in getcmds):
             printusage(usagemsg, precompile)
             print("console cmd  [{}]  not implement yet,see the usage\n".format(cmd))
+    except TransactionException as e:
+        print_error_msg(cmd, e)
+    except PrecompileError as e:
+        print_error_msg(cmd, e)
+    except BcosError as e:
+        print_error_msg(cmd, e)
+    except CompileError as e:
+        print_error_msg(cmd, e)
+    except ArgumentsError as e:
+        print_error_msg(cmd, e)
     finally:
         client.finish()
         # print(">--- console for FISCO-BCOS® 2.0 2019 ---<")
