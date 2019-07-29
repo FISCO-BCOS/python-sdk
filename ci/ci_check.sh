@@ -96,15 +96,16 @@ function test_contract()
     LOG_INFO "## test CNS precompile"
     LOG_INFO "registerCNS..."
     version="1.0_${updated_blockNumber}"
-    execute_cmd "python console.py registerCNS HelloWorld "\${version}" \$contract_addr"
+    execute_cmd "python console.py registerCNS HelloWorld \$contract_addr "\${version}"" 
     LOG_INFO "queryCNSByName..."
     query_addr=$(execute_cmd "python console.py queryCNSByName HelloWorld | grep "ContractAddress"|  tail -n 1 | awk -F':' '{print \$2}' | awk '\$1=\$1'")
-    if [ "${query_addr}" != "${contract_addr}" ];then
+    
+    if [ $(echo ${query_addr} | tr [a-z] [A-Z]) != $(echo ${contract_addr} | tr [a-z] [A-Z]) ];then
         LOG_ERROR "queryCNSByName failed for inconsistent contract address"
     fi
     LOG_INFO "queryCNSByNameAndVersion..."
     query_addr=$(execute_cmd "python console.py queryCNSByNameAndVersion HelloWorld \"\$version\" | grep "ContractAddress"|  awk -F':' '{print \$2}' | awk '\$1=\$1'")
-    if [ "${query_addr}" != "${contract_addr}" ];then
+    if [ $(echo ${query_addr} | tr [a-z] [A-Z]) != $(echo ${contract_addr} | tr [a-z] [A-Z]) ];then
         LOG_ERROR "queryCNSByName failed for inconsistent contract addresss"
     fi
     # test getBlockByNumber
