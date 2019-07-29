@@ -63,7 +63,7 @@ def scale_places(places: int) -> Callable[[decimal.Decimal], decimal.Decimal]:
     """
     if not isinstance(places, int):
         raise ValueError(
-            f'Argument `places` must be int.  Got value {places} of type {type(places)}.',
+            'Argument `places` must be int.  Got value {places} of type {type(places)}.',
         )
 
     with decimal.localcontext(abi_decimal_context):
@@ -73,8 +73,8 @@ def scale_places(places: int) -> Callable[[decimal.Decimal], decimal.Decimal]:
         with decimal.localcontext(abi_decimal_context):
             return x * scaling_factor
 
-    places_repr = f'Eneg{places}' if places > 0 else f'Epos{-places}'
-    func_name = f'scale_by_{places_repr}'
+    places_repr = 'Eneg{places}' if places > 0 else 'Epos{-places}'
+    func_name = 'scale_by_{places_repr}'
 
     f.__name__ = func_name
     f.__qualname__ = func_name
