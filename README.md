@@ -79,6 +79,60 @@ cp client_config.py.template client_config.py
 ./console.py getNodeVersion
 ```
 
+**部署HelloWorld合约**
+```bash
+$ ./console.py deploy contracts/HelloWorld.bin
+>> user input : ['deploy', 'contracts/HelloWorld.bin', 'save']
+
+deploy result  for [contracts/HelloWorld.bin] is:
+ {
+    "blockHash": "0xa9238a4138b5cac925d2d7b338c44acca5c1ae4d83df2243159cef4ff89c8c66",
+     ... 省略若干行...
+    "transactionIndex": "0x0"
+}
+on block : 8,address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e 
+```
+
+**调用HelloWorld合约**
+
+```bash
+# 调用get接口
+$./console.py call HelloWorld 0x42883e01ac97a3a5ef8a70c290abe0f67913964e get
+
+>> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67913964e', 'get']
+
+param formatted by abi: []
+call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
+call result:  'Hello, World!'
+
+# 调用set接口
+$./console.py sendtx HelloWorld 0x42883e01ac97a3a5ef8a70c290abe0f67913964e "Hello, FISCO"
+> user input : ['sendtx', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67913964e', 'set', 'Hello, FISCO']
+
+param formatted by abi: ['Hello, FISCO']
+sendtx HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: set, args:['Hello, FISCO']
+sendtx receipt:  {
+    "blockHash": "0x44d00ec42fe8abe12f324ceea786e065c095ecef1116fdc3b7ce4b38618de5d6",
+    ... 省略若干行...
+    "transactionIndex": "0x0"
+}
+
+>>  receipt logs : 
+>> transaction hash :  0x7e7f56c656a743b6b052fff8d61901a9ea752f758084fc3ef2fdc9a854f597d4
+tx input data detail:
+ {'name': 'set', 'args': ('Hello, FISCO',), 'signature': 'set(string)'}
+receipt output : ()
+
+# 调用get接口获取更新后字符串
+$./console.py call HelloWorld 0x42883e01ac97a3a5ef8a70c290abe0f67913964e get
+
+>> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67913964e', 'get']
+
+param formatted by abi: []
+call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
+call result:  'Hello, FISCO!'
+```
+
 ## 开启命令行自动补全
 
 Python SDK引入[argcomplete](https://argcomplete.readthedocs.io/en/latest/)支持命令行补全，运行如下命令开启此功能(**bashrc仅需设置一次，设置之后每次登陆自动生效**)
@@ -90,7 +144,7 @@ source ~/.bashrc
 
 ## 文档
 
-[**中文**](https://cyjseagull-doc.readthedocs.io/zh_CN/release-2.0-2.0.0/docs/sdk/python_sdk/index.html)
+[**中文**](https://fisco-bcos-documentation.readthedocs.io/zh_CN/feature-python-sdk/docs/sdk/python_sdk/index.html)
 
 ## 贡献代码
 欢迎参与FISCO BCOS的社区建设：
