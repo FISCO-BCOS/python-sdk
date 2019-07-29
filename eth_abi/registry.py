@@ -96,8 +96,8 @@ class PredicateMapping(Copyable):
         if len(results) > 1:
             predicate_reprs = ', '.join(map(repr, predicates))
             raise MultipleEntriesFound(
-                f"Multiple matching entries for '{type_str}' in {self._name}: "
-                f"{predicate_reprs}. This occurs when two registrations match the "
+                "Multiple matching entries for '{type_str}' in {self._name}: "
+                "{predicate_reprs}. This occurs when two registrations match the "
                 "same type string. You may need to delete one of the "
                 "registrations or modify its matching behavior to ensure it "
                 "doesn't collide with other registrations. See the \"Registry\" "
