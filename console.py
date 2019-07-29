@@ -404,7 +404,7 @@ def main(argv):
     getcmds = common_cmd()
     usagemsg = usage(client_config)
     client = BcosClient()
-    precompile = Precompile(cmd, inputparams, contracts_dir)
+    precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
     validcmds = validcmds + precompile.get_all_cmd()
 
     # check cmd
