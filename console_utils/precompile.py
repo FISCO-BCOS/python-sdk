@@ -28,26 +28,26 @@ from client.precompile.permission.permission_service import PermissionService
 class Precompile:
     """
     """
-
+    functions = {}
     def __init__(self, cmd, args, contract_path):
         self._cmd = cmd
         self._args = args
         self._contract_path = contract_path
-        self.define_functions()
+        Precompile.define_functions()
 
-    def define_functions(self):
+    @staticmethod
+    def define_functions():
         """
         define all cmds
         """
-        self.functions = {}
         # cns
-        self.functions["cns"] = ["registerCNS", "queryCNSByName", "queryCNSByNameAndVersion"]
+        Precompile.functions["cns"] = ["registerCNS", "queryCNSByName", "queryCNSByNameAndVersion"]
         # consensus
-        self.functions["consensus"] = ["addSealer", "addObserver", "removeNode"]
+        Precompile.functions["consensus"] = ["addSealer", "addObserver", "removeNode"]
         # configuration system contract
-        self.functions["sysconfig"] = ["setSystemConfigByKey"]
+        Precompile.functions["sysconfig"] = ["setSystemConfigByKey"]
         # permission precompile
-        self.functions["permission"] = ["grantUserTableManager", "grantPermissionManager",
+        Precompile.functions["permission"] = ["grantUserTableManager", "grantPermissionManager",
                                         "grantNodeManager", "grantCNSManager",
                                         "grantSysConfigManager", "revokeUserTableManager",
                                         "revokeDeployAndCreateManager", "revokePermissionManager",
@@ -61,34 +61,46 @@ class Precompile:
         """
         print cns usage
         """
+        prefix = "CNS USAGE NOTE:"
+        if print_all:
+            print("INFO >> CNS Usage:")
+            prefix = "\t"
         if print_all is True or self._cmd == self.functions["cns"][0]:
-            print('''USAGE NOTE:  {} [contract_name] [contract_address]
-                  [contract_version]'''.format(self.functions["cns"][0]))
-        elif print_all is True or self._cmd == self.functions["cns"][1]:
-            print('''USAGE NOTE:  {} [contract_name]'''.
-                  format(self.functions["cns"][1]))
-        elif print_all is True or self._cmd == self.functions["cns"][2]:
-            print('''USAGE NOTE:  {} [contract_name] [contract_version]'''.
-                  format(self.functions["cns"][2]))
+            print(("{} {} [contract_name] [contract_address]"
+                  " [contract_version]").format(prefix, self.functions["cns"][0]))
+        if print_all is True or self._cmd == self.functions["cns"][1]:
+            print("{} {} [contract_name]".
+                  format(prefix, self.functions["cns"][1]))
+        if print_all is True or self._cmd == self.functions["cns"][2]:
+            print('''{} {} [contract_name] [contract_version]'''.
+                  format(prefix, self.functions["cns"][2]))
 
     def print_consensus_usage(self, print_all=False):
         """
         print usage information for consensus precompile
         """
+        prefix = "CONSENSUS USAGE NOTE:"
+        if print_all:
+            print("INFO >> CONSENSUS Usage:")
+            prefix = "\t"
         if print_all is True or self._cmd == self.functions["consensus"][0]:
-            print('''USAGE NOTE:  {} [nodeId]'''.format(self.functions["consensus"][0]))
+            print('''{} {} [nodeId]'''.format(prefix, self.functions["consensus"][0]))
         if print_all is True or self._cmd == self.functions["consensus"][1]:
-            print('''USAGE NOTE:  {} [nodeId]'''.format(self.functions["consensus"][1]))
+            print('''{} {} [nodeId]'''.format(prefix, self.functions["consensus"][1]))
         if print_all is True or self._cmd == self.functions["consensus"][2]:
-            print('''USAGE NOTE:  {} [nodeId]'''.format(self.functions["consensus"][2]))
+            print('''{} {} [nodeId]'''.format(prefix, self.functions["consensus"][2]))
 
     def print_sysconfig_usage(self, print_all=False):
         """
         print usage for sysconfig precompile
         """
+        prefix = "SYSCONFIG USAGE NOTE: "
+        if print_all:
+            print("INFO >> SYSCONFIG Usage:")
+            prefix = "\t"
         if print_all is True or self._cmd == self.functions["sysconfig"][0]:
-            print('''USAGE NOTE:  {} [key(tx_count_limit/tx_gas_limit)] [value]'''.
-                  format(self.functions["sysconfig"][0]))
+            print('''{} {} [key(tx_count_limit/tx_gas_limit)] [value]'''.
+                  format(prefix, self.functions["sysconfig"][0]))
 
     def print_permission_usage(self):
         """
@@ -100,13 +112,27 @@ class Precompile:
         else:
             print('''USAGE NOTE:  {} [account_adddress]'''.format(self._cmd))
 
-    def get_all_cmd(self):
+    @staticmethod
+    def print_all_permission_usage():
+        """
+        print all permission usage
+        """
+        print("INFO >> Permission Usage:")
+        for cmd in Precompile.functions["permission"]:
+            if cmd.startswith("grantUserTable") or cmd.startswith("revokeUserTable"):
+                print('''\t{} [tableName] [account_adddress]'''.
+                  format(cmd))
+            else:
+                print('''\t{} [account_adddress]'''.format(cmd))
+    
+    @staticmethod
+    def get_all_cmd():
         """
         get all cmd
         """
         cmds = []
-        for cmd_array in self.functions:
-            for cmd in self.functions[cmd_array]:
+        for cmd_array in Precompile.functions:
+            for cmd in Precompile.functions[cmd_array]:
                 cmds.append(cmd)
         return cmds
 
@@ -191,14 +217,14 @@ class Precompile:
             if self._cmd == self.functions["cns"][0]:
                 self.check_param_num(3)
                 contract_name = self._args[0]
-                contract_version = self._args[1]
+                contract_version = self._args[2]
                 # check address
-                contract_address = self.check_and_format_address(self._args[2])
+                contract_address = self.check_and_format_address(self._args[1])
                 if contract_address is None:
                     return
                 try:
                     self.cns_service.register_cns(
-                        contract_name, contract_version, self._args[2], "")
+                        contract_name, contract_version, contract_address, "")
                     self.print_succ_msg()
                 except TransactionException as e:
                     self.print_transaction_exception(e)

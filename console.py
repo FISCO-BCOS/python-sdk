@@ -208,7 +208,7 @@ def check_cmd(cmd, validcmds, common_cmd):
     return True
 
 
-def printusage(usagemsg):
+def printusage(usagemsg, precompile = None):
     """
     print usage
     """
@@ -221,7 +221,12 @@ def printusage(usagemsg):
     for msg in usagemsg:
         index += 1
         print("{}): {}\n".format(index, msg))
-
+    if precompile is None:
+        return
+    precompile.print_cns_usage(True)
+    precompile.print_consensus_usage(True)
+    precompile.print_sysconfig_usage(True)
+    precompile.print_all_permission_usage()
 
 def usage(client_config):
     """
@@ -289,14 +294,6 @@ def usage(client_config):
         ''')
     return usagemsg
 
-
-contracts_dir = "contracts"
-# get supported command
-validcmds = get_validcmds()
-getcmds = common_cmd()
-allcmds = validcmds + [*getcmds.keys()]
-
-
 def get_functions_by_contract(contract_name):
     """
     get functions according to contract_name
@@ -345,6 +342,13 @@ def list_accounts():
     """
     return list_api("bin/accounts/*.keystore")
 
+# get supported command
+validcmds = get_validcmds()
+getcmds = common_cmd()
+Precompile.define_functions()
+validcmds = validcmds + Precompile.get_all_cmd()
+allcmds = validcmds + [*getcmds.keys()]
+contracts_dir = "contracts"
 
 def completion(prefix, parsed_args, **kwargs):
     """
@@ -372,8 +376,27 @@ def completion(prefix, parsed_args, **kwargs):
     # call showaccount
     if parsed_args.cmd[0] == "showaccount":
         return list_accounts()
-
-    # other interfaces
+    
+    # registerCNS [contract_name] [contract_address] [contract_version]
+    if parsed_args.cmd[0] == "registerCNS":
+        # list contract name
+        if len(parsed_args.cmd) == 1:
+            return list_contracts()
+        # list contract address
+        if len(parsed_args.cmd) == 2:
+            return list_address(parsed_args.cmd[1])
+    # queryCNSByName [contract_name]
+    if parsed_args.cmd[0] == "queryCNSByName":
+        # list contract name
+        if len(parsed_args.cmd) == 1:
+            return list_contracts()
+    # queryCNSByNameAndVersion [contract_name] [contract_version]
+    if parsed_args.cmd[0] == "queryCNSByNameAndVersion":
+        if len(parsed_args.cmd) == 1:
+            return list_contracts()
+    # sysconfig
+    if parsed_args.cmd[0] == "setSystemConfigByKey" or parsed_args.cmd[0] == "getSystemConfigByKey":
+        return ["tx_count_limit", "tx_gas_limit"]        
     return []
 
 
@@ -396,22 +419,17 @@ def parse_commands(argv):
     inputparams = args.cmd[1:]
     return cmd, inputparams
 
-
 def main(argv):
-    cmd, inputparams = parse_commands(argv)
-    # get supported command
-    validcmds = get_validcmds()
-    getcmds = common_cmd()
     usagemsg = usage(client_config)
-    client = BcosClient()
+    cmd, inputparams = parse_commands(argv)
     precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
-    validcmds = validcmds + precompile.get_all_cmd()
-
+    
     # check cmd
     valid = check_cmd(cmd, validcmds, getcmds)
     if valid is False:
-        printusage(usagemsg)
+        printusage(usagemsg, precompile)
         return
+    client = BcosClient()
     # ---------------------------------------------------------------------------
     # start command functions
 
@@ -706,13 +724,13 @@ def main(argv):
         # console cmd entity
         # --------------------------------------------------------------------------------------------
         if cmd == "usage":
-            printusage(usagemsg)
+            printusage(usagemsg, precompile)
 
         # --------------------------------------------------------------------------------------------
         # console cmd entity
         # --------------------------------------------------------------------------------------------
         if (cmd not in validcmds) and (cmd not in getcmds):
-            printusage(usagemsg)
+            printusage(usagemsg, precompile)
             print("console cmd  [{}]  not implement yet,see the usage\n".format(cmd))
     finally:
         client.finish()
