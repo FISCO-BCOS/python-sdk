@@ -15,6 +15,7 @@ import shutil
 import time
 import os
 import subprocess
+from client_config import client_config
 
 
 def backup_file(file_name):
@@ -23,8 +24,10 @@ def backup_file(file_name):
     """
     if os.path.isfile(file_name) is False:
         return
-    forcewrite = False
-    option = raw_input("INFO >> file [{}] exist , continue (y/n): ".format(file_name))
+    forcewrite = True
+    option = "y"
+    if client_config.background is False:
+        option = input("INFO >> file [{}] exist , continue (y/n): ".format(file_name))
     if (option.lower() == "y"):
         forcewrite = True
     else:
