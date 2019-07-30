@@ -437,7 +437,6 @@ def check_param_num(args, expected):
 
 
 def main(argv):
-    allcmds = validcmds + [*getcmds.keys()]
     usagemsg = usage(client_config)
     cmd, inputparams = parse_commands(argv)
     precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
@@ -534,7 +533,7 @@ def main(argv):
         # --------------------------------------------------------------------------------------------
         if cmd == "deploy":
             '''deploy abi bin file'''
-            check_param_num(inputparams, 1)
+            check_param_num(inputparams, 2)
             contractname = inputparams[0].strip()
             trans_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
             result = trans_client.send_transaction_getReceipt(None, None, True)

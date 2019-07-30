@@ -32,7 +32,7 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 
 - **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget`
 - **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget`
-- **MacOs**: `brew install wget`
+- **MacOs**: `brew install wget npm`
 
 
 **拉取源代码**
@@ -48,7 +48,7 @@ git clone https://github.com/FISCO-BCOS/python-sdk
 # 若python环境符合要求，可以跳过此步
 # 若脚本执行出错，请检查是否参考[依赖软件]说明安装了依赖
 # 提示：安装python-3.7.3可能耗时比较久
-cd python-sdk && bash init_env.sh
+cd python-sdk && bash init_env.sh -p
 
 # 激活python-sdk虚拟环境
 source ~/.bashrc && pyenv activate python-sdk
@@ -66,17 +66,24 @@ pip install -r requirements.txt
 pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 ```
 
-**拷贝配置**
+**初始化配置**
+
 ```bash
-cp client_config.py.template client_config.py
+# 该脚本执行操作如下：
+# 1. 拷贝client_config.py.template->client_config.py
+# 2. 安装solc编译器
+bash init_env.sh -i
 ```
 
-**安装solc编译器**
+**若MacOS环境solc安装较慢，可在python-sdk目录下执行如下命令安装solcjs**，并将安装的solcjs路径配置到`client_config.py`的`solcjs_path`(默认为node_modules/solc/solcjs)，python-sdk自动从该路径加载nodejs编译器：
 
 ```bash
 # 安装编译器
-python -m solc.install v0.4.25
+# 默认安装到node_modules/solc/solcjs路径
+npm install solc@v0.4.24
 ```
+
+若没有执行以上初始化步骤，需要将`contracts/`目录下的`sol`代码手动编译成`bin`和`abi`文件并放置于`contracts`目录，才可以部署和调用相应合约。合约编译可以使用[remix](https://remix.ethereum.org)
 
 **SDK使用示例**
 ```bash
@@ -143,7 +150,7 @@ call result:  'Hello, FISCO!'
 
 ## 开启命令行自动补全
 
-Python SDK引入[argcomplete](https://argcomplete.readthedocs.io/en/latest/)支持命令行补全，运行如下命令开启此功能(**bashrc仅需设置一次，设置之后每次登陆自动生效**)
+Python SDK引入[argcomplete](https://argcomplete.readthedocs.io/en/latest/)支持命令行补全，运行如下命令开启此功能(**bashrc仅需设置一次，设置之后每次登陆自动生效**)，**目前仅支持bash，不支持zsh**：
 
 ```bash
 echo "eval \"\$(register-python-argcomplete ./console.py)\"" >> ~/.bashrc
