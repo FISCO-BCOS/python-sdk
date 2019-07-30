@@ -7,7 +7,7 @@ contract HelloWorld{
        name = "Hello, World!";
     }
 
-    function get(int) constant public returns(string){
+    function get() constant public returns(string){
         return name;
     }
 
