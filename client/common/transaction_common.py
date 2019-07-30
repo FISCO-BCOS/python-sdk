@@ -122,7 +122,7 @@ class TransactionCommon(bcosclient.BcosClient):
         """
         format args
         """
-        self.gen_contract_abi()
+        self.gen_contract_abi(needCover)
         data_parser = DatatypeParser(self.contract_abi_path)
         contract_abi = data_parser.contract_abi
         if fn_args is None:
