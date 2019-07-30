@@ -44,5 +44,5 @@ install:
   - python --version
   - bash init_env.sh -i
 script: |
-  bash ci/ci_check.sh
+  bash -x ci/ci_check.sh
 

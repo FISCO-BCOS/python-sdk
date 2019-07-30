@@ -114,22 +114,27 @@ class BcosClient:
         return None
 
     def common_request(self, cmd, params):
-        next(self.request_counter)
-        stat = StatTool.begin()
-        if client_config.client_protocol == client_config.PROTOCOL_RPC:
-            response = self.rpc.make_request(cmd, params)
-        if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
-            response = self.channel_handler.make_request(cmd, params, ChannelPack.TYPE_RPC)
-        error = self.is_error_response(response)
-        memo = "DONE"
-        if error is not None:
-            memo = "ERROR {}:{}".format(error.code, error.message)
-        stat.done()
-        stat.debug("commonrequest:{}:{}".format(cmd, memo))
+        try:
+            next(self.request_counter)
+            stat = StatTool.begin()
+            if client_config.client_protocol == client_config.PROTOCOL_RPC:
+                response = self.rpc.make_request(cmd, params)
+            if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
+                response = self.channel_handler.make_request(cmd, params, ChannelPack.TYPE_RPC)
+            error = self.is_error_response(response)
+            memo = "DONE"
+            if error is not None:
+                memo = "ERROR {}:{}".format(error.code, error.message)
+            stat.done()
+            stat.debug("commonrequest:{}:{}".format(cmd, memo))
 
-        if error is not None:
-            raise error
-        return response["result"]
+            if error is not None:
+                raise error
+            return response["result"]
+        except Exception as e:
+            raise BcosError(-1, None, ("send common request failed, cmd: {},"
+                                       " params: {}, error information: {}").
+                            format(cmd, params, e))
 
     def getNodeVersion(self):
         """
