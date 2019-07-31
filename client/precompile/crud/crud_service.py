@@ -21,14 +21,12 @@ class PrecompileGlobalConfig:
     """
     global values
     """
-
-    def __init__(self):
-        self.SYS_TABLE = "_sys_tables_"
-        self.USER_TABLE_PREFIX = "_user_"
-        self.SYS_TABLE_ACCESS = "_sys_table_access_"
-        self.SYS_CONSENSUS = "_sys_consensus_"
-        self.SYS_CNS = "_sys_cns_"
-        self.SYS_CONFIG = "_sys_config_"
+    SYS_TABLE = "_sys_tables_"
+    USER_TABLE_PREFIX = "_user_"
+    SYS_TABLE_ACCESS = "_sys_table_access_"
+    SYS_CONSENSUS = "_sys_consensus_"
+    SYS_CNS = "_sys_cns_"
+    SYS_CONFIG = "_sys_config_"
 
 
 class Entry:
@@ -60,7 +58,7 @@ class Table:
     define Table
     """
 
-    def __init__(self, table_name, table_key, table_fields, optional=None):
+    def __init__(self, table_name, table_key, table_fields, optional=""):
         """
         init table name and table key
         """
@@ -76,7 +74,7 @@ class Table:
         return self._table_key
 
     def get_table_fields(self):
-        return self.get_table_fields
+        return self._table_fields
 
     def get_optional(self):
         return self._optional
@@ -107,9 +105,10 @@ class CRUDService:
         self.crud_address = "0x0000000000000000000000000000000000001002"
         self.contract_path = contract_path
         self.client = transaction_common.TransactionCommon(
-            self.crud_address, contract_path, "TableFactory")
+            self.crud_address, contract_path, "CRUD")
         self.tableFactory_client = transaction_common.TransactionCommon(
-            self.tableFactory_address, contract_path, "CRUD")
+            self.tableFactory_address, contract_path, "TableFactory")
+        self.define_const()
 
     def __del__(self):
         """
@@ -184,7 +183,7 @@ class CRUDService:
         fn_name = "select"
         fn_args = [table.get_table_name(), table.get_table_key(), json.dumps(
             condition.get_conditions()), table.get_optional()]
-        return self.client.call_and_decode(self.cns_abi_path, fn_name, fn_args)
+        return self.client.call_and_decode(fn_name, fn_args)
 
     def desc(self, table_name):
         self.check_key_length(table_name)
@@ -192,7 +191,24 @@ class CRUDService:
                       PrecompileGlobalConfig.USER_TABLE_PREFIX + table_name, "")
         condition = table.get_condition()
         user_table = self.select(table, condition)
-        if not user_table.strip():
-            return Table(table_name, user_table[0]["key_field"], user_table[0]["value_field"])
+        if user_table is not None:
+            user_table_list = list(user_table)
+            if user_table_list is None:
+                return None
+            if len(user_table_list) < 1:
+                return None
+            user_table_obj = json.loads(user_table_list[0])
+            if user_table_obj is None:
+                return None
+            if len(user_table_obj) < 1:
+                return None
+            if "key_field" not in user_table_obj[0].keys():
+                return None
+            key_field = user_table_obj[0]["key_field"]
+            value_field = user_table_obj[0]["value_field"]
+            print("INFO >> table {}".format(table_name))
+            print("     >> key_field: {}".format(key_field))
+            print("     >> value_field: {}".format(value_field))
+            return Table(table_name, key_field, value_field)
         else:
             raise PrecompileError("The table {} doesn't exits!".format(table_name))

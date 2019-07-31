@@ -21,6 +21,7 @@ from client.precompile.cns.cns_service import CnsService
 from client.precompile.consensus.consensus_precompile import ConsensusPrecompile
 from client.precompile.config.config_precompile import ConfigPrecompile
 from client.precompile.permission.permission_service import PermissionService
+from client.precompile.crud.crud_service import CRUDService, Table
 from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError
 
 
@@ -49,14 +50,26 @@ class Precompile:
         # permission precompile
         Precompile.functions["permission"] = ["grantUserTableManager", "grantPermissionManager",
                                               "grantNodeManager", "grantCNSManager",
-                                              "grantSysConfigManager", "revokeUserTableManager",
+                                              "grantSysConfigManager",
+                                              "grantDeployAndCreateManager",
+                                              "revokeUserTableManager",
                                               "revokeDeployAndCreateManager",
                                               "revokePermissionManager",
                                               "revokeNodeManager", "revokeCNSManager",
                                               "revokeSysConfigManager", "listUserTableManager",
                                               "listDeployAndCreateManager",
                                               "listPermissionManager", "listNodeManager",
-                                              "listSysConfigManager"]
+                                              "listSysConfigManager", "listCNSManager"]
+        Precompile.functions["crud"] = ["createTable"]
+
+    def print_crud_usage(self, print_all=False):
+        """
+        print crud usage
+        """
+        prefix = "CRUD USAGE NOTE:"
+        if print_all is True or self._cmd == self.functions["crud"][0]:
+            print("{} {} [tableName] [tableKey] [tableFields]".format(
+                prefix, self.functions["crud"][0]))
 
     def print_cns_usage(self, print_all=False):
         """
@@ -110,6 +123,8 @@ class Precompile:
         if self._cmd.startswith("grantUserTable") or self._cmd.startswith("revokeUserTable"):
             print('''USAGE NOTE:  {} [tableName] [account_adddress]'''.
                   format(self._cmd))
+        elif self._cmd == "listUserTableManager":
+            print('''USAGE NOTE:  {} [table_name]'''.format(self._cmd))
         else:
             print('''USAGE NOTE:  {} [account_adddress]'''.format(self._cmd))
 
@@ -315,111 +330,25 @@ class Precompile:
         finally:
             self.config_precompile.__del__()
 
-    def exec_grant_cmd(self, index=0):
-        """
-        exec_grant_cmd
-        """
-        index = 0
-        # grantUserTableManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(2)
-            self.premisson_service.grantUserTableManager(self._args[0], self._args[1])
-        index = index + 1
-        # grantPermissionManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(1)
-            self.premisson_service.grantPermissionManager(self._args[0])
-        index = index + 1
-        # grantNodeManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(1)
-            self.premisson_service.grantNodeManager(self._args[0])
-        index = index + 1
-        # grantCNSManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(1)
-            self.premisson_service.grantCNSManager(self._args[0])
-        index = index + 1
-        # grantSysConfigManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(1)
-            self.premisson_service.grantSysConfigManager(self._args[0])
-        index = index + 1
-        return index
-
-    def exec_revoke_cmd(self, index):
-        """
-        execute revoke cmds
-        """
-        # revokeUserTableManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(2)
-            self.premisson_service.revokeUserTableManager(self._args[0], self._args[1])
-        index = index + 1
-        # revokeDeployAndCreateManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(2)
-            self.premisson_service.revokeDeployAndCreateManager(self._args[0], self._args[1])
-        index = index + 1
-        # revokePermissionManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(1)
-            self.premisson_service.revokePermissionManager(self._args[0])
-        index = index + 1
-        # revokeNodeManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(1)
-            self.premisson_service.revokeNodeManager(self._args[0])
-        index = index + 1
-        # revokeCNSManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(1)
-            self.premisson_service.revokeCNSManager(self._args[0])
-        index = index + 1
-        # revokeSysConfigManager
-        if self._cmd == self.functions["permission"][index]:
-            self.check_param_num(1)
-            self.premisson_service.revokeSysConfigManager(self._args[0])
-        index = index + 1
-        return index
-
-    def exec_list_cmd(self, index):
-        """
-        execute list cmds
-        """
-        # listUserTableManager
-        if self._cmd == self.functions["permission"][index]:
-            self.premisson_service.listUserTableManager()
-        index = index + 1
-        # listDeployAndCreateManager
-        if self._cmd == self.functions["permission"][index]:
-            self.premisson_service.listDeployAndCreateManager()
-        index = index + 1
-        # listPermissionManager
-        if self._cmd == self.functions["permission"][index]:
-            self.premisson_service.listPermissionManager()
-        index = index + 1
-        # listNodeManager
-        if self._cmd == self.functions["permission"][index]:
-            self.premisson_service.listNodeManager()
-        index = index + 1
-        # listCNSManager
-        if self._cmd == self.functions["permission"][index]:
-            self.premisson_service.listCNSManager()
-        index = index + 1
-        # listSysConfigManager
-        if self._cmd == self.functions["permission"][index]:
-            self.premisson_service.listSysConfigManager()
-        index = index + 1
-        return index
-
     def exec_permission_cmd(self):
         """
         execute permission cmd
         """
-        index = self.exec_grant_cmd()
-        index = self.exec_revoke_cmd(index)
-        self.exec_list_cmd(index)
+        func_name = "self.premisson_service." + self._cmd
+        if self._cmd.startswith("grantUserTable") or self._cmd.startswith("revokeUserTable"):
+            self.check_param_num(2)
+            eval(func_name)(self._args[0], self._args[1])
+        elif self._cmd.startswith("listUser"):
+            self.check_param_num(1)
+            result = eval(func_name)(self._args[0])
+            PermissionService.print_permission_info(result)
+        # list functions
+        elif self._cmd.startswith("list"):
+            result = eval(func_name)()
+            PermissionService.print_permission_info(result)
+        else:
+            self.check_param_num(1)
+            eval(func_name)(self._args[0])
 
     def call_permission_precompile(self):
         """
@@ -443,3 +372,19 @@ class Precompile:
             self.print_permission_usage()
         finally:
             self.premisson_service.__del__()
+
+    def call_crud_precompile(self):
+        """
+        createTable
+        """
+        try:
+            if self._cmd not in self.functions["crud"]:
+                return
+            self.crud_serivce = CRUDService(self._contract_path)
+            # create table
+            if self._cmd == self.functions["crud"][0]:
+                self.check_param_num(3)
+                table = Table(self._args[0], self._args[1], ''.join(self._args[2:]))
+                self.crud_serivce.create_table(table)
+        except ArgumentsError:
+            self.print_crud_usage()

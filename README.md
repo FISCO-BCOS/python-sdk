@@ -121,7 +121,7 @@ call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get
 call result:  'Hello, World!'
 
 # 调用set接口
-$./console.py sendtx HelloWorld 0x42883e01ac97a3a5ef8a70c290abe0f67913964e "Hello, FISCO"
+$./console.py sendtx HelloWorld 0x42883e01ac97a3a5ef8a70c290abe0f67913964e set "Hello, FISCO"
 > user input : ['sendtx', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67913964e', 'set', 'Hello, FISCO']
 
 param formatted by abi: ['Hello, FISCO']
