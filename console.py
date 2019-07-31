@@ -14,8 +14,6 @@
 '''
 import argparse
 import sys
-import shutil
-import time
 import glob
 from client.stattool import StatTool
 from client_config import client_config
@@ -34,7 +32,7 @@ from eth_utils import to_checksum_address
 from console_utils.precompile import Precompile
 from client.common import transaction_common
 from client.common import common
-from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError
+from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError, BcosException
 from client.common.transaction_exception import TransactionException
 import argcomplete
 
@@ -104,7 +102,6 @@ def format_args_by_abi(inputparams, inputabi):
                 sys.exit(1)
             continue
         paramformatted.append(param)
-    print("INFO >> param formatted by abi:", paramformatted)
     return paramformatted
 
 
@@ -121,7 +118,12 @@ def format_args_by_types(inputparams, types):
             newparam.append(v)
             continue
         if type == "hex":
-            newparam.append(hex(int(v, 10)))
+            value = int(v, 10)
+            if value > BcosClient.max_block_number or value < 0:
+                raise ArgumentsError(("invalid input interger: {},"
+                                      " must between 0 and {}").format(value,
+                                                                       BcosClient.max_block_number))
+            newparam.append(hex(value))
             continue
         if type == "bool":
             if v.lower() == "true":
@@ -423,17 +425,14 @@ def print_error_msg(cmd, e):
     """
     print error msg
     """
-    print("ERROR >> execute {} failed\nERROR >> error information: {}".format(cmd, e))
+    print("ERROR >> execute {} failed\nERROR >> error information: {}\n".format(cmd, e))
 
 
-def check_param_num(args, expected):
+def print_info(cmd, level):
     """
-    check param num
+    print information
     """
-    if len(args) < expected:
-        raise ArgumentsError(
-            '''invalid arguments, expected num: {},
-            real num: {}'''.format(expected, len(args)))
+    print("{} >> {}".format(level, cmd))
 
 
 def main(argv):
@@ -446,14 +445,15 @@ def main(argv):
     if valid is False:
         printusage(usagemsg, precompile)
         return
-    client = BcosClient()
-    # ---------------------------------------------------------------------------
-    # start command functions
-
-    # --------------------------------------------------------------------------------------------
-    # console cmd entity
-    # --------------------------------------------------------------------------------------------
     try:
+        client = BcosClient()
+        # ---------------------------------------------------------------------------
+        # start command functions
+
+        # --------------------------------------------------------------------------------------------
+        # console cmd entity
+        # --------------------------------------------------------------------------------------------
+
         # try to callback cns precompile
         precompile.call_cns()
         # try to callback consensus precompile
@@ -462,29 +462,41 @@ def main(argv):
         precompile.call_sysconfig_precompile()
         # try to callback permission precompile
         precompile.call_permission_precompile()
-
+        # try to callback crud precompile
+        precompile.call_crud_precompile()
         if cmd == 'showaccount':
-            check_param_num(inputparams, 2)
+            # must be 2 params
+            common.check_param_num(inputparams, 2, True)
             name = inputparams[0]
             password = inputparams[1]
             keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+            # the account doesn't exists
+            if os.path.exists(keyfile) is False:
+                raise BcosException("account {} doesn't exists".format(name))
             print("show account : {}, keyfile:{} ,password {}  ".format(name, keyfile, password))
-            with open(keyfile, "r") as dump_f:
-                keytext = json.load(dump_f)
-                stat = StatTool.begin()
-                privkey = Account.decrypt(keytext, password)
-                stat.done()
-                print("decrypt use time : %.3f s" % (stat.time_used))
-                ac2 = Account.from_key(privkey)
-                print("address:\t", ac2.address)
-                print("privkey:\t", encode_hex(ac2.key))
-                print("pubkey :\t", ac2.publickey)
-                print("\naccount store in file: [{}]".format(keyfile))
-                print("\n**** please remember your password !!! *****")
+            try:
+                with open(keyfile, "r") as dump_f:
+                    keytext = json.load(dump_f)
+                    stat = StatTool.begin()
+                    privkey = Account.decrypt(keytext, password)
+                    stat.done()
+                    print("decrypt use time : %.3f s" % (stat.time_used))
+                    ac2 = Account.from_key(privkey)
+                    print("address:\t", ac2.address)
+                    print("privkey:\t", encode_hex(ac2.key))
+                    print("pubkey :\t", ac2.publickey)
+                    print("\naccount store in file: [{}]".format(keyfile))
+                    print("\n**** please remember your password !!! *****")
+            except Exception as e:
+                raise BcosException(("load account info for [{}] failed,"
+                                     " error info: {}!").format(name, e))
 
         if cmd == 'newaccount':
-            check_param_num(inputparams, 2)
+            common.check_param_num(inputparams, 2, True)
             name = inputparams[0]
+            if len(name) > 254:
+                print_info("WARNING", "account name should no more than 245")
+                sys.exit(1)
             password = inputparams[1]
             print("starting : {} {} ".format(name, password))
             ac = Account.create(password)
@@ -533,7 +545,11 @@ def main(argv):
         # --------------------------------------------------------------------------------------------
         if cmd == "deploy":
             '''deploy abi bin file'''
-            check_param_num(inputparams, 2)
+            if len(inputparams) > 2:
+                raise ArgumentsError(("deploy failed, expected at most 2 params,"
+                                      " provided: {}").format(len(inputparams)))
+            # must be at most 2 params
+            common.check_param_num(inputparams, 1, False)
             contractname = inputparams[0].strip()
             trans_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
             result = trans_client.send_transaction_getReceipt(None, None, True)
@@ -558,7 +574,7 @@ def main(argv):
         # console cmd entity
         # --------------------------------------------------------------------------------------------
         if cmd == "call" or cmd == "sendtx":
-            check_param_num(inputparams, 3)
+            common.check_param_num(inputparams, 3)
             paramsname = ["contractname", "address", "func"]
             params = fill_params(inputparams, paramsname)
             contractname = params["contractname"]
@@ -617,7 +633,7 @@ def main(argv):
             result = client.common_request(sendcmd, params)
 
             # print the message
-            print("INFO >> get result:", json.dumps(result, indent=4))
+            print("INFO >> {} result: {}".format(cmd, json.dumps(result, indent=4)))
 
             # if error, return directly
             is_error = check_result(result)
@@ -721,9 +737,8 @@ def main(argv):
         print_error_msg(cmd, e)
     except ArgumentsError as e:
         print_error_msg(cmd, e)
-    finally:
-        client.finish()
-        # print(">--- console for FISCO-BCOS® 2.0 2019 ---<")
+    except BcosException as e:
+        print_error_msg(cmd, e)
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ import socket
 from client.channelpack import ChannelPack
 from client.stattool import StatTool
 from utils.encoding import FriendlyJsonSerde
-from client.bcoserror import BcosError
+from client.bcoserror import BcosError, ChannelException
 from eth_utils import (to_text, to_bytes)
 
 
@@ -46,37 +46,49 @@ class ChannelHandler:
     def initTLSContext(self, ca_file, node_crt_file, node_key_file,
                        protocol=ssl.PROTOCOL_TLSv1_2,
                        verify_mode=ssl.CERT_REQUIRED):
-        context = ssl.SSLContext(protocol)
-        context.check_hostname = False
-        context.load_verify_locations(ca_file)
-        context.load_cert_chain(node_crt_file, node_key_file)
-        # print(context.get_ca_certs())
-        context.set_ecdh_curve(self.ECDH_curve)
-        context.verify_mode = verify_mode
-        self.context = context
+        try:
+            context = ssl.SSLContext(protocol)
+            context.check_hostname = False
+            context.load_verify_locations(ca_file)
+            context.load_cert_chain(node_crt_file, node_key_file)
+            # print(context.get_ca_certs())
+            context.set_ecdh_curve(self.ECDH_curve)
+            context.verify_mode = verify_mode
+            self.context = context
+        except Exception as e:
+            raise ChannelException(("init ssl context failed,"
+                                    " please check the certificatsreason: {}").
+                                   format(e))
 
     def finish(self):
         if self.ssock is not None:
             self.ssock.shutdown(socket.SHUT_RDWR)
             self.ssock.close()
             self.ssock = None
-        self.recvThread.finish()
-        self.recvThread.join(timeout=2)
-        self.sendThread.finish()
-        self.sendThread.join(timeout=2)
+        if self.recvThread is not None:
+            self.recvThread.finish()
+            self.recvThread.join(timeout=2)
+        if self.sendThread is not None:
+            self.sendThread.finish()
+            self.sendThread.join(timeout=2)
 
     def start(self, host, port):
-        self.host = host
-        self.port = port
-        sock = socket.create_connection((host, port))
-        self.logger.debug("connect {}:{},as socket {}".format(host, port, sock))
-        # 将socket打包成SSL socket
-        ssock = self.context.wrap_socket(sock)
-        self.ssock = ssock
-        self.recvThread = ChannelRecvThread(self)
-        self.recvThread.start()
-        self.sendThread = ChannelSendThread(self)
-        self.sendThread.start()
+        try:
+            self.host = host
+            self.port = port
+            sock = socket.create_connection((host, port))
+            self.logger.debug("connect {}:{},as socket {}".format(host, port, sock))
+            # 将socket打包成SSL socket
+            ssock = self.context.wrap_socket(sock)
+            self.ssock = ssock
+            self.recvThread = ChannelRecvThread(self)
+            self.recvThread.start()
+            self.sendThread = ChannelSendThread(self)
+            self.sendThread.start()
+        except Exception as e:
+            raise ChannelException(("start channelHandler Failed for {},"
+                                    " host: {}, port: {}").format(e,
+                                                                  self.host, self.port))
 
     def decode_rpc_response(self, response):
         text_response = to_text(response)

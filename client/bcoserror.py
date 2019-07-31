@@ -27,7 +27,16 @@ class BcosError(Exception):
         return "code :{},data :{},message : {}".format(self.code, self.data, self.message)
 
 
-class PrecompileError(Exception):
+class BcosException(Exception):
+    """
+    the exception should be catched
+    """
+
+    def __init__(self, msg=None):
+        super().__init__(msg)
+
+
+class PrecompileError(BcosException):
     """
     PrecompileError
     """
@@ -36,7 +45,7 @@ class PrecompileError(Exception):
         super().__init__(msg)
 
 
-class ArgumentsError(Exception):
+class ArgumentsError(BcosException):
     """
     ArgumentsError
     """
@@ -45,7 +54,7 @@ class ArgumentsError(Exception):
         super().__init__(msg)
 
 
-class CompileError(Exception):
+class CompileError(BcosException):
     """
     CompileError
     """
@@ -54,9 +63,18 @@ class CompileError(Exception):
         super().__init__(msg)
 
 
-class CompilerNotFound(Exception):
+class CompilerNotFound(BcosException):
     """
     CompileError
+    """
+
+    def __init__(self, msg=None):
+        super().__init__(msg)
+
+
+class ChannelException(BcosException):
+    """
+    exception when init channel
     """
 
     def __init__(self, msg=None):
