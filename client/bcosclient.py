@@ -25,7 +25,7 @@ from client.channelhandler import ChannelHandler
 from client_config import client_config
 from utils.contracts import encode_transaction_data
 from client.stattool import StatTool
-from client.bcoserror import BcosError
+from client.bcoserror import BcosError, ArgumentsError
 from client import clientlogger
 from utils.contracts import get_function_info
 from utils.abi import itertools, get_fn_abi_types_single
@@ -40,6 +40,7 @@ class BcosClient:
     groupid = None
     logger = clientlogger.logger  # logging.getLogger("BcosClient")
     request_counter = itertools.count()
+    max_block_number = pow(2, 64)
 
     def __init__(self):
         self.init()
@@ -132,7 +133,7 @@ class BcosClient:
                 raise error
             return response["result"]
         except Exception as e:
-            raise BcosError(-1, None, ("send common request failed, cmd: {},"
+            raise BcosError(-1, None, ("{} failed,"
                                        " params: {}, error information: {}").
                             format(cmd, params, e))
 
@@ -230,6 +231,10 @@ class BcosClient:
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getblockbynumber
 
     def getBlockByNumber(self, num, includeTransactions=False):
+        if num > BcosClient.max_block_number or num < 0:
+            raise ArgumentsError(("invalid block number input: {},"
+                                  " must between 0 and {}").
+                                 format(num, BcosClient.max_block_number))
         cmd = "getBlockByNumber"
         params = [self.groupid, hex(num), includeTransactions]
         return self.common_request(cmd, params)
@@ -330,7 +335,8 @@ class BcosClient:
         callmap["from"] = self.client_account.address
         callmap["to"] = to_address
         callmap["value"] = 0
-        params = [1, callmap]
+        # send transaction to the given group
+        params = [client_config.groupid, callmap]
         # 发送
         response = self.common_request(cmd, params)
         if "output" in response.keys():

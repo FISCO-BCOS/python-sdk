@@ -149,6 +149,59 @@ function test_account()
     fi
     LOG_INFO "## test account finished..."
 }
+# test permission precompile
+function test_permission_precompile()
+{
+    account="0x95198B93705e394a916579e048c8A32DdFB900f7"
+    table="t_test"
+    # grantPermissionManager
+    execute_cmd "python console.py grantPermissionManager ${account}"
+    # listPermissionManager
+    execute_cmd "python console.py listPermissionManager | grep ${account}"
+    granted_account="0xcDF16CeF9004b1ECCf464Ae559996712E250D5A9"
+     # grantNodeManager
+    execute_cmd "python console.py grantNodeManager ${granted_account}"
+    # listNodeManager
+    execute_cmd "python console.py listNodeManager | grep ${granted_account}"
+    # grantCNSManager
+    execute_cmd "python console.py grantCNSManager ${granted_account}"
+    # listCNSManager
+    execute_cmd "python console.py listCNSManager | grep ${granted_account}"
+    # grantSysConfigManager
+    execute_cmd "python console.py grantSysConfigManager ${granted_account}"
+    # listSysConfigManager
+    execute_cmd "python console.py listSysConfigManager | grep ${granted_account}"
+    # grantUserTableManager
+    execute_cmd "python console.py grantUserTableManager ${table} ${granted_account}"
+    # listUserTableManager
+    execute_cmd "python console.py listUserTableManager ${table} |grep ${granted_account}"
+    # grantDeployAndCreateManager
+    execute_cmd "python console.py grantDeployAndCreateManager ${granted_account}"
+    # listDeployAndCreateManager
+    execute_cmd "python console.py listDeployAndCreateManager | grep ${granted_account}"
+
+    # call revoke
+    # revokeUserTableManager
+    execute_cmd "python console.py revokeUserTableManager ${table} ${granted_account}"
+    # revokeDeployAndCreateManager
+    execute_cmd "python console.py revokeDeployAndCreateManager ${granted_account}"
+    # revokeNodeManager
+    execute_cmd "python console.py revokeNodeManager ${granted_account}"
+    # revokeCNSManager
+    execute_cmd "python console.py revokeCNSManager ${granted_account}"
+    # revokeSysConfigManager
+    execute_cmd "python console.py revokeSysConfigManager ${granted_account}"
+    # revokePermissionManager
+    execute_cmd "python console.py revokePermissionManager ${granted_account}"
+
+    # call list again
+    python console.py listUserTableManager ${table}| grep ${granted_account}
+    command_list="listDeployAndCreateManager listNodeManager listCNSManager listSysConfigManager listPermissionManager"
+    for command in ${command_list};do
+        python console.py ${command} | grep ${granted_account}
+    done
+}
+
 
 # test consensus precompile
 function test_consensus_precompile()
@@ -262,6 +315,7 @@ function test_precompile()
 {
     test_consensus_precompile
     test_sys_config
+    test_permission_precompile
 }
 
 # test_rpc
