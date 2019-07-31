@@ -11,6 +11,7 @@
   @author: yujiechen
   @date: 2019-07
 '''
+import json
 from client.common import transaction_common
 from client.precompile.crud.crud_service import CRUDService
 from client.precompile.crud.crud_service import PrecompileGlobalConfig
@@ -28,7 +29,7 @@ class PermissionService:
         self.permission_address = "0x0000000000000000000000000000000000001005"
         self.contract_path = contract_path
         self.client = transaction_common.TransactionCommon(
-            self.permission_abi, contract_path, "permission")
+            self.permission_address, contract_path, "Permission")
 
     def __del__(self):
         """
@@ -56,6 +57,26 @@ class PermissionService:
         fn_args = [table_name, account_address]
         return self.client.send_transaction_getReceipt(fn_name, fn_args)
 
+    @staticmethod
+    def print_permission_info(result):
+        """
+        print permission info
+        """
+        i = 0
+        if result is None:
+            return
+        result_list = list(result)
+        if result_list is None or len(result_list) < 1:
+            return
+        for permission_info in result_list:
+            permission_item = json.loads(permission_info)
+            for permission_obj in permission_item:
+                print("----->> ITEM {}".format(i))
+                i = i + 1
+                if "address" in permission_obj.keys():
+                    print("     = address: {}".format(permission_obj["address"]))
+                    print("     = enable_num: {}".format(permission_obj["enable_num"]))
+
     def list_permission(self, table_name):
         """
         list write-permitted accounts to table_name
@@ -70,7 +91,9 @@ class PermissionService:
         """
         """
         crud_service = CRUDService(self.contract_path)
-        crud_service.desc(table_name)
+        table = crud_service.desc(table_name)
+        if table is None:
+            print(" WARNING >> non-exist table {}".format(table_name))
         return self.grant(table_name, account_address)
 
     def revokeUserTableManager(self, table_name, account_address):
