@@ -428,7 +428,7 @@ def print_error_msg(cmd, e):
     print("ERROR >> execute {} failed\nERROR >> error information: {}\n".format(cmd, e))
 
 
-def print_info(cmd, level):
+def print_info(level, cmd):
     """
     print information
     """
