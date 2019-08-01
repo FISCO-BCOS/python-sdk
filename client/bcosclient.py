@@ -101,17 +101,15 @@ class BcosClient:
 
     def is_error_response(self, response):
         if response is None:
-            e = BcosError(-1, None, "response is None")
-            return e
-        if("error" in response):
+            raise BcosError(-1, None, "response is None")
+        if "error" in response.keys():
             msg = response["error"]["message"]
             code = response["error"]["code"]
             data = None
             if("data" in response["error"]):
                 data = response["error"]["data"]
             self.logger.error("is_error_response code: {}, msg:{} ,data:{}".format(code, msg, data))
-            e = BcosError(code, data, msg)
-            return e
+            raise BcosError(code, data, msg)
         return None
 
     def common_request(self, cmd, params):
@@ -122,15 +120,10 @@ class BcosClient:
                 response = self.rpc.make_request(cmd, params)
             if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
                 response = self.channel_handler.make_request(cmd, params, ChannelPack.TYPE_RPC)
-            error = self.is_error_response(response)
+            self.is_error_response(response)
             memo = "DONE"
-            if error is not None:
-                memo = "ERROR {}:{}".format(error.code, error.message)
             stat.done()
             stat.debug("commonrequest:{}:{}".format(cmd, memo))
-
-            if error is not None:
-                raise error
             return response["result"]
         except Exception as e:
             raise BcosError(-1, None, ("{} failed,"
@@ -242,7 +235,7 @@ class BcosClient:
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getblockhashbynumber
     def getBlockHashByNumber(self, num):
         cmd = "getBlockHashByNumber"
-        params = [self.groupid, hex(num)]
+        params = [self.groupid, hex(num), True]
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_cn/release-2.0/docs/api.html#gettransactionbyhash

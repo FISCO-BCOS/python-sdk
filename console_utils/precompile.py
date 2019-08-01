@@ -16,6 +16,7 @@
 import os
 import json
 from eth_utils import to_checksum_address
+from client.common import common
 from client.common.transaction_exception import TransactionException
 from client.precompile.cns.cns_service import CnsService
 from client.precompile.consensus.consensus_precompile import ConsensusPrecompile
@@ -208,6 +209,7 @@ class Precompile:
         """
         print cns information
         """
+        common.print_result(cns_info)
         for cns_item in cns_info:
             cns_obj = json.loads(cns_item)
             i = 0
@@ -217,6 +219,8 @@ class Precompile:
                 print("\tContractVersion: {}".format(cns["version"]))
                 print("\tContractAddress: {}".format(cns["address"]))
                 i = i + 1
+        if i == 0:
+            print("Empty Set")
 
     def call_cns(self):
         """
