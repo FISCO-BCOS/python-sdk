@@ -21,15 +21,13 @@ from eth_account.account import (
     Account
 )
 from eth_utils.hexadecimal import encode_hex
-from client.bcosclient import (
-    BcosClient
-)
 from client.contractnote import ContractNote
 import json
 import os
 from client.datatype_parser import DatatypeParser
 from eth_utils import to_checksum_address
 from console_utils.precompile import Precompile
+from console_utils.rpc_console import RPCConsole
 from client.common import transaction_common
 from client.common import common
 from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError, BcosException
@@ -77,65 +75,6 @@ def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
     print("receipt output :", outputresult)
 
 
-def format_args_by_abi(inputparams, inputabi):
-    paramformatted = []
-    index = -1
-    # print(inputabi)
-    # print(inputparams)
-    for input in inputabi:
-        # print(input)
-        index += 1
-        param = inputparams[index]
-        if '\'' in param:
-            param = param.replace('\'', "")
-        if "int" in input["type"]:
-            paramformatted.append(int(param, 10))
-            continue
-        # print(input)
-        if "address" in input["type"]:
-            print("to checksum address ", param)
-            try:
-                paramformatted.append(to_checksum_address(param))
-            except Exception as e:
-                print(("ERROR >> covert {} to to_checksum_address failed,"
-                       " exception: {}").format(param, e))
-                sys.exit(1)
-            continue
-        paramformatted.append(param)
-    return paramformatted
-
-
-def format_args_by_types(inputparams, types):
-    index = -1
-    newparam = []
-    # print(types)
-    for type in types:
-        index += 1
-        v = inputparams[index]
-        if type == "str":
-            if '\'' in v:
-                v = v.replace('\'', '')
-            newparam.append(v)
-            continue
-        if type == "hex":
-            value = int(v, 10)
-            if value > BcosClient.max_block_number or value < 0:
-                raise ArgumentsError(("invalid input interger: {},"
-                                      " must between 0 and {}").format(value,
-                                                                       BcosClient.max_block_number))
-            newparam.append(hex(value))
-            continue
-        if type == "bool":
-            if v.lower() == "true":
-                newparam.append(True)
-            else:
-                newparam.append(False)
-
-            continue
-    # print(newparam)
-    return newparam
-
-
 def print_parse_transaction(tx, contractname, parser=None):
     if parser is None:
         parser = DatatypeParser(default_abi_file(contractname))
@@ -160,56 +99,14 @@ def get_validcmds():
     get valid cmds
     """
     validcmds = ["showaccount", "newaccount", "deploy", "call",
-                 "sendtx", "list", "int", "txinput", "checkaddr", "usage"]
+                 "sendtx", "list", "txinput", "checkaddr", "usage"]
     return validcmds
 
 
-def common_cmd():
-    """
-    common cmd
-    """
-    # --------------------------------------------------------------------------------------------
-    # console cmd entity
-    # --------------------------------------------------------------------------------------------
-    # 用比较通用的方式处理所有getXXX接口，处理少量特例
-    getcmds = dict()
-    getcmds["getNodeVersion"] = []
-    getcmds["getBlockNumber"] = []
-    getcmds["getPbftView"] = []
-    getcmds["getSealerList"] = []
-    getcmds["getObserverList"] = []
-    getcmds["getConsensusStatus"] = []
-    getcmds["getSyncStatus"] = []
-    getcmds["getPeers"] = []
-    getcmds["getGroupPeers"] = []
-    getcmds["getNodeIDList"] = []
-    getcmds["getGroupList"] = []
-    getcmds["getBlockByHash"] = [["str", "bool"],
-                                 ("hash : 区块Hash(hash string), "
-                                  "是否查询交易数据(true/false for with transaction data)")]
-    getcmds["getBlockByNumber"] = [["hex", "bool"],
-                                   ("number bool : 区块高度(number), "
-                                    "是否查询交易数据(true/false for with transaction data)")]
-    getcmds["getBlockHashByNumber"] = [["hex"], "number : 区块高度(number)"]
-    getcmds["getTransactionByHash"] = [["str"], "hash : 交易Hash(hash string)"]
-    getcmds["getTransactionByBlockHashAndIndex"] = [["str", "hex"],
-                                                    ("blockhash index :"
-                                                     " 区块Hash(hash string), 交易在区块里的位置(index)")]
-    getcmds["getTransactionByBlockNumberAndIndex"] = [
-        ["hex", "hex"], "blocknumber index : 区块高度(number),交易在区块里的位置(index)"]
-    getcmds["getTransactionReceipt"] = [["str"], "hash: 交易hash(hash string)"]
-    getcmds["getPendingTransactions"] = []
-    getcmds["getPendingTxSize"] = []
-    getcmds["getCode"] = ["str"]
-    getcmds["getTotalTransactionCount"] = []
-    getcmds["getSystemConfigByKey"] = [["str"], ("name : 配置参数名"
-                                                 "(system param name),eg:tx_count_limit")]
-    return getcmds
-
-
-def check_cmd(cmd, validcmds, common_cmd):
-    if (cmd not in validcmds) and (cmd not in common_cmd):
-        print("console cmd  [{}]  not implement yet,see the usage\n".format(cmd))
+def check_cmd(cmd, validcmds):
+    if cmd not in validcmds:
+        common.print_error_msg(("console cmd  [{}]  not implement yet,"
+                                " see the usage\n").format(cmd), "")
         return False
     return True
 
@@ -218,21 +115,18 @@ def printusage(usagemsg, precompile=None):
     """
     print usage
     """
-    print('''usage
-        使用说明,输入python console.py [指令 参数列表]
-        Usage of console (FISCO BCOS 2.0 lite client @python):
-        python console.py [cmd args]
-        ''')
+    print("FISCO BCOS 2.0 @python-SDK Usage:")
     index = 0
     for msg in usagemsg:
         index += 1
-        print("{}): {}\n".format(index, msg))
+        print("{}\n".format(msg))
     if precompile is None:
         return
     precompile.print_cns_usage(True)
     precompile.print_consensus_usage(True)
     precompile.print_sysconfig_usage(True)
     precompile.print_all_permission_usage()
+    RPCConsole.print_rpc_usage()
 
 
 def usage(client_config):
@@ -275,19 +169,10 @@ def usage(client_config):
         eg: sendtx SimpleInfo last set 'test' 100 '0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC'
         '''.format(client_config.contract_info_file))
 
-    usagemsg.append('''all the 'get' command for JSON RPC
-        各种get接口，查询节点的各种状态（不一一列出，可用list指令查看接口列表和参数名）
-        neg: [getBlockByNumber 10 true].
-        use 'python console.py list' to show all get cmds ''')
-
     usagemsg.append('''list
         列出所有支持的get接口名和参数
         list: list all  getcmds  has implemented
         (getBlock...getTransaction...getReceipt..getOthers)''')
-
-    usagemsg.append('''int [hex number]
-        输入一个十六进制的数字，转为十进制（考虑到json接口里很多数字都是十六进制的，所以提供这个功能）
-        convert a hex str to int ,eg: int 0x65''')
 
     usagemsg.append('''txinput [contractname] [inputdata(in hex string)]
         复制一段来自transaction的inputdata(十六进制字符串)，指定合约名，则可以自动解析（合约的abi文件应存在指定目录下）
@@ -343,11 +228,10 @@ def list_accounts():
 
 
 # get supported command
-validcmds = get_validcmds()
-getcmds = common_cmd()
 Precompile.define_functions()
-validcmds = validcmds + Precompile.get_all_cmd()
-allcmds = validcmds + [*getcmds.keys()]
+RPCConsole.define_commands()
+validcmds = get_validcmds() + RPCConsole.get_all_cmd() \
+    + Precompile.get_all_cmd()
 contracts_dir = "contracts"
 
 
@@ -356,7 +240,7 @@ def completion(prefix, parsed_args, **kwargs):
     complete the shell
     """
     if parsed_args.cmd is None:
-        return allcmds
+        return validcmds
     # deploy contract
     if parsed_args.cmd[0] == "deploy":
         return list_contracts()
@@ -421,39 +305,16 @@ def parse_commands(argv):
     return cmd, inputparams
 
 
-def print_error_msg(cmd, e):
-    """
-    print error msg
-    """
-    print("ERROR >> execute {} failed\nERROR >> error information: {}\n".format(cmd, e))
-
-
-def print_info(level, cmd):
-    """
-    print information
-    """
-    print("{} >> {}".format(level, cmd))
-
-
 def main(argv):
     usagemsg = usage(client_config)
     cmd, inputparams = parse_commands(argv)
     precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
-
     # check cmd
-    valid = check_cmd(cmd, validcmds, getcmds)
+    valid = check_cmd(cmd, validcmds)
     if valid is False:
         printusage(usagemsg, precompile)
         return
     try:
-        client = BcosClient()
-        # ---------------------------------------------------------------------------
-        # start command functions
-
-        # --------------------------------------------------------------------------------------------
-        # console cmd entity
-        # --------------------------------------------------------------------------------------------
-
         # try to callback cns precompile
         precompile.call_cns()
         # try to callback consensus precompile
@@ -464,6 +325,9 @@ def main(argv):
         precompile.call_permission_precompile()
         # try to callback crud precompile
         precompile.call_crud_precompile()
+        # try to callback rpc functions
+        rpcConsole = RPCConsole(cmd, inputparams)
+        rpcConsole.executeRpcCommand()
         if cmd == 'showaccount':
             # must be 2 params
             common.check_param_num(inputparams, 2, True)
@@ -495,7 +359,7 @@ def main(argv):
             common.check_param_num(inputparams, 2, True)
             name = inputparams[0]
             if len(name) > 254:
-                print_info("WARNING", "account name should no more than 245")
+                common.print_info("WARNING", "account name should no more than 245")
                 sys.exit(1)
             password = inputparams[1]
             print("starting : {} {} ".format(name, password))
@@ -597,103 +461,13 @@ def main(argv):
                 receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)
                 data_parser = DatatypeParser(default_abi_file(contractname))
                 # 解析receipt里的log 和 相关的tx ,output
-                print_receipt_logs_and_txoutput(client, receipt, "", data_parser)
-
-        # --------------------------------------------------------------------------------------------
-        # console cmd entity
-        # --------------------------------------------------------------------------------------------
-        if cmd in getcmds:
-            types = []
-            if len(getcmds[cmd]) > 0:
-                types = getcmds[cmd][0]
-            if "getBlockBy" in cmd:
-                # make a default for getBlockBy...
-                if(len(inputparams) == 1):
-                    inputparams.append("false")
-                    print('''**NOTE >> for getBlockbyNumber/Hash ,
-                          missing 2nd arg ,defaut (false) gave :
-                          withoud retrieve transactions detail.
-                          full command,eg: getBlockByNumber 10 true (or false)\n''')
-            try:
-                fmtargs = format_args_by_types(inputparams, types)
-            except Exception:
-                cmdinfo = getcmds[cmd]
-                memo = " no args"
-                if(len(cmdinfo) == 2):
-                    memo = " {} ".format(cmdinfo[1])
-                print("WARN >> args not match,should be : {} {},break\n".format(cmd, memo))
-                sys.exit("WARN >> please try again...")
-            # print("is a get :{},params:{}".format(cmd,fmtargs) )
-            params = [client.groupid]
-            params.extend(fmtargs)
-            # print(params)
-            sendcmd = cmd
-            if cmd == "getNodeVersion":  # getNodeVersion is a alias for getClientVersion
-                sendcmd = "getClientVersion"
-            result = client.common_request(sendcmd, params)
-
-            # print the message
-            print("INFO >> {} result: {}".format(cmd, json.dumps(result, indent=4)))
-
-            # if error, return directly
-            is_error = check_result(result)
-            if is_error is True:
-                return
-
-            if cmd == "getTransactionReceipt":
-                if len(inputparams) == 2:
-                    contractname = inputparams[1]
-                    print_receipt_logs_and_txoutput(client, result, contractname)
-
-            if cmd == "getBlockNumber":
-                print("INFO >> blockNumber:\t{}".format(int(result, 16)))
-
-            # transfer pbftView to Dec
-            if cmd == "getPbftView":
-                print("INFO >> pbftView:\t{}".format(int(result, 16)))
-
-            if cmd == "getPendingTxSize":
-                print("INFO >> pendingTxSize:\t{}".format(int(result, 16)))
-
-            if cmd == "getTotalTransactionCount":
-                print("INFO >> getTotalTransactionCount: ")
-                print("INFO >> blockNumber:\t{}".format(int(result["blockNumber"], 16)))
-                print("INFO >> failedTxSum:\t{}".format(int(result["failedTxSum"], 16)))
-                print("INFO >> txSum:\t{}".format(int(result["txSum"], 16)))
-
-            if "getBlockBy" in cmd:
-                blocknum = int(result["number"], 16)
-                print("INFO >> blocknumber : ", blocknum)
-                print("INFO >> blockhash   : ", result["hash"])
-            if "getTransactionBy" in cmd:
-                # print(inputparams)
-                abifile = None
-                if len(inputparams) == 3:
-                    abifile = inputparams[2]
-                if len(inputparams) == 2 and cmd == "getTransactionByHash":
-                    abifile = inputparams[1]
-                if abifile is not None:
-                    print_parse_transaction(result, abifile)
-
+                print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         # --------------------------------------------------------------------------------------------
         # console cmd entity
         # --------------------------------------------------------------------------------------------
         if cmd == "list":
-            i = 0
-            print("query commands:")
-            for cmd in getcmds:
-                hint = "无参数(no args)"
-                if len(getcmds[cmd]) == 2:
-                    hint = getcmds[cmd][1]
-                i = i + 1
-                print("{} ): {}\t{}".format(i, cmd, hint))
-                print("--------------------------------------------------------------------")
-
-        # --------------------------------------------------------------------------------------------
-        # console cmd entity
-        # --------------------------------------------------------------------------------------------
-        if cmd == 'int':
-            print(int(inputparams[0], 16))
+            RPCConsole.print_rpc_usage()
+            print("--------------------------------------------------------------------")
 
         # --------------------------------------------------------------------------------------------
         # console cmd entity
@@ -701,11 +475,19 @@ def main(argv):
         if cmd == "txinput":
             contractname = inputparams[0]
             inputdata = inputparams[1]
-            dataParser = DatatypeParser(default_abi_file(contractname))
-            # print(dataParser.func_abi_map_by_selector)
-            result = dataParser.parse_transaction_input(inputdata)
-            print("\nabifile : ", default_abi_file(contractname))
-            print("parse result: {}".format(result))
+            abi_path = default_abi_file(contractname)
+            if os.path.isfile(abi_path) is False:
+                raise BcosException("execute {} failed for {} doesn't exist"
+                                    .format(cmd, abi_path))
+            try:
+                dataParser = DatatypeParser(abi_path)
+                # print(dataParser.func_abi_map_by_selector)
+                result = dataParser.parse_transaction_input(inputdata)
+                print("\nabifile : ", default_abi_file(contractname))
+                print("parse result: {}".format(result))
+            except Exception as e:
+                raise BcosException("execute {} failed for reason: {}"
+                                    .format(cmd, e))
 
         # --------------------------------------------------------------------------------------------
         # console cmd entity
@@ -720,25 +502,18 @@ def main(argv):
         # --------------------------------------------------------------------------------------------
         if cmd == "usage":
             printusage(usagemsg, precompile)
-
-        # --------------------------------------------------------------------------------------------
-        # console cmd entity
-        # --------------------------------------------------------------------------------------------
-        if (cmd not in validcmds) and (cmd not in getcmds):
-            printusage(usagemsg, precompile)
-            print("console cmd  [{}]  not implement yet,see the usage\n".format(cmd))
     except TransactionException as e:
-        print_error_msg(cmd, e)
+        common.print_error_msg(cmd, e)
     except PrecompileError as e:
-        print_error_msg(cmd, e)
+        common.print_error_msg(cmd, e)
     except BcosError as e:
-        print_error_msg(cmd, e)
+        common.print_error_msg(cmd, e)
     except CompileError as e:
-        print_error_msg(cmd, e)
+        common.print_error_msg(cmd, e)
     except ArgumentsError as e:
-        print_error_msg(cmd, e)
+        common.print_error_msg(cmd, e)
     except BcosException as e:
-        print_error_msg(cmd, e)
+        common.print_error_msg(cmd, e)
 
 
 if __name__ == "__main__":

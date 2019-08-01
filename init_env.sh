@@ -138,15 +138,16 @@ python_init()
         python_versions=$(pyenv versions | grep python-sdk)
         if [ ! -z "${python_versions}" ];then
             LOG_INFO "already install python ${version}, please activate the version with command: pyenv activate python-sdk"
+            return
         fi
-    else
-        install_pyenv
-        source ${shell_rc}
-        install_python3
-        LOG_INFO "install python ${version} success, please activate with command: pyenv activate python-sdk"
     fi
+    
+    install_pyenv
+    source ${shell_rc}
+    install_python3
+    LOG_INFO "install python ${version} success, please activate with command: pyenv activate python-sdk"
   else
-    python_verison=$(execute_cmd "python -V 2>&1")
+    python_version=$(execute_cmd "python -V 2>&1")
     LOG_INFO "python version already ${python_version} already meet requirement~"
   fi
 }
