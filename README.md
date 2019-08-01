@@ -51,7 +51,7 @@ git clone https://github.com/FISCO-BCOS/python-sdk
 cd python-sdk && bash init_env.sh -p
 
 # 激活python-sdk虚拟环境
-source ~/.bashrc && pyenv activate python-sdk
+source ~/.bashrc && pyenv activate python-sdk && pip install --upgrade pip
 ```
 
 **安装依赖**
