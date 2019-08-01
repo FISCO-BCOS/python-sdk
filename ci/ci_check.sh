@@ -62,7 +62,7 @@ function stop_nodes()
 
 function getBlockNumber()
 {
-    execute_cmd "python console.py getBlockNumber | grep blockNumber | awk -F':' '{print \$2}' | awk '\$1=\$1'"
+    execute_cmd "python console.py getBlockNumber | grep -v INFO | awk -F'>' '{print \$3}' | awk '\$1=\$1'"
 }
 
 # test the common jsonRPC interface
@@ -91,6 +91,7 @@ function test_contract()
     if [ $(($init_blockNumber + 1)) -ne $((updated_blockNumber)) ];then
         LOG_ERROR "deploy contract failed for blockNumber hasn't increased"
     fi
+    execute_cmd "python console.py getCode ${contract_addr}"
     # test cns precompile
     LOG_INFO "## test CNS precompile"
     LOG_INFO "registerCNS..."
@@ -202,6 +203,34 @@ function test_permission_precompile()
     done
 }
 
+# test rpc interfaces
+function test_rpc_command()
+{
+    # execute command with empty params
+    empty_cmd_list="getNodeVersion getBlockNumber getPbftView \
+    getSealerList getObserverList getConsensusStatus getSyncStatus \
+    getPeers getGroupPeers getNodeIDList getGroupList getPendingTxSize \
+    getTotalTransactionCount getPendingTransactions"
+    for cmd in ${empty_cmd_list};do
+        execute_cmd "python console.py ${cmd}"
+    done
+    # execute command with one param
+    one_param="getBlockByNumber getBlockHashByNumber"
+    for cmd in ${one_param};do
+        execute_cmd "python console.py ${cmd} 0"
+    done 
+    blockHash=$(python console.py getTransactionByBlockNumberAndIndex 1 0 | grep "blockHash" | awk -F':' '{print $2}'| awk '$1=$1' | cut -d'"' -f2)
+    txHash=$(python console.py getTransactionByBlockNumberAndIndex 1 0 | grep "hash" |grep -v block | awk -F':' '{print $2}'| awk '$1=$1' | cut -d'"' -f2)
+    # getBlockByHash
+    execute_cmd "python console.py getBlockByHash ${blockHash}"
+    # getTransactionByHash
+    execute_cmd "python console.py getTransactionByHash ${txHash}"
+    # getTransactionReceipt
+    execute_cmd "python console.py getTransactionReceipt ${txHash}"
+    # getTransactionByBlockHashAndIndex
+    execute_cmd "python console.py getTransactionByBlockHashAndIndex ${blockHash} 0"
+}
+
 
 # test consensus precompile
 function test_consensus_precompile()
@@ -255,7 +284,7 @@ function test_consensus_precompile()
 function get_config_by_key()
 {
     key="${1}"
-    value=$(execute_cmd "python console.py \"getSystemConfigByKey\" \${key} | grep \"result\" | awk -F':' '{print \$2}' | awk '\$1=\$1' | awk -F'\"' '{print \$2}'")
+    value=$(execute_cmd "python console.py \"getSystemConfigByKey\" \${key} | grep -v INFO | awk -F'>' '{print \$3}' | awk '\$1=\$1'")
     echo "${value}"
 }
 
@@ -324,8 +353,8 @@ function test_rpc()
     test_common_rpcInterface
     test_contract
     test_account
+    test_rpc_command
 }
-
 # test channel
 function test_channel()
 {
