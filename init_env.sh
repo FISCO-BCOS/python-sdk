@@ -84,7 +84,6 @@ install_pyenv()
     execute_cmd "echo 'eval \"\$(pyenv init -)\"' >> ${shell_rc}"
 	source ${shell_rc}
     execute_cmd "echo 'eval \"\$(pyenv virtualenv-init -)\"' >> ~/.bash_profile"
-	
     LOG_INFO "init pyenv succeed!"
 }
 
@@ -99,11 +98,6 @@ install_python3()
 	if [ -z "${python_versions}" ];then
 	    execute_cmd "pyenv virtualenv ${version} python-sdk"
 	fi
-}
-
-upgrade_pip()
-{
-    execute_cmd "pip install --upgrade pip"
 }
 
 init_config()
@@ -137,17 +131,24 @@ python_init()
   local ret=$(check_python)
   # need to install python
   if [ ${ret} = "1" ];then
-    install_pyenv
-    source ${shell_rc}
-    install_python3 
+    version="3.7.3"
+    which pyenv
+    # already install pyenv, then check the versions
+    if [ $? -eq 0 ];then
+        python_versions=$(pyenv versions | grep python-sdk)
+        if [ ! -z "${python_versions}" ];then
+            LOG_INFO "already install python ${version}, please activate the version with command: pyenv activate python-sdk"
+        fi
+    else
+        install_pyenv
+        source ${shell_rc}
+        install_python3
+        LOG_INFO "install python ${version} success, please activate with command: pyenv activate python-sdk"
+    fi
+  else
+    python_verison=$(execute_cmd "python -V 2>&1")
+    LOG_INFO "python version already ${python_version} already meet requirement~"
   fi
-  version="3.7.3"
-  python_versions=$(pyenv versions | grep "${version}")
-  if [ ! -z "${python_versions}" ];then
-    execute_cmd "pyenv shell 3.7.3"
-    execute_cmd "pyenv rehash"
-  fi
-  upgrade_pip
 }
 
 function help()
