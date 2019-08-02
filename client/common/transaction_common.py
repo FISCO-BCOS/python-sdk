@@ -73,6 +73,10 @@ class TransactionCommon(bcosclient.BcosClient):
             if deploy is True and os.path.exists(self.contract_bin_path) is True:
                 with open(self.contract_bin_path) as f:
                     contract_bin = f.read()
+                if contract_bin is not None and len(contract_bin) > 0x40000:
+                    raise BcosException(("contract bin size overflow,"
+                                         " limit: 0x40000(256K), size: {})")
+                                        .format(int(len(contract_bin), 16)))
             receipt = super().sendRawTransactionGetReceipt(self.contract_addr,
                                                            contract_abi, fn_name,
                                                            args, contract_bin, gasPrice)
@@ -85,7 +89,7 @@ class TransactionCommon(bcosclient.BcosClient):
                                  "transaction receipt:{}").format(receipt))
             status = receipt["status"]
             if int(status, 16) != 0 or receipt["output"] is None:
-                raise TransactionException(("send transaction failed,"
+                raise TransactionException(receipt, ("send transaction failed,"
                                             "status: {}, gasUsed: {},"
                                             " (not enough gas?)"
                                             " (non-exist contract address?)").

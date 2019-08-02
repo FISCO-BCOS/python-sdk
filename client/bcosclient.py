@@ -18,6 +18,7 @@
 from eth_utils.hexadecimal import decode_hex, encode_hex
 from eth_account.account import Account
 import time
+import os
 import utils.rpc
 import json
 from client.common import common
@@ -59,22 +60,33 @@ class BcosClient:
 
     # load the account from keyfile
     def load_default_account(self):
-        if client_config.account_keyfile is not None:
-            keystorefile = client_config.account_keyfile_path + "/" + client_config.account_keyfile
-            with open(keystorefile, "r") as dump_f:
+        try:
+            with open(self.keystore_file, "r") as dump_f:
                 keytext = json.load(dump_f)
                 privkey = Account.decrypt(keytext, client_config.account_password)
                 self.client_account = Account.from_key(privkey)
+        except Exception as e:
+            raise BcosException("load account from {} failed, reason: {}"
+                                .format(self.keystore_file, e))
 
     def init(self):
         # check chainID
         common.check_int_range(client_config.groupid, BcosClient.max_group_id)
         # check group id
-        common.check_int_range(client_config.groupid, BcosClient.max_chain_id)
+        common.check_int_range(client_config.fiscoChainId, BcosClient.max_chain_id)
         # check protocol
         if client_config.client_protocol.lower() not in BcosClient.protocol_list:
             raise BcosException("invalid configuration, must be: {}".
                                 format(''.join(BcosClient.protocol_list)))
+        # check account keyfile
+        self.keystore_file = "{}/{}".format(client_config.account_keyfile_path,
+                                            client_config.account_keyfile)
+        if os.path.exists(self.keystore_file) is False:
+            raise BcosException(("keystore file {} doesn't exist, "
+                                 "please check client_config.py again "
+                                 "and make sure this account exist")
+                                .format(self.keystore_file))
+
         self.fiscoChainId = client_config.fiscoChainId
         self.groupid = client_config.groupid
 

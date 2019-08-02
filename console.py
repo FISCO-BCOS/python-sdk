@@ -358,8 +358,10 @@ def main(argv):
         if cmd == 'newaccount':
             common.check_param_num(inputparams, 2, True)
             name = inputparams[0]
-            if len(name) > 254:
-                common.print_info("WARNING", "account name should no more than 245")
+            max_account_len = 254
+            if len(name) > max_account_len:
+                common.print_info("WARNING", "account name should no more than {}"
+                                  .format(max_account_len))
                 sys.exit(1)
             password = inputparams[1]
             print("starting : {} {} ".format(name, password))
