@@ -25,6 +25,7 @@ class ConfigPrecompile:
         init the address for SystemConfig contract
         """
         self._config_address = "0x0000000000000000000000000000000000001000"
+        self.gasPrice = 300000000
         self.client = transaction_common.TransactionCommon(
             self._config_address, contract_path, "SystemConfig")
 
@@ -34,4 +35,4 @@ class ConfigPrecompile:
         """
         fn_name = "setValueByKey"
         fn_args = [key, value]
-        return self.client.send_transaction_getReceipt(fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)

@@ -377,7 +377,8 @@ class BcosClient:
         可用于所有已知abi的合约，传入abi定义，方法名，正确的参数列表，即可发送交易。交易由BcosClient里加载的账号进行签名。
     '''
 
-    def sendRawTransaction(self, to_address, contract_abi, fn_name, args=None, bin_data=None):
+    def sendRawTransaction(self, to_address, contract_abi, fn_name, args=None,
+                           bin_data=None, gasPrice=30000000):
         cmd = "sendRawTransaction"
         if to_address != "":
             common.check_and_format_address(to_address)
@@ -398,8 +399,8 @@ class BcosClient:
         import random
         txmap = dict()
         txmap["randomid"] = random.randint(0, 1000000000)  # 测试用 todo:改为随机数
-        txmap["gasPrice"] = 30000000
-        txmap["gasLimit"] = 30000000
+        txmap["gasPrice"] = gasPrice
+        txmap["gasLimit"] = gasPrice
         txmap["blockLimit"] = self.getBlocklimit()  # 501  # 测试用，todo：从链上查一下
 
         txmap["to"] = to_address
@@ -427,11 +428,11 @@ class BcosClient:
 
     # 发送交易后等待共识完成，检索receipt
     def sendRawTransactionGetReceipt(self, to_address, contract_abi,
-                                     fn_name, args=None, bin_data=None,
+                                     fn_name, args=None, bin_data=None, gasPrice=30000000,
                                      timeout=15):
         # print("sendRawTransactionGetReceipt",args)
         stat = StatTool.begin()
-        txid = self.sendRawTransaction(to_address, contract_abi, fn_name, args, bin_data)
+        txid = self.sendRawTransaction(to_address, contract_abi, fn_name, args, bin_data, gasPrice)
         result = None
         for i in range(0, timeout):
             result = self.getTransactionReceipt(txid)

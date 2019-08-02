@@ -16,9 +16,13 @@ import time
 import os
 import json
 import subprocess
+from eth_utils.hexadecimal import decode_hex
 from client_config import client_config
 from eth_utils import to_checksum_address
+from utils.contracts import get_function_info
+from utils.abi import get_fn_abi_types_single
 from client.bcoserror import ArgumentsError, BcosException
+from eth_abi import decode_single
 
 
 def backup_file(file_name):
@@ -159,3 +163,11 @@ def check_param_num(args, expected, needEqual=False):
         if len(args) != expected:
             raise ArgumentsError(("invalid arguments, expected num {},"
                                   "real num: {}").format(expected, len(args)))
+
+
+def parse_output(output, fn_name, contract_abi, args):
+    fn_abi, fn_selector, fn_arguments = fn_abi, fn_selector, fn_arguments = get_function_info(
+        fn_name, contract_abi, None, args, None)
+    fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
+    decoderesult = decode_single(fn_output_types, decode_hex(output))
+    return decoderesult

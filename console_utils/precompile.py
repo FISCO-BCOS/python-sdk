@@ -22,6 +22,7 @@ from client.precompile.consensus.consensus_precompile import ConsensusPrecompile
 from client.precompile.config.config_precompile import ConfigPrecompile
 from client.precompile.permission.permission_service import PermissionService
 from client.precompile.crud.crud_service import CRUDService, Table
+from client.precompile.common import PrecompileCommon
 from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError
 
 
@@ -60,7 +61,7 @@ class Precompile:
                                               "listDeployAndCreateManager",
                                               "listPermissionManager", "listNodeManager",
                                               "listSysConfigManager", "listCNSManager"]
-        Precompile.functions["crud"] = ["createTable"]
+        Precompile.functions["crud"] = ["createTable", "desc"]
 
     def print_crud_usage(self, print_all=False):
         """
@@ -69,6 +70,9 @@ class Precompile:
         prefix = "CRUD USAGE NOTE:"
         if print_all is True or self._cmd == self.functions["crud"][0]:
             print("{} {} [tableName] [tableKey] [tableFields]".format(
+                prefix, self.functions["crud"][0]))
+        if print_all is True or self._cmd == self.functions["crud"][1]:
+            print("{} {} [tableName]".format(
                 prefix, self.functions["crud"][0]))
 
     def print_cns_usage(self, print_all=False):
@@ -168,15 +172,23 @@ class Precompile:
         """
         print succ msg
         """
-        if isinstance(result, dict) and "status" in result.keys():
-            common.print_info("INFO", self._cmd)
-            print("     >> status: {}".format(result["status"]))
-            print("     >> transactionHash: {}".format(result["transactionHash"]))
-            print("     >> gasUsed: {}".format(result["gasUsed"]))
-        elif result is None:
-            print("INFO >> {}: \n\tEmpty Set".format(self._cmd))
-        else:
-            print("INFO >> {}: \n{}".format(self._cmd, result))
+        if isinstance(result, tuple):
+            receipt = result[0]
+            output = result[1][0]
+            if isinstance(receipt, dict) and "status" in receipt.keys():
+                common.print_info("INFO", self._cmd)
+                print("     >> status: {}".format(receipt["status"]))
+                print("     >> transactionHash: {}".format(receipt["transactionHash"]))
+                print("     >> gasUsed: {}".format(receipt["gasUsed"]))
+                if str(output) not in PrecompileCommon.error_code.keys():
+                    print("     >> {} succ, output: {}".format(self._cmd, output))
+                else:
+                    print("     >> {}: {}"
+                          .format(output, PrecompileCommon.error_code[str(output)]))
+            elif result is None:
+                print("INFO >> {}: \n\tEmpty Set".format(self._cmd))
+            else:
+                print("INFO >> {}: \n{}".format(self._cmd, result))
 
     def check_abi(self, abi_path):
         """
@@ -187,7 +199,7 @@ class Precompile:
             return False
         return True
 
-    def check_param_num(self, expected, needEqual):
+    def check_param_num(self, expected, needEqual=False):
         """
         check param num
         """
@@ -374,7 +386,14 @@ class Precompile:
             if self._cmd == self.functions["crud"][0]:
                 self.check_param_num(3)
                 table = Table(self._args[0], self._args[1], ''.join(self._args[2:]))
-                self.crud_serivce.create_table(table)
+                result = self.crud_serivce.create_table(table)
+                self.print_succ_msg(result)
+            # desc table
+            if self._cmd == self.functions["crud"][1]:
+                self.check_param_num(1)
+                result = self.crud_serivce.desc(self._args[0])
+                if result is None:
+                    common.print_info("WARN", "non-exist table {}".format(self._args[0]))
         except ArgumentsError as e:
             common.print_error_msg(self._cmd, e)
             self.print_crud_usage()
