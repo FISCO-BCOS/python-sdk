@@ -34,6 +34,7 @@ class CnsService:
         self.define_error_code()
         # define bcosclient
         self.contract_name = "CNS"
+        self.gasPrice = 300000000
         self.client = transaction_common.TransactionCommon(
             self._cns_address, contract_path, self.contract_name)
 
@@ -66,7 +67,7 @@ class CnsService:
         # function definition: insert(string,string,string,string)
         fn_name = "insert"
         fn_args = [name, version, formatted_addr, json.dumps(abi)]
-        return self.client.send_transaction_getReceipt(fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     def query_cns_by_name(self, name):
         """
