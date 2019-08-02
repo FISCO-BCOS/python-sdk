@@ -15,7 +15,6 @@
 '''
 import os
 import json
-from eth_utils import to_checksum_address
 from client.common import common
 from client.common.transaction_exception import TransactionException
 from client.precompile.cns.cns_service import CnsService
@@ -165,14 +164,19 @@ class Precompile:
                                  transaction_exception.get_output_error_info())
         self.print_error_msg(error_msg)
 
-    def print_succ_msg(self, msg=None):
+    def print_succ_msg(self, result):
         """
         print succ msg
         """
-        if msg is None:
-            print("INFO >> {} Succ".format(self._cmd))
+        if isinstance(result, dict) and "status" in result.keys():
+            common.print_info("INFO", self._cmd)
+            print("     >> status: {}".format(result["status"]))
+            print("     >> transactionHash: {}".format(result["transactionHash"]))
+            print("     >> gasUsed: {}".format(result["gasUsed"]))
+        elif result is None:
+            print("INFO >> {}: \n\tEmpty Set".format(self._cmd))
         else:
-            print("INFO >> {} Succ, result msg:\n>>INFO {}".format(self._cmd, msg))
+            print("INFO >> {}: \n{}".format(self._cmd, result))
 
     def check_abi(self, abi_path):
         """
@@ -183,26 +187,11 @@ class Precompile:
             return False
         return True
 
-    def check_and_format_address(self, address):
-        """
-        check and format address
-        """
-        try:
-            formatted_address = to_checksum_address(address)
-            return formatted_address
-        except Exception as e:
-            self.print_error_msg(
-                "covert {} to checksum_address failed, error info {}".format(address, e))
-            return None
-
-    def check_param_num(self, expected):
+    def check_param_num(self, expected, needEqual):
         """
         check param num
         """
-        if len(self._args) < expected:
-            raise ArgumentsError(
-                '''invalid arguments, expected num: {},
-                real num: {}'''.format(expected, len(self._args)))
+        common.check_param_num(self._args, expected, needEqual)
 
     @staticmethod
     def print_cns_info(cns_info):
@@ -235,17 +224,13 @@ class Precompile:
         try:
             # register cns contract
             if self._cmd == self.functions["cns"][0]:
-                self.check_param_num(3)
+                self.check_param_num(3, True)
                 contract_name = self._args[0]
                 contract_version = self._args[2]
-                # check address
-                contract_address = self.check_and_format_address(self._args[1])
-                if contract_address is None:
-                    return
                 try:
-                    self.cns_service.register_cns(
-                        contract_name, contract_version, contract_address, "")
-                    self.print_succ_msg()
+                    result = self.cns_service.register_cns(
+                        contract_name, contract_version, self._args[1], "")
+                    self.print_succ_msg(result)
                 except TransactionException as e:
                     self.print_transaction_exception(e)
                 except PrecompileError as e:
@@ -257,20 +242,19 @@ class Precompile:
                 return
             # query cns information by name
             if self._cmd == self.functions["cns"][1]:
-                self.check_param_num(1)
+                self.check_param_num(1, True)
                 result = self.cns_service.query_cns_by_name(self._args[0])
                 Precompile.print_cns_info(result)
                 return
             # query cns information by name and version
             if self._cmd == self.functions["cns"][2]:
-                self.check_param_num(2)
+                self.check_param_num(2, True)
                 result = self.cns_service.query_cns_by_nameAndVersion(self._args[0], self._args[1])
                 Precompile.print_cns_info(result)
                 return
-        except ArgumentsError:
+        except ArgumentsError as e:
+            common.print_error_msg(self._cmd, e)
             self.print_cns_usage()
-        finally:
-            self.cns_service.__del__()
 
     def call_consensus(self):
         """
@@ -283,29 +267,29 @@ class Precompile:
             return
         self.consensus_precompile = ConsensusPrecompile(self._contract_path)
         try:
-            self.check_param_num(1)
+            self.check_param_num(1, True)
+            result = None
             # addSealer
             if self._cmd == self.functions["consensus"][0]:
-                self.consensus_precompile.addSealer(self._args[0])
+                result = self.consensus_precompile.addSealer(self._args[0])
             # addObserver
             elif self._cmd == self.functions["consensus"][1]:
-                self.consensus_precompile.addObserver(self._args[0])
+                result = self.consensus_precompile.addObserver(self._args[0])
             # removeNode
             elif self._cmd == self.functions["consensus"][2]:
-                self.consensus_precompile.removeNode(self._args[0])
-            self.print_succ_msg()
+                result = self.consensus_precompile.removeNode(self._args[0])
+            self.print_succ_msg(result)
         except TransactionException as e:
             self.print_transaction_exception(e)
         except PrecompileError as e:
             self.print_error_msg(e)
-        except ArgumentsError:
+        except ArgumentsError as e:
+            common.print_error_msg(self._cmd, e)
             self.print_consensus_usage()
         except BcosError as e:
             self.print_error_msg(e)
         except CompileError as e:
             self.print_error_msg(e)
-        finally:
-            self.consensus_precompile.__del__()
 
     def call_sysconfig_precompile(self):
         """
@@ -316,11 +300,12 @@ class Precompile:
             return
         self.config_precompile = ConfigPrecompile(self._contract_path)
         try:
+            result = None
             # setSystemConfigByKey
             if self._cmd == self.functions["sysconfig"][0]:
-                self.check_param_num(2)
-                self.config_precompile.setValueByKey(self._args[0], self._args[1])
-                self.print_succ_msg()
+                self.check_param_num(2, True)
+                result = self.config_precompile.setValueByKey(self._args[0], self._args[1])
+                self.print_succ_msg(result)
         except TransactionException as e:
             self.print_transaction_exception(e)
         except PrecompileError as e:
@@ -329,10 +314,9 @@ class Precompile:
             self.print_error_msg(e)
         except CompileError as e:
             self.print_error_msg(e)
-        except ArgumentsError:
+        except ArgumentsError as e:
+            common.print_error_msg(self._cmd, e)
             self.print_sysconfig_usage()
-        finally:
-            self.config_precompile.__del__()
 
     def exec_permission_cmd(self):
         """
@@ -340,19 +324,21 @@ class Precompile:
         """
         func_name = "self.premisson_service." + self._cmd
         if self._cmd.startswith("grantUserTable") or self._cmd.startswith("revokeUserTable"):
-            self.check_param_num(2)
-            eval(func_name)(self._args[0], self._args[1])
+            self.check_param_num(2, True)
+            return eval(func_name)(self._args[0], self._args[1])
         elif self._cmd.startswith("listUser"):
-            self.check_param_num(1)
+            self.check_param_num(1, True)
             result = eval(func_name)(self._args[0])
             PermissionService.print_permission_info(result)
+            return None
         # list functions
         elif self._cmd.startswith("list"):
             result = eval(func_name)()
             PermissionService.print_permission_info(result)
+            return None
         else:
-            self.check_param_num(1)
-            eval(func_name)(self._args[0])
+            self.check_param_num(1, True)
+            return eval(func_name)(self._args[0])
 
     def call_permission_precompile(self):
         """
@@ -362,8 +348,8 @@ class Precompile:
             return
         self.premisson_service = PermissionService(self._contract_path)
         try:
-            self.exec_permission_cmd()
-            self.print_succ_msg()
+            result = self.exec_permission_cmd()
+            self.print_succ_msg(result)
         except TransactionException as e:
             self.print_transaction_exception(e)
         except PrecompileError as e:
@@ -372,10 +358,9 @@ class Precompile:
             self.print_error_msg(e)
         except CompileError as e:
             self.print_error_msg(e)
-        except ArgumentsError:
+        except ArgumentsError as e:
+            common.print_error_msg(self._cmd, e)
             self.print_permission_usage()
-        finally:
-            self.premisson_service.__del__()
 
     def call_crud_precompile(self):
         """
@@ -390,5 +375,6 @@ class Precompile:
                 self.check_param_num(3)
                 table = Table(self._args[0], self._args[1], ''.join(self._args[2:]))
                 self.crud_serivce.create_table(table)
-        except ArgumentsError:
+        except ArgumentsError as e:
+            common.print_error_msg(self._cmd, e)
             self.print_crud_usage()

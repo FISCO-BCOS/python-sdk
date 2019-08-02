@@ -28,12 +28,6 @@ class ConfigPrecompile:
         self.client = transaction_common.TransactionCommon(
             self._config_address, contract_path, "SystemConfig")
 
-    def __del__(self):
-        """
-        finish the client
-        """
-        self.client.finish()
-
     def setValueByKey(self, key, value):
         """
         set value for the givn key
