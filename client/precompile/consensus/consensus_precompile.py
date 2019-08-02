@@ -14,6 +14,7 @@
   @date: 2019-07
 '''
 from client.common import transaction_common
+from client.common import common
 
 
 class ConsensusPrecompile:
@@ -40,6 +41,7 @@ class ConsensusPrecompile:
         """
         addSealer
         """
+        common.check_nodeId(nodeId)
         fn_name = "addSealer"
         fn_args = [nodeId]
         return self.client.send_transaction_getReceipt(fn_name, fn_args)
@@ -48,6 +50,7 @@ class ConsensusPrecompile:
         """
         addObserver
         """
+        common.check_nodeId(nodeId)
         fn_name = "addObserver"
         fn_args = [nodeId]
         return self.client.send_transaction_getReceipt(fn_name, fn_args)
@@ -56,6 +59,7 @@ class ConsensusPrecompile:
         """
         remove Node
         """
+        common.check_nodeId(nodeId)
         fn_name = "remove"
         fn_args = [nodeId]
         return self.client.send_transaction_getReceipt(fn_name, fn_args)
