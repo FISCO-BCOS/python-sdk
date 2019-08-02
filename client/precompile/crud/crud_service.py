@@ -110,13 +110,6 @@ class CRUDService:
             self.tableFactory_address, contract_path, "TableFactory")
         self.define_const()
 
-    def __del__(self):
-        """
-        finish the client
-        """
-        self.client.finish()
-        self.tableFactory_client.finish()
-
     def define_const(self):
         """
         define const value for CURD
