@@ -415,8 +415,9 @@ def main(argv):
             # must be at most 2 params
             common.check_param_num(inputparams, 1, False)
             contractname = inputparams[0].strip()
+            gasPrice = 30000000
             trans_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
-            result = trans_client.send_transaction_getReceipt(None, None, True)
+            result = trans_client.send_transaction_getReceipt(None, None, gasPrice, True)[0]
 
             print("deploy result  for [{}] is:\n {}".format(
                 contractname, json.dumps(result, indent=4)))
@@ -458,7 +459,7 @@ def main(argv):
                 result = tx_client.call_and_decode(fn_name, fn_args)
                 print("INFO >> {} result: {}".format(cmd, ''.join(result)))
             if cmd == "sendtx":
-                receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)
+                receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)[0]
                 data_parser = DatatypeParser(default_abi_file(contractname))
                 # 解析receipt里的log 和 相关的tx ,output
                 print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)

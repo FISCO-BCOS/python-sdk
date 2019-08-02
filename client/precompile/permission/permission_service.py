@@ -15,7 +15,7 @@ import json
 from client.common import transaction_common
 from client.common import common
 from client.precompile.crud.crud_service import CRUDService
-from client.precompile.crud.crud_service import PrecompileGlobalConfig
+from client.precompile.common import PrecompileCommon
 
 
 class PermissionService:
@@ -29,6 +29,7 @@ class PermissionService:
         """
         self.permission_address = "0x0000000000000000000000000000000000001005"
         self.contract_path = contract_path
+        self.gasPrice = 300000000
         self.client = transaction_common.TransactionCommon(
             self.permission_address, contract_path, "Permission")
 
@@ -41,7 +42,7 @@ class PermissionService:
         fmt_accout_address = common.check_and_format_address(account_address)
         fn_name = "insert"
         fn_args = [table_name, fmt_accout_address]
-        return self.client.send_transaction_getReceipt(fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     def revoke(self, table_name, account_address):
         """
@@ -52,7 +53,7 @@ class PermissionService:
         fmt_accout_address = common.check_and_format_address(account_address)
         fn_name = "remove"
         fn_args = [table_name, fmt_accout_address]
-        return self.client.send_transaction_getReceipt(fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     @staticmethod
     def print_permission_info(result):
@@ -86,11 +87,13 @@ class PermissionService:
 
     def grantUserTableManager(self, table_name, account_address):
         """
+        grant user table permission to the given account
         """
         crud_service = CRUDService(self.contract_path)
         table = crud_service.desc(table_name)
         if table is None:
-            print(" WARNING >> non-exist table {}".format(table_name))
+            print(" WARNING >> non-exist table {}, create table firstly".format(table_name))
+            # ./return
         return self.grant(table_name, account_address)
 
     def revokeUserTableManager(self, table_name, account_address):
@@ -102,46 +105,46 @@ class PermissionService:
         return self.list_permission(table_name)
 
     def grantDeployAndCreateManager(self, account_address):
-        return self.grant(PrecompileGlobalConfig.SYS_TABLE, account_address)
+        return self.grant(PrecompileCommon.SYS_TABLE, account_address)
 
     def revokeDeployAndCreateManager(self, account_addr):
-        return self.revoke(PrecompileGlobalConfig.SYS_TABLE, account_addr)
+        return self.revoke(PrecompileCommon.SYS_TABLE, account_addr)
 
     def listDeployAndCreateManager(self):
-        return self.list_permission(PrecompileGlobalConfig.SYS_TABLE)
+        return self.list_permission(PrecompileCommon.SYS_TABLE)
 
     def grantPermissionManager(self, account_addr):
-        return self.grant(PrecompileGlobalConfig.SYS_TABLE_ACCESS, account_addr)
+        return self.grant(PrecompileCommon.SYS_TABLE_ACCESS, account_addr)
 
     def revokePermissionManager(self, account_addr):
-        return self.revoke(PrecompileGlobalConfig.SYS_TABLE_ACCESS, account_addr)
+        return self.revoke(PrecompileCommon.SYS_TABLE_ACCESS, account_addr)
 
     def listPermissionManager(self):
-        return self.list_permission(PrecompileGlobalConfig.SYS_TABLE_ACCESS)
+        return self.list_permission(PrecompileCommon.SYS_TABLE_ACCESS)
 
     def grantNodeManager(self, account_addr):
-        return self.grant(PrecompileGlobalConfig.SYS_CONSENSUS, account_addr)
+        return self.grant(PrecompileCommon.SYS_CONSENSUS, account_addr)
 
     def revokeNodeManager(self, account_addr):
-        return self.revoke(PrecompileGlobalConfig.SYS_CONSENSUS, account_addr)
+        return self.revoke(PrecompileCommon.SYS_CONSENSUS, account_addr)
 
     def listNodeManager(self):
-        return self.list_permission(PrecompileGlobalConfig.SYS_CONSENSUS)
+        return self.list_permission(PrecompileCommon.SYS_CONSENSUS)
 
     def grantCNSManager(self, account_addr):
-        return self.grant(PrecompileGlobalConfig.SYS_CNS, account_addr)
+        return self.grant(PrecompileCommon.SYS_CNS, account_addr)
 
     def revokeCNSManager(self, account_addr):
-        return self.revoke(PrecompileGlobalConfig.SYS_CNS, account_addr)
+        return self.revoke(PrecompileCommon.SYS_CNS, account_addr)
 
     def listCNSManager(self):
-        return self.list_permission(PrecompileGlobalConfig.SYS_CNS)
+        return self.list_permission(PrecompileCommon.SYS_CNS)
 
     def grantSysConfigManager(self, account_addr):
-        return self.grant(PrecompileGlobalConfig.SYS_CONFIG, account_addr)
+        return self.grant(PrecompileCommon.SYS_CONFIG, account_addr)
 
     def revokeSysConfigManager(self, account_addr):
-        return self.revoke(PrecompileGlobalConfig.SYS_CONFIG, account_addr)
+        return self.revoke(PrecompileCommon.SYS_CONFIG, account_addr)
 
     def listSysConfigManager(self):
-        return self.list_permission(PrecompileGlobalConfig.SYS_CONFIG)
+        return self.list_permission(PrecompileCommon.SYS_CONFIG)

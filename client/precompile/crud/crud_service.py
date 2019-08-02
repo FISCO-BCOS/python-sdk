@@ -14,19 +14,8 @@
 import json
 from client.common import transaction_common
 from client.precompile.crud.condition import Condition
+from client.precompile.common import PrecompileCommon
 from client.bcoserror import PrecompileError
-
-
-class PrecompileGlobalConfig:
-    """
-    global values
-    """
-    SYS_TABLE = "_sys_tables_"
-    USER_TABLE_PREFIX = "_user_"
-    SYS_TABLE_ACCESS = "_sys_table_access_"
-    SYS_CONSENSUS = "_sys_consensus_"
-    SYS_CNS = "_sys_cns_"
-    SYS_CONFIG = "_sys_config_"
 
 
 class Entry:
@@ -104,6 +93,7 @@ class CRUDService:
         self.tableFactory_address = "0x0000000000000000000000000000000000001001"
         self.crud_address = "0x0000000000000000000000000000000000001002"
         self.contract_path = contract_path
+        self.gasPrice = 300000000
         self.client = transaction_common.TransactionCommon(
             self.crud_address, contract_path, "CRUD")
         self.tableFactory_client = transaction_common.TransactionCommon(
@@ -123,7 +113,7 @@ class CRUDService:
         """
         fn_name = "createTable"
         fn_args = [table.get_table_name(), table.get_table_key(), table.get_table_fields()]
-        return self.tableFactory_client.send_transaction_getReceipt(fn_name, fn_args)
+        return self.tableFactory_client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     def check_key_length(self, key):
         """
@@ -142,7 +132,7 @@ class CRUDService:
         self.check_key_length(table.get_table_key())
         fn_name = "insert"
         fn_args = [table.get_table_name(), table.get_table_key(), json.dump(entry.get_fields())]
-        return self.client.send_transaction_getReceipt(fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     def update(self, table, entry, condition):
         """
@@ -154,7 +144,7 @@ class CRUDService:
         fn_args = [table.get_table_name(), table.get_table_key(),
                    json.dump(entry.get_fields()), json.dumps(condition.get_conditions()),
                    table.get_optional()]
-        return self.client.send_transaction_getReceipt(fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     def remove(self, table, condition):
         """
@@ -165,7 +155,7 @@ class CRUDService:
         fn_name = "remove"
         fn_args = [table.get_table_name(), table.get_table_key(),
                    json.dumps(condition.get_conditions()), table.get_optional()]
-        return self.client.send_transaction_getReceipt(fn_name, fn_args)
+        return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     def select(self, table, condition):
         """
@@ -180,8 +170,8 @@ class CRUDService:
 
     def desc(self, table_name):
         self.check_key_length(table_name)
-        table = Table(PrecompileGlobalConfig.SYS_TABLE,
-                      PrecompileGlobalConfig.USER_TABLE_PREFIX + table_name, "")
+        table = Table(PrecompileCommon.SYS_TABLE,
+                      PrecompileCommon.USER_TABLE_PREFIX + table_name, "")
         condition = table.get_condition()
         user_table = self.select(table, condition)
         if user_table is not None:
