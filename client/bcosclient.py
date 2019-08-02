@@ -20,12 +20,13 @@ from eth_account.account import Account
 import time
 import utils.rpc
 import json
+from client.common import common
 from client.channelpack import ChannelPack
 from client.channelhandler import ChannelHandler
 from client_config import client_config
 from utils.contracts import encode_transaction_data
 from client.stattool import StatTool
-from client.bcoserror import BcosError, ArgumentsError
+from client.bcoserror import BcosError, ArgumentsError, BcosException
 from client import clientlogger
 from utils.contracts import get_function_info
 from utils.abi import itertools, get_fn_abi_types_single
@@ -40,7 +41,10 @@ class BcosClient:
     groupid = None
     logger = clientlogger.logger  # logging.getLogger("BcosClient")
     request_counter = itertools.count()
-    max_block_number = pow(2, 64)
+    max_group_id = pow(2, 16)
+    max_chain_id = pow(2, 64)
+    protocol_list = ["rpc", "channel"]
+    sysconfig_keys = ["tx_count_limit", "tx_gas_limit"]
 
     def __init__(self):
         self.init()
@@ -63,6 +67,14 @@ class BcosClient:
                 self.client_account = Account.from_key(privkey)
 
     def init(self):
+        # check chainID
+        common.check_int_range(client_config.groupid, BcosClient.max_group_id)
+        # check group id
+        common.check_int_range(client_config.groupid, BcosClient.max_chain_id)
+        # check protocol
+        if client_config.client_protocol.lower() not in BcosClient.protocol_list:
+            raise BcosException("invalid configuration, must be: {}".
+                                format(''.join(BcosClient.protocol_list)))
         self.fiscoChainId = client_config.fiscoChainId
         self.groupid = client_config.groupid
 
@@ -219,46 +231,54 @@ class BcosClient:
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getblockbyhash
     def getBlockByHash(self, hash, includeTransactions=False):
         cmd = "getBlockByHash"
+        common.check_hash(hash)
         params = [self.groupid, hash, includeTransactions]
         return self.common_request(cmd, params)
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getblockbynumber
 
     def getBlockByNumber(self, num, includeTransactions=False):
-        if num > BcosClient.max_block_number or num < 0:
-            raise ArgumentsError(("invalid block number input: {},"
-                                  " must between 0 and {}").
-                                 format(num, BcosClient.max_block_number))
+        """
+        get block according to number
+        """
         cmd = "getBlockByNumber"
+        common.check_int_range(num)
         params = [self.groupid, hex(num), includeTransactions]
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getblockhashbynumber
     def getBlockHashByNumber(self, num):
         cmd = "getBlockHashByNumber"
-        params = [self.groupid, hex(num), True]
+        common.check_int_range(num)
+        params = [self.groupid, hex(num)]
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_cn/release-2.0/docs/api.html#gettransactionbyhash
     def getTransactionByHash(self, hash):
         cmd = "getTransactionByHash"
+        common.check_hash(hash)
         params = [self.groupid, hash]
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#gettransactionbyblockhashandindex
     def getTransactionByBlockHashAndIndex(self, hash, index):
         cmd = "getTransactionByBlockHashAndIndex"
+        common.check_hash(hash)
+        common.check_int_range(index)
         params = [self.groupid, hash, hex(index)]
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#gettransactionbyblocknumberandindex
     def getTransactionByBlockNumberAndIndex(self, num, index):
         cmd = "getTransactionByBlockNumberAndIndex"
+        common.check_int_range(num)
+        common.check_int_range(index)
         params = [self.groupid, hex(num), hex(index)]
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#gettransactionreceipt
     def getTransactionReceipt(self, hash):
         cmd = "getTransactionReceipt"
+        common.check_hash(hash)
         params = [self.groupid, hash]
         return self.common_request(cmd, params)
 
@@ -277,7 +297,8 @@ class BcosClient:
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getcode
     def getCode(self, address):
         cmd = "getCode"
-        params = [self.groupid, address]
+        fmt_addr = common.check_and_format_address(address)
+        params = [self.groupid, fmt_addr]
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#gettotaltransactioncount
@@ -288,6 +309,9 @@ class BcosClient:
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getsystemconfigbykey
     def getSystemConfigByKey(self, key):
+        if key not in BcosClient.sysconfig_keys:
+            raise ArgumentsError("invalid system key, must be {}"
+                                 .format(BcosClient.sysconfig_keys))
         cmd = "getSystemConfigByKey"
         params = [self.groupid, key]
         return self.common_request(cmd, params)
@@ -320,6 +344,8 @@ class BcosClient:
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions
     def call(self, to_address, contract_abi, fn_name, args=None):
         cmd = "call"
+        if to_address != "":
+            common.check_and_format_address(to_address)
         if self.client_account is None:
             self.load_default_account()
         functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
@@ -353,6 +379,8 @@ class BcosClient:
 
     def sendRawTransaction(self, to_address, contract_abi, fn_name, args=None, bin_data=None):
         cmd = "sendRawTransaction"
+        if to_address != "":
+            common.check_and_format_address(to_address)
         # 第三个参数是方法的abi，可以传入None，encode_transaction_data做了修改，支持通过方法+参数在整个abi里找到对应的方法abi来编码
         if bin_data is None:
             functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
@@ -380,8 +408,6 @@ class BcosClient:
         txmap["fiscoChainId"] = self.fiscoChainId
         txmap["groupId"] = self.groupid
         txmap["extraData"] = ""
-        # txmap["chainId"]=None #chainId没用了，fiscoChainId有用
-        # print(txmap)
         '''
         from datatypes.bcostransactions import (
             serializable_unsigned_transaction_from_dict,

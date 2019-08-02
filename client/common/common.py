@@ -17,7 +17,7 @@ import os
 import json
 import subprocess
 from client_config import client_config
-from client.bcosclient import BcosClient
+from eth_utils import to_checksum_address
 from client.bcoserror import ArgumentsError, BcosException
 
 
@@ -70,6 +70,18 @@ def print_result(ret):
         print_info("    ", "{}".format(ret))
 
 
+def check_and_format_address(address):
+    """
+    check address
+    """
+    try:
+        formatted_address = to_checksum_address(address)
+        return formatted_address
+    except Exception as e:
+        raise ArgumentsError("invalid address {}, reason: {}"
+                             .format(address, e))
+
+
 def execute_cmd(cmd):
     """
     execute command
@@ -86,20 +98,26 @@ def print_error_msg(cmd, e):
     print("ERROR >> execute {} failed\nERROR >> error information: {}\n".format(cmd, e))
 
 
-def check_int_range(number_str):
+max_block_number = pow(2, 64)
+
+
+def check_int_range(number_str, limit=max_block_number):
     """
     check integer range
     """
     try:
         number = 0
-        if number_str.startswith("0x"):
-            number = int(number_str, 16)
+        if isinstance(number_str, str):
+            if number_str.startswith("0x"):
+                number = int(number_str, 16)
+            else:
+                number = int(number_str)
         else:
-            number = int(number_str)
-        if number > BcosClient.max_block_number or number < 0:
+            number = number_str
+        if number > limit or number < 0:
             raise ArgumentsError(("invalid input: {},"
                                   " must between 0 and {}").
-                                 format(number, BcosClient.max_block_number))
+                                 format(number, limit))
         return number
     except Exception as e:
         raise ArgumentsError("invalid input:{}, error info: {}".format(number, e))
@@ -118,6 +136,15 @@ def check_hash(hash_str):
                              "expected len: {} or {}, real len: {}").
                             format(min_size, max_size,
                                    hash_str, len(hash_str)))
+
+
+def check_nodeId(nodeId):
+    """
+    check nodeId
+    """
+    nodeId_len = 128
+    if len(nodeId) != nodeId_len:
+        raise ArgumentsError("invalid nodeId, must be {} bytes".format(nodeId_len))
 
 
 def check_param_num(args, expected, needEqual=False):

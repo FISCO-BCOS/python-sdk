@@ -306,15 +306,15 @@ def parse_commands(argv):
 
 
 def main(argv):
-    usagemsg = usage(client_config)
-    cmd, inputparams = parse_commands(argv)
-    precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
-    # check cmd
-    valid = check_cmd(cmd, validcmds)
-    if valid is False:
-        printusage(usagemsg, precompile)
-        return
     try:
+        usagemsg = usage(client_config)
+        cmd, inputparams = parse_commands(argv)
+        precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
+        # check cmd
+        valid = check_cmd(cmd, validcmds)
+        if valid is False:
+            printusage(usagemsg, precompile)
+            return
         # try to callback cns precompile
         precompile.call_cns()
         # try to callback consensus precompile
