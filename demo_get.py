@@ -20,10 +20,6 @@ from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 from client_config import client_config
 from client.bcoserror import BcosException, BcosError
-client = BcosClient()
-info = client.getinfo()
-print("client info:", info)
-
 
 # 从文件加载abi定义
 if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
@@ -41,6 +37,9 @@ int(num,16)  hex -> int
 hex(num)  : int -> hex
 '''
 try:
+    client = BcosClient()
+    info = client.getinfo()
+    print("client info:", info)
     stat = StatTool.begin()
     print("\n>>---------------------------------------------------------------------")
     res = client.getNodeVersion()

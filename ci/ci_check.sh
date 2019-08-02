@@ -155,6 +155,10 @@ function test_permission_precompile()
 {
     account="0x95198B93705e394a916579e048c8A32DdFB900f7"
     table="t_test"
+    # create table
+    execute_cmd "python console.py createTable ${table} t_test test test"
+    # query table
+    exectue_cmd "python console.py desc ${table}"
     # grantPermissionManager
     execute_cmd "python console.py grantPermissionManager ${account}"
     # listPermissionManager

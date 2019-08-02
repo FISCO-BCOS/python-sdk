@@ -338,19 +338,19 @@ class Precompile:
         if self._cmd.startswith("grantUserTable") or self._cmd.startswith("revokeUserTable"):
             self.check_param_num(2, True)
             return eval(func_name)(self._args[0], self._args[1])
-        elif self._cmd.startswith("listUser"):
+        if self._cmd.startswith("listUser"):
             self.check_param_num(1, True)
             result = eval(func_name)(self._args[0])
             PermissionService.print_permission_info(result)
             return None
         # list functions
-        elif self._cmd.startswith("list"):
+        if self._cmd.startswith("list"):
             result = eval(func_name)()
             PermissionService.print_permission_info(result)
             return None
-        else:
-            self.check_param_num(1, True)
-            return eval(func_name)(self._args[0])
+        # other functions
+        self.check_param_num(1, True)
+        return eval(func_name)(self._args[0])
 
     def call_permission_precompile(self):
         """
@@ -385,7 +385,7 @@ class Precompile:
             # create table
             if self._cmd == self.functions["crud"][0]:
                 self.check_param_num(3)
-                table = Table(self._args[0], self._args[1], ''.join(self._args[2:]))
+                table = Table(self._args[0], self._args[1], ','.join(self._args[2:]))
                 result = self.crud_serivce.create_table(table)
                 self.print_succ_msg(result)
             # desc table
