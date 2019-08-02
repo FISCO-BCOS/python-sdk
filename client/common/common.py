@@ -16,6 +16,7 @@ import time
 import os
 import json
 import subprocess
+import re
 from eth_utils.hexadecimal import decode_hex
 from client_config import client_config
 from eth_utils import to_checksum_address
@@ -127,6 +128,17 @@ def check_int_range(number_str, limit=max_block_number):
         raise ArgumentsError("invalid input:{}, error info: {}".format(number, e))
 
 
+def check_word(word):
+    """
+    check world
+    """
+    result = re.findall(r'([0x]*[a-f0-9]*)', word)
+    if result[0] != word:
+        raise ArgumentsError(("invalid input {},"
+                              " must be in 'a-z' or '0-9'")
+                             .format(word))
+
+
 def check_hash(hash_str):
     """
     check hash
@@ -140,6 +152,7 @@ def check_hash(hash_str):
                              "expected len: {} or {}, real len: {}").
                             format(min_size, max_size,
                                    hash_str, len(hash_str)))
+    check_word(hash_str)
 
 
 def check_nodeId(nodeId):
@@ -149,6 +162,7 @@ def check_nodeId(nodeId):
     nodeId_len = 128
     if len(nodeId) != nodeId_len:
         raise ArgumentsError("invalid nodeId, must be {} bytes".format(nodeId_len))
+    check_word(nodeId)
 
 
 def check_param_num(args, expected, needEqual=False):
