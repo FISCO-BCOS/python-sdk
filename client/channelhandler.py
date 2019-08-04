@@ -18,9 +18,11 @@
 import queue
 import threading
 from queue import Empty
+from pymitter import EventEmitter
 import time
 import itertools
 import ssl
+import json
 import socket
 from client.channelpack import ChannelPack
 from client.stattool import StatTool
@@ -29,7 +31,7 @@ from client.bcoserror import BcosError, ChannelException
 from eth_utils import (to_text, to_bytes)
 
 
-class ChannelHandler:
+class ChannelHandler(threading.Thread):
     context = None
     CA_File = None
     node_crt_file = None
@@ -42,6 +44,17 @@ class ChannelHandler:
     logger = None
     recvThread = None
     sendThread = None
+
+    def __init__(self, max_timeout=10, name="channelHandler"):
+        self.timeout = max_timeout
+        threading.Thread.__init__(self)
+        self.callbackEmitter = EventEmitter()
+        self.responses = dict()
+        self.requests = []
+        self.name = name
+        self.blockNumber = 0
+        self.blockNotifyEmitter = ChannelHandler.getEmitterStr(ChannelPack.get_seq_zero(),
+                                                               ChannelPack.TYPE_TX_BLOCKNUM)
 
     def initTLSContext(self, ca_file, node_crt_file, node_key_file,
                        protocol=ssl.PROTOCOL_TLSv1_2,
@@ -60,11 +73,16 @@ class ChannelHandler:
                                     " please check the certificatsreason: {}").
                                    format(e))
 
+    def __del__(self):
+        self.finish()
+
     def finish(self):
         if self.ssock is not None:
             self.ssock.shutdown(socket.SHUT_RDWR)
             self.ssock.close()
             self.ssock = None
+        self.keepWorking = False
+        self.join(timeout=1)
         if self.recvThread is not None:
             self.recvThread.finish()
             self.recvThread.join(timeout=2)
@@ -72,7 +90,29 @@ class ChannelHandler:
             self.sendThread.finish()
             self.sendThread.join(timeout=2)
 
-    def start(self, host, port):
+    def run(self):
+        try:
+            self.keepWorking = True
+            self.logger.debug(self.name + ":start thread-->")
+            while self.keepWorking:
+                try:
+                    responsepack = self.recvThread.recvQueue.get_nowait()  # pop msg from queue
+                    if responsepack is None and self.keepWorking:
+                        time.sleep(0.001)
+                        continue
+                    emitter_str = ChannelHandler.getEmitterStr(responsepack.seq, responsepack.type)
+                    if emitter_str in self.requests:
+                        self.callbackEmitter.emit(emitter_str, responsepack)
+                except Empty:
+                    self.logger.debug("empty response")
+                    time.sleep(0.001)
+        except Exception as e:
+            self.logger.error("{} recv error {}".format(self.name, e))
+        finally:
+            self.logger.debug("{}:thread finished ,keepWorking = {}".format(
+                self.name, self.keepWorking))
+
+    def start_channel(self, host, port):
         try:
             self.host = host
             self.port = port
@@ -85,6 +125,7 @@ class ChannelHandler:
             self.recvThread.start()
             self.sendThread = ChannelSendThread(self)
             self.sendThread.start()
+            super().start()
         except Exception as e:
             raise ChannelException(("start channelHandler Failed for {},"
                                     " host: {}, port: {}").format(e,
@@ -117,56 +158,94 @@ class ChannelHandler:
     errorMsg[101] = "sdk unreachable"
     errorMsg[102] = "timeout"
 
-    def make_request(self, method, params, type=ChannelPack.TYPE_RPC):
-        stat = StatTool.begin()
+    async def make_request(self, method, params, packet_type=ChannelPack.TYPE_RPC,
+                           response_type=ChannelPack.TYPE_RPC):
+        stat = StatTool()
         rpc_data = self.encode_rpc_request(method, params)
         self.logger.debug("request rpc_data : {}".format(rpc_data))
-        # print("request rpc_data", rpc_data)
-        request_pack = ChannelPack(type, ChannelPack.make_seq32(), 0, rpc_data)
-
+        seq = ChannelPack.make_seq32()
+        request_pack = ChannelPack(packet_type, seq, 0, rpc_data)
         self.send_pack(request_pack)
-        starttime = time.time()
-        responsematch = False
-        while time.time() - starttime < 10:  # spend max 10 sec to wait a correct response
-            try:
-                theQueue = self.recvThread.getQueue(ChannelPack.TYPE_RPC)
-                responsepack = theQueue.get(block=True, timeout=3)  # pop msg from queue
-            except Empty as e:
-                self.logger.warn("empty response, error information: {}".format(e))
-                continue
-            # print("got a pack from queue, detail:{}".format(responsepack.detail()))
-            self.logger.debug("got a pack from queue, detail:{}".format(responsepack.detail()))
-            if responsepack.type == ChannelPack.TYPE_RPC and responsepack.seq == request_pack.seq:
-                responsematch = True
-                break
-            else:
-                # print("*******SKIP!!!! pack ", responsepack.detail())
-                self.logger.debug("*******SKIP!!!! pack {}".format(responsepack.detail()))
-                responsepack = None
-                continue
-        if responsematch is False:
-            raise BcosError(102, None, "timeout")
+        emitter_str = ChannelHandler.getEmitterStr(seq, response_type)
+        self.callbackEmitter.on(emitter_str, self.onResponse)
+        self.requests.append(emitter_str)
+        start_time = time.time()
+        response_item = self.getResponse(emitter_str, start_time)
+        self.requests.remove(emitter_str)
+        stat.done()
+        stat.debug("make_request:{}".format(method))
+        return response_item
 
+    def getResponse(self, emitter_str, start_time):
+        """
+        get response from receive buffer
+        according to seq and packet type
+        """
+        while time.time() - start_time < self.timeout and \
+                emitter_str not in self.responses.keys():
+            time.sleep(0.001)
+        if emitter_str not in self.responses.keys():
+            return None
+        if "result" not in self.responses[emitter_str].keys():
+            response_item = dict()
+            response_item["result"] = self.responses[emitter_str]
+        else:
+            response_item = self.responses[emitter_str]
+        del self.responses[emitter_str]
+        return response_item
+
+    def setBlockNumber(self, blockNumber):
+        """
+        init block number
+        """
+        self.blockNumber = blockNumber
+
+    async def getBlockNumber(self, groupId):
+        """
+        get block number notify
+        """
+        seq = ChannelPack.make_seq32()
+        topic = json.dumps(["_block_notify_{}".format(groupId)])
+        request_pack = ChannelPack(ChannelPack.TYPE_TOPIC_REPORT, seq, 0, topic)
+        self.send_pack(request_pack)
+        self.callbackEmitter.on(self.blockNotifyEmitter, self.getBlockNumberFromResponse)
+        self.requests.append(self.blockNotifyEmitter)
+
+    def getBlockNumberFromResponse(self, responsepack):
+        """
+        get blockNumber from response
+        """
+        data = responsepack.data.decode("utf-8")
+        number = int(data.split(',')[1])
+        if self.blockNumber < number:
+            self.blockNumber = number
+        self.logger.debug("currentBlockNumber: {}".format(self.blockNumber))
+
+    @staticmethod
+    def getEmitterStr(seq, response_type):
+        """
+        get emitter str
+        """
+        return "onResponse_{}_{}".format(str(seq), str(response_type))
+
+    def onResponse(self, responsepack):
+        """
+        obtain the response of given type
+        """
         result = responsepack.result
         data = responsepack.data.decode("utf-8")
-
         msg = "success"
         if(result != 0):
             if result in self.errorMsg:
                 msg = "unknow error %d" % result
-                msg = self.errorMsg[result]
+            msg = self.errorMsg[result]
             raise BcosError(result, msg)
         response = FriendlyJsonSerde().json_decode(data)
-        stat.done()
-        stat.debug("make_request:{}".format(method))
-        self.logger.debug("GetResponse. %s, Response: %s",
-                          method, response)
-        # print("response from server:",response)
-        self.logger.debug("response from server: {}".format(response))
-        if "result" not in response:
-            tempresp = dict()
-            tempresp["result"] = response
-            response = tempresp
+
+        self.logger.debug("response from server, seq: {}, type:{}, response: {}".
+                          format(responsepack.seq, responsepack.type, response))
+        emitter_str = ChannelHandler.getEmitterStr(responsepack.seq, responsepack.type)
+        self.responses[emitter_str] = response
         return response
 
     def send_pack(self, pack):
@@ -174,7 +253,6 @@ class ChannelHandler:
             self.logger.error("channel send Queue full!")
             raise BcosError(-1, None, "channel send Queue full!")
         self.sendThread.packQueue.put(pack)
-
 
 # --------------------------------------------------------------------
 # --------------------------------------------------------------------
@@ -184,23 +262,17 @@ class ChannelHandler:
 
 
 class ChannelRecvThread(threading.Thread):
-    QUEUE_SIZE = 1024
+    QUEUE_SIZE = 1024 * 1024 * 10
     channelHandler = None
-    queueMapping = dict()
     keepWorking = True
     # threadLock = threading.RLock()
     logger = None
-
-    def getQueue(self, type):
-        if type in self.queueMapping:
-            return self.queueMapping[type]
-        self.queueMapping[type] = queue.Queue(ChannelRecvThread.QUEUE_SIZE)
-        return self.queueMapping[type]
 
     def __init__(self, handler, name="ChannelRecvThread"):
         threading.Thread.__init__(self)
         # self.threadID = threadID
         self.name = name
+        self.recvQueue = queue.Queue(ChannelRecvThread.QUEUE_SIZE)
         self.channelHandler = handler
         self.logger = handler.logger
 
@@ -211,7 +283,7 @@ class ChannelRecvThread(threading.Thread):
         try:
             # print("channelHandler.ssock.recv begin.")
             self.logger.debug("{} channelHandler.ssock.recv begin.".format(self.name))
-            msg = self.channelHandler.ssock.recv(1024 * 10)
+            msg = self.channelHandler.ssock.recv(1024 * 1024 * 10)
             # print("channelHandler.ssock.recv len:{},{}".format(len(msg),msg))
             self.logger.debug("channelHandler.ssock.recv len:{},{}".format(len(msg), msg))
             if msg is None:
@@ -236,22 +308,16 @@ class ChannelRecvThread(threading.Thread):
                 self.respbuffer = self.respbuffer[decodelen:]
             if code != -1 and responsePack is not None:  # got a pack
                 # print("get a pack from node, put to queue {}".format(responsePack.detail()))
-                theQueue = self.getQueue(responsePack.type)
                 self.logger.debug("{}:pack from node, put queue(qsize{}),detail {}".format(
-                    self.name, theQueue.qsize(), responsePack.detail()))
-                if theQueue.full():
-                    theQueue.get()  # if queue full ,pop the head item ,!! the item LOST
+                    self.name, self.recvQueue.qsize(), responsePack.detail()))
+                if self.recvQueue.full():
+                    self.recvQueue.get()  # if queue full ,pop the head item ,!! the item LOST
                     self.logger.error("{}:queue {} FULL pop and LOST: {}".format(
                         self.name, responsePack.type, responsePack.detail()))
-                theQueue.put(responsePack)
+                self.recvQueue.put(responsePack)
                 # self.print_queue()
 
         return len(msg)
-
-    def print_queue(self):
-        print("queue types ", self.queueMapping.items())
-        for (type, q) in self.queueMapping.items():
-            print("queue type {},size {}".format(hex(type), q.qsize()))
 
     def finish(self):
         self.keepWorking = False
@@ -289,7 +355,7 @@ class ChannelRecvThread(threading.Thread):
 
 
 class ChannelSendThread(threading.Thread):
-    QUEUE_SIZE = 1024
+    QUEUE_SIZE = 1024 * 1024 * 10
     channelHandler = None
     packQueue = None
     keepWorking = True

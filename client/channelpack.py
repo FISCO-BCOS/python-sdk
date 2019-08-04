@@ -27,7 +27,7 @@ class ChannelPack:
     TYPE_AMOP_RESP = 0x31
     TYPE_TOPIC_REPORT = 0x32
     TYPE_TOPIC_MULTICAST = 0x35
-    TYPE_TX_COMMITED = 0x1000
+    TYPE_TX_COMMITTED = 0x1000
     TYPE_TX_BLOCKNUM = 0x1001
 
     headerfmt = "!IH32sI"
@@ -60,6 +60,12 @@ class ChannelPack:
         seq32 = "".join(str(seq).split("-")).upper()
         seq32bytes = bytes(seq32, encoding='utf-8')
         return seq32bytes
+
+    @staticmethod
+    def get_seq_zero():
+        seq_zero = "00000000000000000000000000000000"
+        seqbytes = bytes(seq_zero, encoding='utf-8')
+        return seqbytes
 
     @staticmethod
     def getheaderlen():
