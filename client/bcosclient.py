@@ -19,8 +19,8 @@ from eth_utils.hexadecimal import decode_hex, encode_hex
 from eth_account.account import Account
 import time
 import os
-import utils.rpc
 import json
+import utils.rpc
 from client.common import common
 from client.channelpack import ChannelPack
 from client.channelhandler import ChannelHandler
@@ -70,42 +70,49 @@ class BcosClient:
                                 .format(self.keystore_file, e))
 
     def init(self):
-        # check chainID
-        common.check_int_range(client_config.groupid, BcosClient.max_group_id)
-        # check group id
-        common.check_int_range(client_config.fiscoChainId, BcosClient.max_chain_id)
-        # check protocol
-        if client_config.client_protocol.lower() not in BcosClient.protocol_list:
-            raise BcosException("invalid configuration, must be: {}".
-                                format(''.join(BcosClient.protocol_list)))
-        # check account keyfile
-        self.keystore_file = "{}/{}".format(client_config.account_keyfile_path,
-                                            client_config.account_keyfile)
-        if os.path.exists(self.keystore_file) is False:
-            raise BcosException(("keystore file {} doesn't exist, "
-                                 "please check client_config.py again "
-                                 "and make sure this account exist")
-                                .format(self.keystore_file))
+        try:
+            self.blockLimit = 500
+            # check chainID
+            common.check_int_range(client_config.groupid, BcosClient.max_group_id)
+            # check group id
+            common.check_int_range(client_config.fiscoChainId, BcosClient.max_chain_id)
+            # check protocol
+            if client_config.client_protocol.lower() not in BcosClient.protocol_list:
+                raise BcosException("invalid configuration, must be: {}".
+                                    format(''.join(BcosClient.protocol_list)))
+            # check account keyfile
+            self.keystore_file = "{}/{}".format(client_config.account_keyfile_path,
+                                                client_config.account_keyfile)
+            if os.path.exists(self.keystore_file) is False:
+                raise BcosException(("keystore file {} doesn't exist, "
+                                     "please check client_config.py again "
+                                     "and make sure this account exist")
+                                    .format(self.keystore_file))
 
-        self.fiscoChainId = client_config.fiscoChainId
-        self.groupid = client_config.groupid
+            self.fiscoChainId = client_config.fiscoChainId
+            self.groupid = client_config.groupid
 
-        if client_config.client_protocol == client_config.PROTOCOL_RPC \
-                and client_config.remote_rpcurl is not None:
-            self.rpc = utils.rpc.HTTPProvider(client_config.remote_rpcurl)
-            self.rpc.logger = self.logger
+            if client_config.client_protocol == client_config.PROTOCOL_RPC \
+                    and client_config.remote_rpcurl is not None:
+                self.rpc = utils.rpc.HTTPProvider(client_config.remote_rpcurl)
+                self.rpc.logger = self.logger
 
-        if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
-            self.channel_handler = ChannelHandler()
-            self.channel_handler.logger = self.logger
-            self.channel_handler.initTLSContext(client_config.channel_ca,
-                                                client_config.channel_node_cert,
-                                                client_config.channel_node_key
-                                                )
-            self.channel_handler.start(client_config.channel_host, client_config.channel_port)
+            if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
+                self.channel_handler = ChannelHandler()
+                self.channel_handler.logger = self.logger
+                self.channel_handler.initTLSContext(client_config.channel_ca,
+                                                    client_config.channel_node_cert,
+                                                    client_config.channel_node_key
+                                                    )
+                self.channel_handler.start_channel(
+                    client_config.channel_host, client_config.channel_port)
+                self.channel_handler.setBlockNumber(self.getBlockNumber())
+                common.run(self.channel_handler.getBlockNumber(self.groupid))
 
-        self.logger.info("using protocol " + client_config.client_protocol)
-        return self.getinfo()
+            self.logger.info("using protocol " + client_config.client_protocol)
+            return self.getinfo()
+        except Exception as e:
+            raise BcosException("init bcosclient failed, reason: {}".format(e))
 
     def finish(self):
         if client_config.client_protocol == client_config.PROTOCOL_CHANNEL \
@@ -136,14 +143,17 @@ class BcosClient:
             raise BcosError(code, data, msg)
         return None
 
-    def common_request(self, cmd, params):
+    def common_request(self, cmd, params, packet_type=ChannelPack.TYPE_RPC):
         try:
             next(self.request_counter)
             stat = StatTool.begin()
             if client_config.client_protocol == client_config.PROTOCOL_RPC:
                 response = self.rpc.make_request(cmd, params)
             if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
-                response = self.channel_handler.make_request(cmd, params, ChannelPack.TYPE_RPC)
+                response = common.run(self.channel_handler.
+                                      make_request(cmd, params,
+                                                   ChannelPack.TYPE_RPC,
+                                                   packet_type))
             self.is_error_response(response)
             memo = "DONE"
             stat.done()
@@ -328,7 +338,14 @@ class BcosClient:
         params = [self.groupid, key]
         return self.common_request(cmd, params)
 
-    def getBlocklimit(self):
+    def channel_getBlockLimit(self):
+        """
+        get blockNumber from _block_notify directly when use channelHandler
+        """
+        self.logger.debug("current blockNumber: {}".format(self.channel_handler.blockNumber))
+        return self.channel_handler.blockNumber + self.blockLimit
+
+    def RPC_getBlocklimit(self):
         tick = time.time()
         deltablocklimit = 500
         tickstamp = tick - self.lastblocklimittime
@@ -353,7 +370,16 @@ class BcosClient:
                 continue
         return self.lastblocknum
 
+    def getBlockLimit(self):
+        """
+        get block limit
+        """
+        if self.channel_handler is not None:
+            return self.channel_getBlockLimit()
+        return self.RPC_getBlocklimit()
+
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions
+
     def call(self, to_address, contract_abi, fn_name, args=None):
         cmd = "call"
         if to_address != "":
@@ -390,7 +416,8 @@ class BcosClient:
     '''
 
     def sendRawTransaction(self, to_address, contract_abi, fn_name, args=None,
-                           bin_data=None, gasPrice=30000000):
+                           bin_data=None, gasPrice=30000000,
+                           packet_type=ChannelPack.TYPE_RPC):
         cmd = "sendRawTransaction"
         if to_address != "":
             common.check_and_format_address(to_address)
@@ -413,7 +440,7 @@ class BcosClient:
         txmap["randomid"] = random.randint(0, 1000000000)  # 测试用 todo:改为随机数
         txmap["gasPrice"] = gasPrice
         txmap["gasLimit"] = gasPrice
-        txmap["blockLimit"] = self.getBlocklimit()  # 501  # 测试用，todo：从链上查一下
+        txmap["blockLimit"] = self.getBlockLimit()  # 501  # 测试用，todo：从链上查一下
 
         txmap["to"] = to_address
         txmap["value"] = 0
@@ -435,13 +462,19 @@ class BcosClient:
         signedTxResult = Account.sign_transaction(txmap, self.client_account.privateKey)
         # signedTxResult.rawTransaction是二进制的，要放到rpc接口里要encode下
         params = [self.groupid, encode_hex(signedTxResult.rawTransaction)]
-        result = self.common_request(cmd, params)
+        result = self.common_request(cmd, params, packet_type)
         return result
 
     # 发送交易后等待共识完成，检索receipt
-    def sendRawTransactionGetReceipt(self, to_address, contract_abi,
-                                     fn_name, args=None, bin_data=None, gasPrice=30000000,
-                                     timeout=15):
+    def channel_sendRawTransactionGetReceipt(self, to_address, contract_abi,
+                                             fn_name, args=None, bin_data=None, gasPrice=30000000,
+                                             timeout=15):
+        return self.sendRawTransaction(to_address, contract_abi, fn_name, args, bin_data, gasPrice,
+                                       ChannelPack.TYPE_TX_COMMITTED)
+
+    def rpc_sendRawTransactionGetReceipt(self, to_address, contract_abi,
+                                         fn_name, args=None, bin_data=None, gasPrice=30000000,
+                                         timeout=15):
         # print("sendRawTransactionGetReceipt",args)
         stat = StatTool.begin()
         txid = self.sendRawTransaction(to_address, contract_abi, fn_name, args, bin_data, gasPrice)
@@ -464,6 +497,18 @@ class BcosClient:
         if result is None:
             raise BcosError(-1, None, "sendRawTransactionGetReceipt,{}".format(memo))
         return result
+
+    def sendRawTransactionGetReceipt(self, to_address, contract_abi,
+                                     fn_name, args=None, bin_data=None, gasPrice=30000000,
+                                     timeout=15):
+        if self.channel_handler is not None:
+            return self.channel_sendRawTransactionGetReceipt(to_address, contract_abi,
+                                                             fn_name, args, bin_data,
+                                                             gasPrice, timeout)
+
+        return self.rpc_sendRawTransactionGetReceipt(to_address, contract_abi,
+                                                     fn_name, args, bin_data,
+                                                     gasPrice, timeout)
 
     '''
         newaddr = result['contractAddress']

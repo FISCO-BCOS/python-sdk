@@ -11,3 +11,5 @@ toolz
 hypothesis>=3.6.1
 argcomplete
 py-solc
+pymitter
+asyncio
