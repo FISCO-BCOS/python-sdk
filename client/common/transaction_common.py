@@ -15,6 +15,7 @@
 '''
 import os
 from client.common import common
+from collections import Iterable
 from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 import client.bcosclient as bcosclient
@@ -46,6 +47,9 @@ class TransactionCommon(bcosclient.BcosClient):
 
     def __del__(self):
         super().finish()
+
+    def set_contract_addr(self, contractAddress):
+        self.contract_addr = contractAddress
 
     def gen_contract_abi(self, needCover=False):
         """
@@ -90,9 +94,9 @@ class TransactionCommon(bcosclient.BcosClient):
             status = receipt["status"]
             if int(status, 16) != 0 or receipt["output"] is None:
                 raise TransactionException(receipt, ("send transaction failed,"
-                                            "status: {}, gasUsed: {},"
-                                            " (not enough gas?)"
-                                            " (non-exist contract address?)").
+                                                     "status: {}, gasUsed: {},"
+                                                     " (not enough gas?)"
+                                                     " (non-exist contract address?)").
                                            format(status,
                                                   receipt["gasUsed"]))
             if fn_name is not None and fn_args is not None:
@@ -124,6 +128,9 @@ class TransactionCommon(bcosclient.BcosClient):
                 index += 1
                 param = inputparams[index]
                 if param is None:
+                    continue
+                if isinstance(param, Iterable) is False:
+                    paramformatted.append(param)
                     continue
                 if '\'' in param:
                     param = param.replace('\'', "")

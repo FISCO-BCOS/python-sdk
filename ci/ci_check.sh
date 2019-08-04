@@ -158,7 +158,7 @@ function test_permission_precompile()
     # create table
     execute_cmd "python console.py createTable ${table} t_test test test"
     # query table
-    exectue_cmd "python console.py desc ${table}"
+    execute_cmd "python console.py desc ${table}"
     # grantPermissionManager
     execute_cmd "python console.py grantPermissionManager ${account}"
     # listPermissionManager
