@@ -18,7 +18,7 @@ import os
 from eth_utils import to_checksum_address
 from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
-from client.bcoserror import BcosException
+from client.bcoserror import BcosException, BcosError
 from client_config import client_config
 
 
@@ -90,4 +90,6 @@ try:
     print("demo_tx,total req {}".format(client.request_counter))
     client.finish()
 except BcosException as e:
+    print("execute demo_transaction failed for: {}".format(e))
+except BcosError as e:
     print("execute demo_transaction failed for: {}".format(e))

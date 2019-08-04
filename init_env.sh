@@ -65,10 +65,6 @@ install_pyenv()
     local pyenv_str=$(grep "pyenv" ${shell_rc})
     local pydir="${HOME}/.pyenv"
     local pydir_virtual="${HOME}/.pyenv/plugins/pyenv-virtualenv"
-    if [ ! -z "${pyenv_str}" ] && [ -d "${pydir}" ] && [ -d "${pydir_virtual}" ];then
-        LOG_INFO "pyenv has already been inited!"
-        return
-    fi
     LOG_INFO "clone and init pyenv to install python 3.7.3 !"
     # clone pyenv
     if [ ! -d "${pydir}" ];then
@@ -77,6 +73,10 @@ install_pyenv()
 
     if [ ! -d "${pydir_virtual}" ];then
 		execute_cmd "git clone https://github.com/pyenv/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv"
+    fi
+    if [ ! -z "${pyenv_str}" ] && [ -d "${pydir}" ] && [ -d "${pydir_virtual}" ];then
+        LOG_INFO "pyenv has already been inited!"
+        return
     fi
     # export env
     execute_cmd "echo 'export PATH=~/.pyenv/bin:\$PATH' >> ${shell_rc}"
@@ -92,7 +92,7 @@ install_python3()
     version=3.7.3
 	python_versions=$(pyenv versions | grep "${version}")
 	if [ -z "${python_versions}" ];then
-         execute_cmd "wget https://www.python.org/ftp/python/$version/Python-$version.tar.xz -P ~/.pyenv/cache/ && pyenv install $version"
+        execute_cmd "wget https://www.python.org/ftp/python/$version/Python-$version.tar.xz -P ~/.pyenv/cache/ && pyenv install $version"
     fi
 	python_versions=$(pyenv virtualenvs | grep "python-sdk")
 	if [ -z "${python_versions}" ];then
@@ -107,7 +107,6 @@ init_config()
         execute_cmd "cp client_config.py.template client_config.py"
 	fi
     solc_path=".py-solc/solc-v0.4.25/bin/solc"
-    execute_cmd "pip3 install -r requirements.txt"
     if [ ! -f "${solc_path}" ];then
         LOG_INFO "install solc v0.4.25..."
         python -m solc.install v0.4.25
