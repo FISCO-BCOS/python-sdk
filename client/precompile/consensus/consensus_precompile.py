@@ -32,12 +32,6 @@ class ConsensusPrecompile:
         self.client = transaction_common.TransactionCommon(
             self._consensus_address, contract_path, self.contract_name)
 
-    def __del__(self):
-        """
-        finish the client
-        """
-        self.client.finish()
-
     def addSealer(self, nodeId):
         """
         addSealer
