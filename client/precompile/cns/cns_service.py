@@ -17,6 +17,7 @@ import json
 import client.clientlogger as clientlogger
 from client.common import transaction_common
 from client.common import common
+import re
 
 
 class CnsService:
@@ -57,6 +58,8 @@ class CnsService:
         precompile api: insert(string,string,string,string)
         """
         formatted_addr = common.check_and_format_address(address)
+        version = re.sub(r"\s+", "", version)
+        common.print_info("INFO", "CNS version (strip space): {}".format(version))
         # invalid version
         if len(version) > self._max_version_len:
             error_info = self.get_error_msg(self._version_exceeds)
@@ -83,6 +86,8 @@ class CnsService:
         query contract address according to the contract name and version
         precompile api: selectByNameAndVersion(string, string)
         """
+        version = re.sub(r"\s+", "", version)
+        common.print_info("INFO", "CNS version (strip space): {}".format(version))
         fn_name = "selectByNameAndVersion"
         fn_args = [name, version]
         return self.client.call_and_decode(fn_name, fn_args)

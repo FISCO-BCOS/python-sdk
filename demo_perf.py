@@ -14,48 +14,46 @@
 
 from client.common.transaction_common import TransactionCommon
 from concurrent.futures import ThreadPoolExecutor
+from client.bcoserror import BcosException, BcosError
 import multiprocessing
 import random
-import time
 import sys
-
-
-class Counter(object):
-    def __init__(self):
-        self.val = multiprocessing.Value('i', 0)
-        self.lock = multiprocessing.Lock()
-
-    def increment(self, n=1):
-        with self.lock:
-            self.val.value += n
-
-    def value(self):
-        return self.val.value
-
 
 contract_addr = ""
 contract_path = "contracts"
 contract_name = "Ok"
-client = TransactionCommon(contract_addr,
-                           contract_path,
-                           contract_name)
+process_num = 8
 total_count = int(sys.argv[1])
-step = total_count / 10
+step = int(total_count / process_num)
 
 
-def sendRequest(recv_counter):
+def sendRequest(client):
+    try:
+        # generate random number
+        trans_num = random.randint(1, 1000)
+        fn_name = "trans"
+        fn_args = [trans_num]
+        client.send_transaction_getReceipt(fn_name, fn_args)
+    except BcosException as e:
+        print("call trans contract failed, reason: {}".format(e))
+    except BcosError as e:
+        print("call trans contract failed, reason: {}".format(e))
+
+
+def sendMultiRequests(process_id):
     """
     send trans request
     """
-    # generate random number
-    trans_num = random.randint(1, 1000)
-    fn_name = "trans"
-    fn_args = [trans_num]
-    client.send_transaction_getReceipt(fn_name, fn_args)
-    recv_counter.increment(1)
-    if recv_counter.value() % step == 0:
-        print("\t\tRecv {}%, tx_num: {}".format(int(recv_counter.value()) / step * 10,
-                                                recv_counter.value()))
+    client = TransactionCommon("",
+                               contract_path,
+                               contract_name)
+    executor = ThreadPoolExecutor(max_workers=10)
+    for i in range(0, step):
+        executor.submit(sendRequest, (client))
+    print("process {}, send {}%, tx_num: {}".format(process_id, step * 100 / total_count, step))
+    executor.shutdown(True)
+    print("\t\t process {}, receive {} %, tx_num:{}".format(
+        process_id, step * 100 / total_count, step))
 
 
 def main(argv):
@@ -65,20 +63,19 @@ def main(argv):
     """
     # deploy Ok contract
     gasPrice = 30000000
+    client = TransactionCommon("",
+                               contract_path,
+                               contract_name)
     result = client.send_transaction_getReceipt(None, None, gasPrice, True)[0]
     contract_addr = result['contractAddress']
     client.set_contract_addr(contract_addr)
-    executor = ThreadPoolExecutor(max_workers=50)
-    counter = 0
-    recv_counter = Counter()
-    for i in range(0, total_count):
-        # task_list.append(counter)
-        executor.submit(sendRequest, (recv_counter))
-        counter = counter + 1
-        if counter % step == 0:
-            print("send {}%, tx_num: {}".format(counter / step * 10, counter))
-    while recv_counter.value() != total_count:
-        time.sleep(1)
+    pool = multiprocessing.Pool(process_num)
+    args_list = []
+    for i in range(0, process_num):
+        args_list.append(i)
+    pool.map(sendMultiRequests, args_list)
+    pool.close()
+    pool.join()
     client.finish()
 
 
