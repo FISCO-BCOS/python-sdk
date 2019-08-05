@@ -13,3 +13,4 @@ argcomplete
 py-solc
 pymitter
 asyncio
+promise
