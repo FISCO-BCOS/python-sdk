@@ -23,7 +23,7 @@ from client.precompile.config.config_precompile import ConfigPrecompile
 from client.precompile.permission.permission_service import PermissionService
 from client.precompile.crud.crud_service import CRUDService, Table
 from client.precompile.common import PrecompileCommon
-from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError
+from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError, BcosException
 
 
 class Precompile:
@@ -235,6 +235,7 @@ class Precompile:
         self.cns_service = CnsService(self._contract_path)
         try:
             # register cns contract
+            # registerCNS
             if self._cmd == self.functions["cns"][0]:
                 self.check_param_num(3, True)
                 contract_name = self._args[0]
@@ -253,12 +254,14 @@ class Precompile:
                     self.print_error_msg(e)
                 return
             # query cns information by name
+            # queryCNSByName
             if self._cmd == self.functions["cns"][1]:
                 self.check_param_num(1, True)
                 result = self.cns_service.query_cns_by_name(self._args[0])
                 Precompile.print_cns_info(result)
                 return
             # query cns information by name and version
+            # queryCNSByNameAndVersions
             if self._cmd == self.functions["cns"][2]:
                 self.check_param_num(2, True)
                 result = self.cns_service.query_cns_by_nameAndVersion(self._args[0], self._args[1])
@@ -267,6 +270,36 @@ class Precompile:
         except ArgumentsError as e:
             common.print_error_msg(self._cmd, e)
             self.print_cns_usage()
+
+    @staticmethod
+    def check_nodeList(client, nodeId):
+        """
+        check node list
+        """
+        nodeList = list(client.getNodeIDList())
+        if nodeId not in nodeList:
+            raise BcosException(("node {} is not in nodeList: {}, "
+                                 "please check the existence of "
+                                 "the node").format(nodeId, nodeList))
+
+    @staticmethod
+    def check_nodeExist(client, nodeId):
+        """
+        check node num
+        """
+        nodeList = list(client.getNodeIDList())
+        if nodeId not in nodeList:
+            raise BcosException(("remove non-exist node, "
+                                 "currentNodeList: {}").format(nodeList))
+
+    def check_sealer(client, nodeId):
+        """
+        check sealer
+        """
+        sealerList = list(client.getSealerList())
+        nodeNum = len(sealerList)
+        if nodeNum == 1 and nodeId in sealerList:
+            raise BcosException("forbid remove the last node {}".format(nodeId))
 
     def call_consensus(self):
         """
@@ -283,12 +316,20 @@ class Precompile:
             result = None
             # addSealer
             if self._cmd == self.functions["consensus"][0]:
+                # check nodeList
+                Precompile.check_nodeList(self.consensus_precompile.client,
+                                          self._args[0])
                 result = self.consensus_precompile.addSealer(self._args[0])
             # addObserver
             elif self._cmd == self.functions["consensus"][1]:
                 result = self.consensus_precompile.addObserver(self._args[0])
             # removeNode
             elif self._cmd == self.functions["consensus"][2]:
+                # check node existence
+                Precompile.check_nodeExist(self.consensus_precompile.client,
+                                           self._args[0])
+                Precompile.check_sealer(self.consensus_precompile.client,
+                                        self._args[0])
                 result = self.consensus_precompile.removeNode(self._args[0])
             self.print_succ_msg(result)
         except TransactionException as e:

@@ -17,8 +17,6 @@ import os
 import json
 import subprocess
 import re
-import weakref
-from asyncio import events, coroutines, tasks, futures
 from eth_utils.hexadecimal import decode_hex
 from client_config import client_config
 from eth_utils import to_checksum_address
@@ -187,89 +185,3 @@ def parse_output(output, fn_name, contract_abi, args):
     fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
     decoderesult = decode_single(fn_output_types, decode_hex(output))
     return decoderesult
-
-
-_all_tasks = weakref.WeakSet()
-
-
-def all_tasks(loop=None):
-    """Return a set of all tasks for the loop."""
-    if loop is None:
-        loop = events.get_running_loop()
-    # Looping over a WeakSet (_all_tasks) isn't safe as it can be updated from another
-    # thread while we do so. Therefore we cast it to list prior to filtering. The list
-    # cast itself requires iteration, so we repeat it several times ignoring
-    # RuntimeErrors (which are not very likely to occur). See issues 34970 and 36607 for
-    # details.
-    i = 0
-    while True:
-        try:
-            tasks = list(_all_tasks)
-        except RuntimeError:
-            i += 1
-            if i >= 1000:
-                raise
-        else:
-            break
-    return {t for t in tasks
-            if futures._get_loop(t) is loop and not t.done()}
-
-
-def _cancel_all_tasks(loop):
-    to_cancel = all_tasks(loop)
-    if not to_cancel:
-        return
-
-    for task in to_cancel:
-        task.cancel()
-
-    loop.run_until_complete(
-        tasks.gather(*to_cancel, loop=loop, return_exceptions=True))
-
-    for task in to_cancel:
-        if task.cancelled():
-            continue
-        if task.exception() is not None:
-            loop.call_exception_handler({
-                'message': 'unhandled exception during asyncio.run() shutdown',
-                'exception': task.exception(),
-                'task': task,
-            })
-
-
-def run(main, *, debug=False):
-    """Run a coroutine.
-    This function runs the passed coroutine, taking care of
-    managing the asyncio event loop and finalizing asynchronous
-    generators.
-    This function cannot be called when another asyncio event loop is
-    running in the same thread.
-    If debug is True, the event loop will be run in debug mode.
-    This function always creates a new event loop and closes it at the end.
-    It should be used as a main entry point for asyncio programs, and should
-    ideally only be called once.
-    Example:
-        async def main():
-            await asyncio.sleep(1)
-            print('hello')
-        asyncio.run(main())
-    """
-    if events._get_running_loop() is not None:
-        raise RuntimeError(
-            "asyncio.run() cannot be called from a running event loop")
-
-    if not coroutines.iscoroutine(main):
-        raise ValueError("a coroutine was expected, got {!r}".format(main))
-
-    loop = events.new_event_loop()
-    try:
-        events.set_event_loop(loop)
-        loop.set_debug(debug)
-        return loop.run_until_complete(main)
-    finally:
-        try:
-            _cancel_all_tasks(loop)
-            loop.run_until_complete(loop.shutdown_asyncgens())
-        finally:
-            events.set_event_loop(None)
-            loop.close()

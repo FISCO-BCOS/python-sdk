@@ -19,13 +19,13 @@ import queue
 import threading
 from queue import Empty
 from pymitter import EventEmitter
+from promise import Promise
 import time
 import itertools
 import ssl
 import json
 import socket
 from client.channelpack import ChannelPack
-from client.stattool import StatTool
 from utils.encoding import FriendlyJsonSerde
 from client.bcoserror import BcosError, ChannelException
 from eth_utils import (to_text, to_bytes)
@@ -49,12 +49,11 @@ class ChannelHandler(threading.Thread):
         self.timeout = max_timeout
         threading.Thread.__init__(self)
         self.callbackEmitter = EventEmitter()
-        self.responses = dict()
         self.requests = []
         self.name = name
         self.blockNumber = 0
-        self.blockNotifyEmitter = ChannelHandler.getEmitterStr(ChannelPack.get_seq_zero(),
-                                                               ChannelPack.TYPE_TX_BLOCKNUM)
+        self.onResponsePrefix = "onResponse"
+        self.getResultPrefix = "getResult"
 
     def initTLSContext(self, ca_file, node_crt_file, node_key_file,
                        protocol=ssl.PROTOCOL_TLSv1_2,
@@ -81,8 +80,9 @@ class ChannelHandler(threading.Thread):
             self.ssock.shutdown(socket.SHUT_RDWR)
             self.ssock.close()
             self.ssock = None
-        self.keepWorking = False
-        self.join(timeout=1)
+        if self.keepWorking is True:
+            self.keepWorking = False
+            self.join(timeout=1)
         if self.recvThread is not None:
             self.recvThread.finish()
             self.recvThread.join(timeout=2)
@@ -100,11 +100,11 @@ class ChannelHandler(threading.Thread):
                     if responsepack is None and self.keepWorking:
                         time.sleep(0.001)
                         continue
-                    emitter_str = ChannelHandler.getEmitterStr(responsepack.seq, responsepack.type)
+                    emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
+                                                               responsepack.seq, responsepack.type)
                     if emitter_str in self.requests:
                         self.callbackEmitter.emit(emitter_str, responsepack)
                 except Empty:
-                    self.logger.debug("empty response")
                     time.sleep(0.001)
         except Exception as e:
             self.logger.error("{} recv error {}".format(self.name, e))
@@ -114,6 +114,7 @@ class ChannelHandler(threading.Thread):
 
     def start_channel(self, host, port):
         try:
+            self.keepWorking = False
             self.host = host
             self.port = port
             sock = socket.create_connection((host, port))
@@ -158,41 +159,31 @@ class ChannelHandler(threading.Thread):
     errorMsg[101] = "sdk unreachable"
     errorMsg[102] = "timeout"
 
-    async def make_request(self, method, params, packet_type=ChannelPack.TYPE_RPC,
-                           response_type=ChannelPack.TYPE_RPC):
-        stat = StatTool()
+    def make_request(self, method, params, packet_type=ChannelPack.TYPE_RPC,
+                     response_type=ChannelPack.TYPE_RPC):
         rpc_data = self.encode_rpc_request(method, params)
         self.logger.debug("request rpc_data : {}".format(rpc_data))
         seq = ChannelPack.make_seq32()
         request_pack = ChannelPack(packet_type, seq, 0, rpc_data)
         self.send_pack(request_pack)
-        emitter_str = ChannelHandler.getEmitterStr(seq, response_type)
-        self.callbackEmitter.on(emitter_str, self.onResponse)
-        self.requests.append(emitter_str)
-        start_time = time.time()
-        response_item = self.getResponse(emitter_str, start_time)
-        self.requests.remove(emitter_str)
-        stat.done()
-        stat.debug("make_request:{}".format(method))
-        return response_item
+        onresponse_emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
+                                                              seq, response_type)
+        # register onResponse emitter
+        self.callbackEmitter.on(onresponse_emitter_str, self.onResponse)
+        self.requests.append(onresponse_emitter_str)
 
-    def getResponse(self, emitter_str, start_time):
-        """
-        get response from receive buffer
-        according to seq and packet type
-        """
-        while time.time() - start_time < self.timeout and \
-                emitter_str not in self.responses.keys():
-            time.sleep(0.001)
-        if emitter_str not in self.responses.keys():
-            return None
-        if "result" not in self.responses[emitter_str].keys():
-            response_item = dict()
-            response_item["result"] = self.responses[emitter_str]
-        else:
-            response_item = self.responses[emitter_str]
-        del self.responses[emitter_str]
-        return response_item
+        emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
+                                                   seq, response_type)
+
+        def resolve_promise(resolve, reject):
+            """
+            resolve promise
+            """
+            # register getResult emitter
+            self.callbackEmitter.on(emitter_str, (lambda result, is_error: resolve(
+                result) if is_error is False else reject(result)))
+        p = Promise(resolve_promise)
+        return p.get()
 
     def setBlockNumber(self, blockNumber):
         """
@@ -200,33 +191,27 @@ class ChannelHandler(threading.Thread):
         """
         self.blockNumber = blockNumber
 
-    async def getBlockNumber(self, groupId):
+    def getBlockNumber(self, groupId):
         """
         get block number notify
         """
+        block_notify_emitter = ChannelHandler.getEmitterStr(self.onResponsePrefix,
+                                                            ChannelPack.get_seq_zero(),
+                                                            ChannelPack.TYPE_TX_BLOCKNUM)
+        self.callbackEmitter.on(block_notify_emitter, self.onResponse)
+        self.logger.debug("block notify emitter: {}".format(block_notify_emitter))
+        self.requests.append(block_notify_emitter)
         seq = ChannelPack.make_seq32()
         topic = json.dumps(["_block_notify_{}".format(groupId)])
         request_pack = ChannelPack(ChannelPack.TYPE_TOPIC_REPORT, seq, 0, topic)
         self.send_pack(request_pack)
-        self.callbackEmitter.on(self.blockNotifyEmitter, self.getBlockNumberFromResponse)
-        self.requests.append(self.blockNotifyEmitter)
-
-    def getBlockNumberFromResponse(self, responsepack):
-        """
-        get blockNumber from response
-        """
-        data = responsepack.data.decode("utf-8")
-        number = int(data.split(',')[1])
-        if self.blockNumber < number:
-            self.blockNumber = number
-        self.logger.debug("currentBlockNumber: {}".format(self.blockNumber))
 
     @staticmethod
-    def getEmitterStr(seq, response_type):
+    def getEmitterStr(prefix, seq, response_type):
         """
         get emitter str
         """
-        return "onResponse_{}_{}".format(str(seq), str(response_type))
+        return "{}_{}_{}".format(prefix, str(seq), str(response_type))
 
     def onResponse(self, responsepack):
         """
@@ -234,19 +219,48 @@ class ChannelHandler(threading.Thread):
         """
         result = responsepack.result
         data = responsepack.data.decode("utf-8")
-        msg = "success"
-        if(result != 0):
-            if result in self.errorMsg:
-                msg = "unknow error %d" % result
-            msg = self.errorMsg[result]
-            raise BcosError(result, msg)
-        response = FriendlyJsonSerde().json_decode(data)
+        # get onResponse emitter
+        onresponse_emitter = ChannelHandler.getEmitterStr(self.onResponsePrefix,
+                                                          responsepack.seq, responsepack.type)
+        if onresponse_emitter in self.requests:
+            self.requests.remove(onresponse_emitter)
 
-        self.logger.debug("response from server, seq: {}, type:{}, response: {}".
-                          format(responsepack.seq, responsepack.type, response))
-        emitter_str = ChannelHandler.getEmitterStr(responsepack.seq, responsepack.type)
-        self.responses[emitter_str] = response
-        return response
+        emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
+                                                   responsepack.seq, responsepack.type)
+        self.logger.debug("onResponse, emitter: {}".format(emitter_str))
+        if result != 0:
+            self.logger.error("response from server failed , seq: {}, type:{}, result: {}".
+                              format(responsepack.seq, responsepack.type, result))
+            self.callbackEmitter.emit(emitter_str, result, True)
+            return
+        try:
+            # json packet
+            if responsepack.type == ChannelPack.TYPE_RPC or \
+                    responsepack.type == ChannelPack.TYPE_TX_COMMITTED:
+                response = FriendlyJsonSerde().json_decode(data)
+                response_item = None
+                if "result" not in response.keys():
+                    response_item = dict()
+                    response_item["result"] = response
+                else:
+                    response_item = response
+                self.callbackEmitter.emit(emitter_str, response_item, False)
+                self.logger.debug("response from server , seq: {}, type:{}".
+                                  format(responsepack.seq, responsepack.type))
+            # block notify
+            elif responsepack.type == ChannelPack.TYPE_TX_BLOCKNUM:
+                number = int(data.split(',')[1], 10)
+                self.logger.debug("receive block notify: seq: {} type:{}".
+                                  format(responsepack.seq, responsepack.type))
+                if self.blockNumber < number:
+                    self.blockNumber = number
+                self.logger.debug("currentBlockNumber: {}".format(self.blockNumber))
+        except Exception as e:
+            self.logger.error("decode response failed, seq:{}, type:{}, error info: {}"
+                              .format(responsepack.seq, responsepack.type, e))
+            error_msg = "decode response failed, seq:{}, type:{}, message: {}".format(
+                responsepack.seq, responsepack.type, result)
+            self.callbackEmitter.emit(emitter_str, error_msg, True)
 
     def send_pack(self, pack):
         if self.sendThread.packQueue.full():
@@ -281,11 +295,9 @@ class ChannelRecvThread(threading.Thread):
     def read_channel(self):
         # 接收服务端返回的信息
         try:
-            # print("channelHandler.ssock.recv begin.")
             self.logger.debug("{} channelHandler.ssock.recv begin.".format(self.name))
             msg = self.channelHandler.ssock.recv(1024 * 1024 * 10)
-            # print("channelHandler.ssock.recv len:{},{}".format(len(msg),msg))
-            self.logger.debug("channelHandler.ssock.recv len:{},{}".format(len(msg), msg))
+            self.logger.debug("channelHandler.ssock.recv len:{}".format(len(msg)))
             if msg is None:
                 return -1
             if len(msg) == 0:
@@ -399,8 +411,7 @@ class ChannelSendThread(threading.Thread):
             while self.keepWorking:
                 try:
                     pack = self.packQueue.get(block=True, timeout=0.2)
-                except Empty as e:
-                    self.logger.debug("the queue is empyt, info {}".format(e))
+                except Empty:
                     self.check_heatbeat()
                     continue
                 self.lastheatbeattime = time.time()  # reset heatbeat time

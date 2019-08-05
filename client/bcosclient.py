@@ -106,8 +106,9 @@ class BcosClient:
                                                     )
                 self.channel_handler.start_channel(
                     client_config.channel_host, client_config.channel_port)
-                self.channel_handler.setBlockNumber(self.getBlockNumber())
-                common.run(self.channel_handler.getBlockNumber(self.groupid))
+                blockNumber = self.getBlockNumber()
+                self.channel_handler.setBlockNumber(blockNumber)
+                self.channel_handler.getBlockNumber(self.groupid)
 
             self.logger.info("using protocol " + client_config.client_protocol)
             return self.getinfo()
@@ -133,12 +134,13 @@ class BcosClient:
     def is_error_response(self, response):
         if response is None:
             raise BcosError(-1, None, "response is None")
-        if "error" in response.keys():
-            msg = response["error"]["message"]
-            code = response["error"]["code"]
+        result = response["result"]
+        if isinstance(result, dict) and "error" in result.keys():
+            msg = result["error"]["message"]
+            code = result["error"]["code"]
             data = None
-            if("data" in response["error"]):
-                data = response["error"]["data"]
+            if("data" in result["error"]):
+                data = result["error"]["data"]
             self.logger.error("is_error_response code: {}, msg:{} ,data:{}".format(code, msg, data))
             raise BcosError(code, data, msg)
         return None
@@ -150,10 +152,8 @@ class BcosClient:
             if client_config.client_protocol == client_config.PROTOCOL_RPC:
                 response = self.rpc.make_request(cmd, params)
             if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
-                response = common.run(self.channel_handler.
-                                      make_request(cmd, params,
-                                                   ChannelPack.TYPE_RPC,
-                                                   packet_type))
+                response = self.channel_handler.make_request(
+                    cmd, params, ChannelPack.TYPE_RPC, packet_type)
             self.is_error_response(response)
             memo = "DONE"
             stat.done()
@@ -161,8 +161,8 @@ class BcosClient:
             return response["result"]
         except Exception as e:
             raise BcosError(-1, None, ("{} failed,"
-                                       " params: {}, error information: {}").
-                            format(cmd, params, e))
+                                       " params: {}, response: {}, error information: {}").
+                            format(cmd, params, response, e))
 
     def getNodeVersion(self):
         """
@@ -192,7 +192,6 @@ class BcosClient:
         cmd = "getBlockNumber"
         params = [self.groupid]
         num_hex = self.common_request(cmd, params)
-        # print("getBlockNumber hex:",num_hex)
         return int(num_hex, 16)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpbftview
@@ -342,7 +341,6 @@ class BcosClient:
         """
         get blockNumber from _block_notify directly when use channelHandler
         """
-        self.logger.debug("current blockNumber: {}".format(self.channel_handler.blockNumber))
         return self.channel_handler.blockNumber + self.blockLimit
 
     def RPC_getBlocklimit(self):
