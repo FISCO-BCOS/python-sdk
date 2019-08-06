@@ -221,7 +221,7 @@ class Precompile:
                 print("\tContractAddress: {}".format(cns["address"]))
                 i = i + 1
         if i == 0:
-            print("Empty Set")
+            common.print_info("    ", "Empty Set, result: {}".format(cns_info))
 
     def call_cns(self):
         """
