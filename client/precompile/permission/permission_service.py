@@ -74,6 +74,8 @@ class PermissionService:
                 if "address" in permission_obj.keys():
                     print("     = address: {}".format(permission_obj["address"]))
                     print("     = enable_num: {}".format(permission_obj["enable_num"]))
+        if i == 0:
+            common.print_info("    ", "Empty Set, permission info: {}".format(result))
 
     def list_permission(self, table_name):
         """
