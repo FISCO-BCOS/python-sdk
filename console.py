@@ -358,7 +358,7 @@ def main(argv):
         if cmd == 'newaccount':
             common.check_param_num(inputparams, 2, True)
             name = inputparams[0]
-            max_account_len = 254
+            max_account_len = 240
             if len(name) > max_account_len:
                 common.print_info("WARNING", "account name should no more than {}"
                                   .format(max_account_len))
