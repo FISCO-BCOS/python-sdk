@@ -111,6 +111,9 @@ init_config()
         LOG_INFO "install solc v0.4.25..."
         python -m solc.install v0.4.25
         if [ $? -eq 1 ];then
+            if [ -d "${HOME}/.py-solc/solc-v0.4.25/" ];then
+                execute_cmd "rm -rf ~/.py-solc/solc-v0.4.25/"
+            fi
             LOG_INFO "install solc v0.4.25 failed, try to install slocjs"
             execute_cmd "npm install solc@0.4.24"
         fi
