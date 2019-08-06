@@ -103,7 +103,7 @@ def print_error_msg(cmd, e):
     print("ERROR >> execute {} failed\nERROR >> error information: {}\n".format(cmd, e))
 
 
-max_block_number = pow(2, 64)
+max_block_number = pow(2, 63) - 1
 
 
 def check_int_range(number_str, limit=max_block_number):

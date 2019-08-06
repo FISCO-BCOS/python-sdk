@@ -42,8 +42,8 @@ class BcosClient:
     groupid = None
     logger = clientlogger.logger  # logging.getLogger("BcosClient")
     request_counter = itertools.count()
-    max_group_id = pow(2, 16)
-    max_chain_id = pow(2, 64)
+    max_group_id = pow(2, 15) - 1
+    max_chain_id = pow(2, 63) - 1
     protocol_list = ["rpc", "channel"]
     sysconfig_keys = ["tx_count_limit", "tx_gas_limit"]
 

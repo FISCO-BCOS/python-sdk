@@ -107,12 +107,12 @@ class TransactionCommon(bcosclient.BcosClient):
         except BcosError as e:
             self.logger.error("send transaction failed, fn_name: {}, fn_args:{}, error_info:{}".
                               format(fn_name, fn_args, e))
-            receipt = None
             raise e
         except CompileError as e:
             self.logger.error(("send transaction failed for compile soldity failed,"
                                "contract_path {}, error_info:{}").
                               format(self.sol_path, e))
+            raise e
 
     @staticmethod
     def format_args_by_abi(inputparams, inputabi):
