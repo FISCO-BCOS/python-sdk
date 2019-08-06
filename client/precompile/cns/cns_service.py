@@ -17,6 +17,7 @@ import json
 import client.clientlogger as clientlogger
 from client.common import transaction_common
 from client.common import common
+from client.bcoserror import BcosException
 import re
 
 
@@ -64,7 +65,7 @@ class CnsService:
         if len(version) > self._max_version_len:
             error_info = self.get_error_msg(self._version_exceeds)
             self.logger.error("register cns failed, error info: {}".format(error_info))
-            return error_info
+            raise BcosException(error_info)
 
         # call insert function of CNS
         # function definition: insert(string,string,string,string)
