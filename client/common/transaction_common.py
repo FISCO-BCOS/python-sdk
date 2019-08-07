@@ -100,7 +100,7 @@ class TransactionCommon(bcosclient.BcosClient):
                                            format(status,
                                                   receipt["gasUsed"]))
             if fn_name is not None and fn_args is not None:
-                output = common.parse_output(receipt["output"], fn_name, contract_abi, fn_args)
+                output = common.parse_output(receipt["output"], fn_name, contract_abi, args)
             else:
                 output = None
             return (receipt, output)
@@ -134,7 +134,7 @@ class TransactionCommon(bcosclient.BcosClient):
                     continue
                 if '\'' in param:
                     param = param.replace('\'', "")
-                if "int" in input_item["type"]:
+                if "int" in input_item["type"] or "int256" in input_item["type"]:
                     paramformatted.append(int(param, 10))
                     continue
                 if "address" in input_item["type"]:
