@@ -417,7 +417,13 @@ def main(argv):
             common.check_param_num(inputparams, 1, False)
             contractname = inputparams[0].strip()
             gasPrice = 30000000
-            trans_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
+            if "/" in contractname:
+                temp_position=contractname.rindex("/")
+                customize_dir=contractname[0:temp_position]
+                contractname=contractname[temp_position+1:]
+                trans_client = transaction_common.TransactionCommon("", customize_dir, contractname)
+            else:
+                trans_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
             result = trans_client.send_transaction_getReceipt(None, None, gasPrice, True)[0]
 
             print("deploy result  for [{}] is:\n {}".format(
