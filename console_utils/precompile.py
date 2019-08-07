@@ -130,7 +130,7 @@ class Precompile:
         elif self._cmd == "listUserTableManager":
             print('''USAGE NOTE:  {} [table_name]'''.format(self._cmd))
         else:
-            print('''USAGE NOTE:  {} [account_adddress]'''.format(self._cmd))
+            print('''USAGE NOTE:  {}'''.format(self._cmd))
 
     @staticmethod
     def print_all_permission_usage():
@@ -142,6 +142,10 @@ class Precompile:
             if cmd.startswith("grantUserTable") or cmd.startswith("revokeUserTable"):
                 print('''\t{} [tableName] [account_adddress]'''.
                       format(cmd))
+            elif "listUserTableManager" in cmd:
+                print('''\t{} [tableName]'''.format(cmd))
+            elif "list" in cmd:
+                print('''\t{}'''.format(cmd))
             else:
                 print('''\t{} [account_adddress]'''.format(cmd))
 
@@ -326,8 +330,6 @@ class Precompile:
             # removeNode
             elif self._cmd == self.functions["consensus"][2]:
                 # check node existence
-                Precompile.check_nodeExist(self.consensus_precompile.client,
-                                           self._args[0])
                 Precompile.check_sealer(self.consensus_precompile.client,
                                         self._args[0])
                 result = self.consensus_precompile.removeNode(self._args[0])
