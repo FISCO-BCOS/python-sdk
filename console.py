@@ -141,16 +141,15 @@ def usage(client_config):
         create a new account ,save to :[{}] (default) ,
         the path in client_config.py:[account_keyfile_path]
         if account file has exist ,then old file will save to a backup
-        if "save" arg follows,then backup file and write new without ask''')
+        if "save" arg follows,then backup file and write new without ask
+        the account len should be limitted to 240''')
                     .format(client_config.account_keyfile_path))
     usagemsg.append('''showaccount [name] [password]
         指定帐户名字(不带后缀)和密码，打开配置文件里默认账户文件路径下的[name].keystore文件，打印公私钥和地址
         ''')
-    usagemsg.append('''deploy [contract_binary_file] [save]
-        部署合约,合约来自编译后的bin文件（部署命令为了审慎起见，需要指定bin文件的全路径）。
-        如给出'save'参数，新地址会写入本地记录文件
-        ndeploy contract from a binary file,eg: deploy contracts/SimpleInfo.bin
-        if 'save' in args, so save address to file''')
+    usagemsg.append('''deploy [contract_name] [save]:
+        部署合约, 如给出'save'参数，新地址会写入本地记录文件,
+        eg: deploy SimpleInfo''')
 
     usagemsg.append('''call [contractname] [address] [func]  [args...]
         call合约的一个只读接口,解析返回值
@@ -459,7 +458,7 @@ def main(argv):
                   .format(cmd, contractname, address, fn_name, fn_args))
             if cmd == "call":
                 result = tx_client.call_and_decode(fn_name, fn_args)
-                print("INFO >> {} result: {}".format(cmd, ''.join(result)))
+                print("INFO >> {} result: {}".format(cmd, result))
             if cmd == "sendtx":
                 receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)[0]
                 data_parser = DatatypeParser(default_abi_file(contractname))
