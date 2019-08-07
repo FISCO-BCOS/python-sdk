@@ -58,7 +58,7 @@ class RPCConsole:
         # function with 0 param
         RPCConsole.functions["zero"] = ["getNodeVersion", "getBlockNumber",
                                         "getPbftView", "getSealerList",
-                                        "getObserverList", "getConsensusStatus",
+                                        "getObserverList",
                                         "getConsensusStatus", "getSyncStatus",
                                         "getPeers", "getGroupPeers", "getNodeIDList",
                                         "getGroupList", "getPendingTxSize",
