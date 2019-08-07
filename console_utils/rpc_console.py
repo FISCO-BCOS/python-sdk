@@ -25,7 +25,6 @@ class RPCConsole:
     """
 
     def __init__(self, cmd, params):
-        self.client = BcosClient()
         self.func_prefix = "self.client."
         self.cmd = cmd
         self.params = params
@@ -166,6 +165,7 @@ class RPCConsole:
         """
         exec_command
         """
+        self.client = BcosClient()
         function_name = self.get_func_name(cmd)
         # execute function
         ret_json = eval(function_name)(*params)
