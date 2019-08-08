@@ -2,7 +2,6 @@
 from client.bcosclient import (
     BcosClient
 )
-from eth_utils import to_checksum_address
 from client.datatype_parser import DatatypeParser
 import json
 
