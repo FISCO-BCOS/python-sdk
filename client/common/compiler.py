@@ -14,8 +14,6 @@
   @date: 2019-07
 '''
 import os
-import json
-from solc import compile_files
 import subprocess
 from client.common import common
 from client_config import client_config
@@ -29,20 +27,6 @@ class Compiler:
     _env_key_ = "SOLC_BINARY"
     compiler_path = client_config.solc_path
     js_compiler_path = client_config.solcjs_path
-    os.putenv(_env_key_, compiler_path)
-    os.environ[_env_key_] = compiler_path
-
-    @staticmethod
-    def save_file(content, file_dir, file_name):
-        """
-        save content to the given file
-        """
-        if os.path.exists(file_dir) is False:
-            os.mkdir(file_dir)
-        file_path = file_dir + "/" + file_name
-        fp = open(file_path, 'w')
-        fp.write(content)
-        fp.close()
 
     @staticmethod
     def compile_with_js(sol_path, contract_name, output_path="contracts"):
@@ -78,20 +62,10 @@ class Compiler:
         compile with solc
         """
         print("INFO >> compile with solc compiler")
-        sol_objs = compile_files([sol_file])
-        key = "{}:{}".format(sol_file, contract_name)
-        if key in sol_objs.keys():
-            # parse abi
-            if "abi" in sol_objs[key].keys():
-                sol_abi = sol_objs[key]["abi"]
-                # save abi
-                Compiler.save_file(json.dumps(sol_abi), output_path, contract_name + ".abi")
-            # parse bin
-            if "bin" in sol_objs[key].keys():
-                sol_bin = sol_objs[key]["bin"]
-                # save bin
-                if sol_bin != "":
-                    Compiler.save_file(sol_bin, output_path, contract_name + ".bin")
+        # sol_file
+        command = "{} --bin --abi {} -o {} --overwrite".format(
+            Compiler.compiler_path, sol_file, output_path)
+        common.execute_cmd(command)
 
     @staticmethod
     def compile_file(sol_file, output_path="contracts"):
