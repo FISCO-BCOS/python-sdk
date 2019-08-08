@@ -296,6 +296,7 @@ class Precompile:
             raise BcosException(("remove non-exist node, "
                                  "currentNodeList: {}").format(nodeList))
 
+    @staticmethod
     def check_sealer(client, nodeId):
         """
         check sealer
