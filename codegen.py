@@ -52,12 +52,15 @@ class ABICodegen:
         func_lines.append("{}func_name = '{}'".format(self.indent, func_abi["name"]))
         func_lines.append("{}args = [{}]".format(self.indent, args_value))
         if func_abi["constant"] is False:
-            func_lines.append(self.indent + "receipt = self.client.sendRawTransactionGetReceipt(self.address, self.contract_abi, func_name, args)")
-            func_lines.append(self.indent + "outputresult = self.data_parser.parse_receipt_output(func_name, receipt['output'])")
+            func_lines.append(self.indent + ("receipt = self.client.sendRawTransactionGetReceipt"
+                                             "(self.address, self.contract_abi, func_name, args)"))
+            func_lines.append(self.indent + ("outputresult = self.data_parser.parse_receipt_output"
+                                             "(func_name, receipt['output'])"))
             func_lines.append(self.indent + "return outputresult, receipt")
 
         if func_abi["constant"] is True:
-            func_lines.append(self.indent + "result = self.client.call(self.address, self.contract_abi, func_name, args)")
+            func_lines.append(self.indent + ("result = self.client.call(self.address, "
+                                             "self.contract_abi, func_name, args)"))
             func_lines.append(self.indent + "return result")
         return func_lines
 
@@ -69,7 +72,7 @@ class ABICodegen:
             all_func_code_line.append("")
             all_func_code_line.append("# ------------------------------------------")
             all_func_code_line.extend(func_lines)
-            #print(func_lines)
+            # print(func_lines)
         template = self.template
         template = template.replace("TEMPLATE_CLASSNAME", self.name)
         template = template.replace("TEMPLATE_ABIFILE", self.abi_file)
@@ -77,7 +80,7 @@ class ABICodegen:
         contract_abi = contract_abi.replace("\n", " ")
         template = template.replace("TEMPLATE_CONTRACT_ABI", contract_abi)
         for line in all_func_code_line:
-            if not line :
+            if not line:
                 template += "\n"
             else:
                 template += self.indent + line + "\n"
@@ -85,8 +88,9 @@ class ABICodegen:
 
 
 def usage():
-    usagetext = '''usage: 
-        python codegen.py [abifile(eg: ./contracts/SimpleInfo.abi)] [outputpath(eg: ./contracts/)] '''
+    usagetext = '''usage:
+        python codegen.py [abifile(eg: ./contracts/SimpleInfo.abi)]
+        [outputpath(eg: ./contracts/)] '''
     print(usagetext)
 
 
