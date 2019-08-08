@@ -135,7 +135,7 @@ def check_word(word):
     result = re.findall(r'([0x]*[a-f0-9]*)', word)
     if result[0] != word:
         raise ArgumentsError(("invalid input {},"
-                              " must be in 'a-z' or '0-9'")
+                              " must be in 'a-f' or '0-9' or 'A-F'")
                              .format(word))
 
 
