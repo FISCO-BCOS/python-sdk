@@ -451,7 +451,7 @@ def main(argv):
                     sys.exit("can not get last address for [{}],break;".format(contractname))
 
             tx_client = transaction_common.TransactionCommon(
-                params["address"], contracts_dir, contractname)
+                address, contracts_dir, contractname)
             fn_name = params["func"]
             fn_args = inputparams[3:]
             print("INFO >> {} {} , address: {}, func: {}, args:{}"

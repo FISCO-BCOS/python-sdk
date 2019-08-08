@@ -16,7 +16,7 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 ## 关键特性
 
 - 提供调用FISCO BCOS 2.0 [JSON-RPC](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/api.html)的Python API。
-- 可基于[Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/design/protocol_description.html#channelmessage)与FISCO BCOS进行通信，保证节点与SDK安全加密通信的同时，可接收节点推送的消息。
+- 可基于[Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/protocol_description.html#channelmessage)与FISCO BCOS进行通信，保证节点与SDK安全加密通信的同时，可接收节点推送的消息。
 - 支持交易解析功能：包括交易输入、交易输出、Event Log等ABI数据的拼装和解析。
 - 支持合约编译，将`sol`合约编译成`abi`和`bin`文件。
 - 支持基于keystore的账户管理。
@@ -30,9 +30,9 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 
 **依赖软件**
 
-- **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget`
-- **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget`
-- **MacOs**: `brew install wget npm`
+- **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget git`
+- **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget git`
+- **MacOs**: `brew install wget npm git`
 
 
 **拉取源代码**
@@ -41,7 +41,9 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 git clone https://github.com/FISCO-BCOS/python-sdk
 ```
 
-**初始化环境(若python环境符合要求，可跳过)**
+**初始化环境(若python环境符合要求，可跳过)(Windows环境可跳过)**
+
+windows环境初始化请参考[这里](./README.md#windows环境配置)
 
 ```bash
 # 判断python版本，并为不符合条件的python环境安装python 3.7.3的虚拟环境，命名为python-sdk
@@ -56,17 +58,17 @@ source ~/.bashrc && pyenv activate python-sdk && pip install --upgrade pip
 
 **安装依赖**
 
-
 ```bash
 pip install -r requirements.txt
 ```
+
 **若因网络原因，安装依赖失败，可使用清华的pip源下载，安装命令如下：**
 
 ```bash
 pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 ```
 
-**初始化配置**
+**初始化配置(Windows环境可跳过)**
 
 ```bash
 # 该脚本执行操作如下：
@@ -85,7 +87,30 @@ npm install solc@v0.4.24
 
 若没有执行以上初始化步骤，需要将`contracts/`目录下的`sol`代码手动编译成`bin`和`abi`文件并放置于`contracts`目录，才可以部署和调用相应合约。合约编译可以使用[remix](https://remix.ethereum.org)
 
-**SDK使用示例**
+
+## Windows环境配置
+
+在Windows运行Python SDK，需要按照以下步骤安装依赖软件并配置合约编译器：
+
+**依赖软件**
+
+- 直接安装`python-3.7.3`和`git`软件，solc二进制下载请参考`bcos_solc.py`中的描述
+- [Visual C++ 14.0库](https://visualstudio.microsoft.com/downloads)
+
+> (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
+
+**下载并配置solc编译器**
+修改`client_config.py.template`，配置`solc`编译器路径，solc二进制下载请参考`bcos_solc.py`中的描述
+
+```bash
+# 配置solc编译器路径，若solc存放路径为D:\\open-source\\python-sdk\\bin\\solc，则solc_path配置如下：
+solc_path = D:\\open-source\\python-sdk\\bin\\solc
+```
+
+## SDK使用示例
+
+**查看SDK使用方法**
+
 ```bash
 # 查看SDK使用方法
 ./console.py usage
@@ -96,56 +121,68 @@ npm install solc@v0.4.24
 
 **部署HelloWorld合约**
 ```bash
-$ ./console.py deploy HelloWorld
->> user input : ['deploy', 'HelloWorld', 'save']
+$ ./console.py deploy HelloWorld save 
 
-deploy result  for [contracts/HelloWorld.bin] is:
+INFO >> user input : ['deploy', 'HelloWorld', 'save']
+
+backup [contracts/HelloWorld.abi] to [contracts/HelloWorld.abi.20190807102912]
+backup [contracts/HelloWorld.bin] to [contracts/HelloWorld.bin.20190807102912]
+INFO >> compile with solc compiler
+deploy result  for [HelloWorld] is:
  {
-    "blockHash": "0xa9238a4138b5cac925d2d7b338c44acca5c1ae4d83df2243159cef4ff89c8c66",
-     ... 省略若干行...
+    "blockHash": "0x3912605dde5f7358fee40a85a8b97ba6493848eae7766a8c317beecafb2e279d",
+    "blockNumber": "0x1",
+    "contractAddress": "0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce",
+    "from": "0x95198b93705e394a916579e048c8a32ddfb900f7",
+    "gasUsed": "0x44ab3",
+    "input": "0x6080604052...省略若干行...c6f2c20576f726c642100000000000000000000000000",
+    "logs": [],
+    "logsBloom": "0x000...省略若干行...0000",
+    "output": "0x",
+    "status": "0x0",
+    "to": "0x0000000000000000000000000000000000000000",
+    "transactionHash": "0xb291e9ca38b53c897340256b851764fa68a86f2a53cb14b2ecdcc332e850bb91",
     "transactionIndex": "0x0"
 }
-on block : 8,address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e 
+on block : 1,address: 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce 
+address save to file:  bin/contract.ini
 ```
 
 **调用HelloWorld合约**
 
 ```bash
-# 调用get接口
-$./console.py call HelloWorld 0x42883e01ac97a3a5ef8a70c290abe0f67913964e get
+# 合约地址：0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce
+# 调用接口：get
+$./console.py  call HelloWorld 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce get 
 
->> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67913964e', 'get']
+INFO >> user input : ['call', 'HelloWorld', '0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce', 'get']
 
-param formatted by abi: []
-call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
-call result:  'Hello, World!'
+INFO >> call HelloWorld , address: 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce, func: get, args:[]
+INFO >> call result: ('Hello, World!',)
 
-# 调用set接口
-$./console.py sendtx HelloWorld 0x42883e01ac97a3a5ef8a70c290abe0f67913964e set "Hello, FISCO"
-> user input : ['sendtx', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67913964e', 'set', 'Hello, FISCO']
+# 合约名：HelloWorld
+# 合约地址：0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce
+# 调用接口：set
+# 参数："Hello, FISCO"
+$ ./console.py sendtx HelloWorld 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce set "Hello, FISCO"
 
-param formatted by abi: ['Hello, FISCO']
-sendtx HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: set, args:['Hello, FISCO']
-sendtx receipt:  {
-    "blockHash": "0x44d00ec42fe8abe12f324ceea786e065c095ecef1116fdc3b7ce4b38618de5d6",
-    ... 省略若干行...
-    "transactionIndex": "0x0"
-}
+INFO >> user input : ['sendtx', 'HelloWorld', '0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce', 'set', 'Hello, FISCO']
 
->>  receipt logs : 
->> transaction hash :  0x7e7f56c656a743b6b052fff8d61901a9ea752f758084fc3ef2fdc9a854f597d4
+INFO >> sendtx HelloWorld , address: 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce, func: set, args:['Hello, FISCO']
+
+INFO >>  receipt logs : 
+INFO >> transaction hash :  0xc20cbc6b0f28ad8fe1c560c8ce28c0e7eb7719a4a618a81604ac87ac46cc60f0
 tx input data detail:
  {'name': 'set', 'args': ('Hello, FISCO',), 'signature': 'set(string)'}
 receipt output : ()
 
 # 调用get接口获取更新后字符串
-$./console.py call HelloWorld 0x42883e01ac97a3a5ef8a70c290abe0f67913964e get
+$./console.py call HelloWorld 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce get
 
->> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67913964e', 'get']
+INFO >> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67913964e', 'get']
 
-param formatted by abi: []
-call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
-call result:  'Hello, FISCO!'
+INFO >> call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
+INFO >> call result:  'Hello, FISCO!'
 ```
 
 ## 开启命令行自动补全
@@ -164,7 +201,6 @@ source ~/.bashrc
 ## 贡献代码
 欢迎参与FISCO BCOS的社区建设：
 - 如项目对您有帮助，欢迎点亮我们的小星星(点击项目左上方Star按钮)。
-- 提交代码(Pull requests)，参考我们的[代码贡献流程](CONTRIBUTING_CN.md)。
 - [提问和提交BUG](https://github.com/FISCO-BCOS/python-sdk/issues/new)。
 - 如果发现代码存在安全漏洞，请在[这里](https://security.webank.com)上报。
 - 在[微信群](https://github.com/FISCO-BCOS/FISCO-BCOS-DOC/blob/release-2.0/images/community/WeChatQR.jpg)和[Gitter](https://gitter.im/fisco-bcos/Lobby)参与讨论。
