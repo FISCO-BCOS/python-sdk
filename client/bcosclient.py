@@ -146,6 +146,7 @@ class BcosClient:
         return None
 
     def common_request(self, cmd, params, packet_type=ChannelPack.TYPE_RPC):
+        response = None
         try:
             next(self.request_counter)
             stat = StatTool.begin()
