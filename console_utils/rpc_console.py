@@ -24,10 +24,11 @@ class RPCConsole:
     console for RPC
     """
 
-    def __init__(self, cmd, params):
+    def __init__(self, cmd, params, contract_path):
         self.func_prefix = "self.client."
         self.cmd = cmd
         self.params = params
+        self.contract_path = contract_path
         RPCConsole.define_commands()
 
     @staticmethod
@@ -41,13 +42,20 @@ class RPCConsole:
         for command in RPCConsole.functions["one_int"]:
             print("   ", "[{}] [number]".format(command))
         for command in RPCConsole.functions["one_hash"]:
-            print("   ", "[{}] [hash]".format(command))
+            if command == "getCode":
+                continue
+            print("   ", "[{}] [hash] [contract_name]".format(command))
+        print("   ", ("[getCode] [contract_address]"))
         print("   ", ("[getTransactionByBlockHashAndIndex] "
-                      "[blockHash] [transactionIndex]"))
+                      "[blockHash] [transactionIndex] [contract_name]"))
         print("   ", ("[getTransactionByBlockNumberAndIndex] "
-                      "[blockNumber] [transactionIndex]"))
+                      "[blockNumber] [transactionIndex] [contract_name]"))
         print("   ", "[{}] [tx_count_limit/tx_gas_limit]".
               format("getSystemConfigByKey"))
+        print("   ", "[{}] [blockNumber] True/False".
+              format("getBlockByNumber"))
+        print("   ", "[{}] [blockHash] True/False".
+              format("getBlockByHash"))
 
     @staticmethod
     def define_commands():
@@ -66,14 +74,19 @@ class RPCConsole:
                                         "getPendingTransactions"]
 
         # function with one param, and the param is int
-        RPCConsole.functions["one_int"] = ["getBlockByNumber", "getBlockHashByNumber"]
+        RPCConsole.functions["one_int"] = ["getBlockHashByNumber"]
         # function with one param, and the param is string
-        RPCConsole.functions["one_hash"] = ["getBlockByHash", "getCode",
+        RPCConsole.functions["one_hash"] = ["getCode",
                                             "getTransactionByHash",
                                             "getTransactionReceipt"]
         RPCConsole.functions["one_str"] = ["getSystemConfigByKey"]
         RPCConsole.functions["two"] = ["getTransactionByBlockHashAndIndex",
                                        "getTransactionByBlockNumberAndIndex"]
+        RPCConsole.functions["two_bool"] = ["getBlockByNumber", "getBlockByHash"]
+        RPCConsole.functions["parse_in"] = ["getTransactionByHash",
+                                            "getTransactionByBlockHashAndIndex",
+                                            "getTransactionByBlockNumberAndIndex"]
+        RPCConsole.functions["parse_out"] = ["getTransactionReceipt"]
 
     @staticmethod
     def get_all_cmd():
@@ -82,15 +95,42 @@ class RPCConsole:
         """
         command_list = []
         for key in RPCConsole.functions.keys():
+            if key == "parse_in" and key == "parse_output":
+                continue
             for command in RPCConsole.functions[key]:
                 command_list.append(command)
         return command_list
+
+    def parse_output(self, cmd, contract_name, result):
+        """
+        parse the result
+        """
+        if cmd in self.functions["parse_in"]:
+            decode_result = common.parse_input(result["input"],
+                                               contract_name,
+                                               self.contract_path)
+            common.print_info("input of transaction: {}", decode_result)
+        if cmd in self.functions["parse_out"]:
+            common.print_output_and_input(result["output"], result["input"],
+                                          contract_name, self.contract_path)
 
     def get_func_name(self, cmd):
         """
         get function name
         """
         return self.func_prefix + cmd
+
+    def exec_cmd_with_two_bool_param(self, cmd, params):
+        """
+        execute cmd with two params
+        """
+        if cmd not in RPCConsole.functions["two_bool"]:
+            return
+        # check param
+        common.check_param_num(params, 1, False)
+        if len(params) > 2:
+            raise ArgumentsError("params must be no more than 2")
+        self.exec_command(cmd, params)
 
     def exec_cmd_with_zero_param(self, cmd, params):
         """
@@ -130,19 +170,26 @@ class RPCConsole:
         if cmd not in RPCConsole.functions["one_hash"]:
             return
         # check_param
-        common.check_param_num(params, 1, True)
+        common.check_param_num(params, 1, False)
         # check contract address
         if cmd == "getCode":
             try:
+                if len(params) > 1:
+                    raise ArgumentsError("{} must provide one param".format(cmd))
                 address = to_checksum_address(params[0])
                 self.exec_command(cmd, [address])
             except Exception as e:
                 raise ArgumentsError("invalid address: {}, info: {}"
                                      .format(params[0], e))
         else:
+            if len(params) > 2:
+                raise ArgumentsError("{} must provide no more than one param".format(cmd))
             # check hash
             common.check_hash(params[0])
-            self.exec_command(cmd, params)
+            result = self.exec_command(cmd, [params[0]])
+            if len(params) < 2 or result is None:
+                return
+            self.parse_output(cmd, params[1], result)
 
     def exec_cmd_with_two_param(self, cmd, params):
         """
@@ -151,15 +198,22 @@ class RPCConsole:
         if cmd not in RPCConsole.functions["two"]:
             return
         # check param
-        common.check_param_num(params, 2, True)
+        common.check_param_num(params, 2, False)
+        if len(params) > 3:
+            raise ArgumentsError("{} : params must be no more than 3")
         index = common.check_int_range(params[1])
+        result = None
         # check param type
         if cmd == "getTransactionByBlockHashAndIndex":
             common.check_hash(params[0])
-            self.exec_command(cmd, [params[0], index])
+            result = self.exec_command(cmd, [params[0], index])
         if cmd == "getTransactionByBlockNumberAndIndex":
             number = common.check_int_range(params[0])
-            self.exec_command(cmd, [number, index])
+            result = self.exec_command(cmd, [number, index])
+        # decode input
+        if len(params) < 3 or result is None:
+            return
+        self.parse_output(cmd, params[2], result)
 
     def exec_command(self, cmd, params):
         """
@@ -171,6 +225,7 @@ class RPCConsole:
         ret_json = eval(function_name)(*params)
         common.print_info("INFO", self.cmd)
         common.print_result(ret_json)
+        return ret_json
 
     def executeRpcCommand(self):
         """
@@ -181,3 +236,4 @@ class RPCConsole:
         self.exec_cmd_with_hash_param(self.cmd, self.params)
         self.exec_cmd_with_two_param(self.cmd, self.params)
         self.exec_cmd_with_str_param(self.cmd, self.params)
+        self.exec_cmd_with_two_bool_param(self.cmd, self.params)
