@@ -115,7 +115,7 @@ init_config()
                 execute_cmd "rm -rf ~/.py-solc/solc-v0.4.25/"
             fi
             LOG_INFO "install solc v0.4.25 failed, try to install slocjs"
-            execute_cmd "npm install solc@0.4.24"
+            execute_cmd "npm install solc@0.4.25"
         fi
     fi
 }

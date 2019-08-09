@@ -62,17 +62,19 @@ source ~/.bashrc && pyenv activate python-sdk && pip install --upgrade pip
 
 > 安装依赖软件
 
-- 直接安装`python-3.7.3`和`git`软件，solc二进制下载请参考`bcos_solc.py`中的描述
+- 直接安装`python-3.7.3`和`git`软件，点击[这里](https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity_0.4.25.tar.gz)下载Windows版本solc。
 - [Visual C++ 14.0库](https://visualstudio.microsoft.com/downloads)
 
 > (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
+
+> python环境变量配置可参考[这里](https://jingyan.baidu.com/article/b0b63dbff271e24a4830708d.html)
 
 > 下载并配置solc编译器，修改`client_config.py.template`，配置`solc`编译器路径，solc二进制下载请参考`bcos_solc.py`中的描述，并将`client_config.py.template`拷贝为`client_config.py`。
 
 ```bash
 # 修改client_config.py.template: 
 # 配置solc编译器路径，若solc存放路径为D:\\open-source\\python-sdk\\bin\\solc.exe，则solc_path配置如下：
-solc_path = D:\\open-source\\python-sdk\\bin\\solc.exe
+solc_path = "D:\open-source\python-sdk\bin\solc.exe"
 
 # 将client_config.py.template拷贝到client_config.py
 ```
@@ -98,12 +100,11 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 bash init_env.sh -i
 ```
 
-> **若MacOS环境solc安装较慢，可在python-sdk目录下执行如下命令安装solcjs**，并将安装的solcjs路径配置到`client_config.py`的`solcjs_path`(默认为`node_modules/solc/solcjs`)，python-sdk自动从该路径加载nodejs编译器：
+> **若MacOS环境solc安装较慢，可在python-sdk目录下执行如下命令安装solcjs**，python-sdk自动加载nodejs编译器：
 
 ```bash
 # 安装编译器
-# 默认安装到node_modules/solc/solcjs路径
-npm install solc@v0.4.24
+npm install solc@v0.4.25
 ```
 
 > 若没有执行以上初始化步骤，需要将`contracts/`目录下的`sol`代码手动编译成`bin`和`abi`文件并放置于`contracts`目录，才可以部署和调用相应合约。合约编译可以使用[remix](https://remix.ethereum.org)
@@ -112,6 +113,8 @@ npm install solc@v0.4.24
 ## SDK使用示例
 
 **查看SDK使用方法**
+
+> **windows环境下执行console.py请使用`.\console.py`或者`python console.py`**
 
 ```bash
 # 查看SDK使用方法
@@ -201,11 +204,11 @@ source ~/.bashrc
 [**中文**](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/sdk/python_sdk/index.html)
 
 ## 贡献代码
-欢迎参与FISCO BCOS的社区建设：
-- 如项目对您有帮助，欢迎点亮我们的小星星(点击项目左上方Star按钮)。
-- [提问和提交BUG](https://github.com/FISCO-BCOS/python-sdk/issues/new)。
+
+- 我们欢迎并非常感谢您的贡献，请参阅[代码贡献流程](https://mp.weixin.qq.com/s/hEn2rxqnqp0dF6OKH6Ua-A
+)。
+- 如项目对您有帮助，欢迎star支持！
 - 如果发现代码存在安全漏洞，请在[这里](https://security.webank.com)上报。
-- 在[微信群](https://github.com/FISCO-BCOS/FISCO-BCOS-DOC/blob/release-2.0/images/community/WeChatQR.jpg)和[Gitter](https://gitter.im/fisco-bcos/Lobby)参与讨论。
 
 
 ## 加入社区
@@ -213,7 +216,7 @@ source ~/.bashrc
 [![Gitter](https://img.shields.io/badge/style-on_gitter-green.svg?logo=gitter&longCache=false&style=social&label=Chat)](https://gitter.im/fisco-bcos/Lobby)
 [![](https://img.shields.io/twitter/url/http/shields.io.svg?logo=Gmail&style=social&label=service@fisco.com.cn)](mailto:service@fisco.com.cn)
 
-FISCO BCOS开源社区是国内活跃的开源社区，社区长期为机构和个人开发者提供各类支持与帮助。已有来自各行业的数千名技术爱好者在研究和使用FISCO BCOS。如您对FISCO BCOS开源技术及应用感兴趣，欢迎加入社区获得更多支持与帮助。
+**FISCO BCOS开源社区**是国内活跃的开源社区，社区长期为机构和个人开发者提供各类支持与帮助。已有来自各行业的数千名技术爱好者在研究和使用FISCO BCOS。如您对FISCO BCOS开源技术及应用感兴趣，欢迎加入社区获得更多支持与帮助。
 
 ![](https://media.githubusercontent.com/media/FISCO-BCOS/LargeFiles/master/images/QR_image.png)
 
