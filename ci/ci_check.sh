@@ -219,19 +219,27 @@ function test_rpc_command()
         execute_cmd "python console.py ${cmd}"
     done
     # execute command with one param
-    one_param="getBlockByNumber getBlockHashByNumber"
+    one_param="getBlockHashByNumber"
     for cmd in ${one_param};do
         execute_cmd "python console.py ${cmd} 0"
     done 
     blockHash=$(python console.py getTransactionByBlockNumberAndIndex 1 0 | grep "blockHash" | awk -F':' '{print $2}'| awk '$1=$1' | cut -d'"' -f2)
     txHash=$(python console.py getTransactionByBlockNumberAndIndex 1 0 | grep "hash" |grep -v block | awk -F':' '{print $2}'| awk '$1=$1' | cut -d'"' -f2)
     # getBlockByHash
+    execute_cmd "python console.py getBlockByHash ${blockHash} True"
+    execute_cmd "python console.py getBlockByHash ${blockHash} False"
     execute_cmd "python console.py getBlockByHash ${blockHash}"
+    execute_cmd "python console.py getBlockByNumber 1 True"
+    execute_cmd "python console.py getBlockByNumber 1 False"
+    execute_cmd "python console.py getBlockByNumber 1"
     # getTransactionByHash
+    execute_cmd "python console.py getTransactionByHash ${txHash} HelloWorld"
     execute_cmd "python console.py getTransactionByHash ${txHash}"
     # getTransactionReceipt
+    execute_cmd "python console.py getTransactionReceipt ${txHash} HelloWorld"
     execute_cmd "python console.py getTransactionReceipt ${txHash}"
     # getTransactionByBlockHashAndIndex
+    execute_cmd "python console.py getTransactionByBlockHashAndIndex ${blockHash} 0 HelloWorld"
     execute_cmd "python console.py getTransactionByBlockHashAndIndex ${blockHash} 0"
 }
 

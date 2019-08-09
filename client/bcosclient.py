@@ -251,20 +251,22 @@ class BcosClient:
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getblockbyhash
-    def getBlockByHash(self, hash, includeTransactions=False):
+    def getBlockByHash(self, block_hash, _includeTransactions=True):
         cmd = "getBlockByHash"
-        common.check_hash(hash)
-        params = [self.groupid, hash, includeTransactions]
+        common.check_hash(block_hash)
+        includeTransactions = common.check_and_trans_to_bool(_includeTransactions)
+        params = [self.groupid, block_hash, includeTransactions]
         return self.common_request(cmd, params)
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getblockbynumber
 
-    def getBlockByNumber(self, num, includeTransactions=False):
+    def getBlockByNumber(self, num, _includeTransactions=True):
         """
         get block according to number
         """
         cmd = "getBlockByNumber"
-        common.check_int_range(num)
-        params = [self.groupid, hex(num), includeTransactions]
+        number = common.check_int_range(num)
+        includeTransactions = common.check_and_trans_to_bool(_includeTransactions)
+        params = [self.groupid, hex(number), includeTransactions]
         return self.common_request(cmd, params)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getblockhashbynumber
