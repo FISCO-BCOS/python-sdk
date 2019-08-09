@@ -62,7 +62,7 @@ try:
     block = client.getBlockByHash(blockhash)
     print("getBlockByHash", block)
     if isinstance(block, dict) and "transactions" in block.keys():
-        txhash = block['transactions'][0]
+        txhash = block['transactions'][0]["hash"]
         print("\n>>---------------------------------------------------------------------")
         print("getTransactionByHash", client.getTransactionByHash(txhash))
         print("\n>>---------------------------------------------------------------------")
