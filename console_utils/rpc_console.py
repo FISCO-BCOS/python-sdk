@@ -111,7 +111,7 @@ class RPCConsole:
                                                self.contract_path)
             common.print_info("input of transaction: {}", decode_result)
         if cmd in self.functions["parse_out"]:
-            common.print_output_and_input(result["output"], result["input"],
+            common.print_output_and_input(result["logs"], result["output"], result["input"],
                                           contract_name, self.contract_path)
 
     def get_func_name(self, cmd):
