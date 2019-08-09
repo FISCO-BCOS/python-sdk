@@ -100,12 +100,11 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 bash init_env.sh -i
 ```
 
-> **若MacOS环境solc安装较慢，可在python-sdk目录下执行如下命令安装solcjs**，并将安装的solcjs路径配置到`client_config.py`的`solcjs_path`(默认为`node_modules/solc/solcjs`)，python-sdk自动从该路径加载nodejs编译器：
+> **若MacOS环境solc安装较慢，可在python-sdk目录下执行如下命令安装solcjs**，python-sdk自动加载nodejs编译器：
 
 ```bash
 # 安装编译器
-# 默认安装到node_modules/solc/solcjs路径
-npm install solc@v0.4.24
+npm install solc@v0.4.25
 ```
 
 > 若没有执行以上初始化步骤，需要将`contracts/`目录下的`sol`代码手动编译成`bin`和`abi`文件并放置于`contracts`目录，才可以部署和调用相应合约。合约编译可以使用[remix](https://remix.ethereum.org)
