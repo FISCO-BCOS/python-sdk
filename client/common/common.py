@@ -17,6 +17,7 @@ import os
 import json
 import subprocess
 import re
+from client.datatype_parser import DatatypeParser
 from eth_utils.hexadecimal import decode_hex
 from client_config import client_config
 from eth_utils import to_checksum_address
@@ -111,6 +112,8 @@ def check_int_range(number_str, limit=max_block_number):
     check integer range
     """
     try:
+        if isinstance(number_str, int):
+            return number_str
         number = 0
         if isinstance(number_str, str):
             if number_str.startswith("0x"):
@@ -128,11 +131,28 @@ def check_int_range(number_str, limit=max_block_number):
         raise ArgumentsError("invalid input:{}, error info: {}".format(number, e))
 
 
+def check_and_trans_to_bool(param):
+    """
+    check bool
+    """
+    if isinstance(param, bool):
+        return param
+    true_str = "true"
+    false_str = "false"
+    if isinstance(param, str):
+        if param.lower() == true_str:
+            return True
+        if param.lower() == false_str:
+            return False
+    raise ArgumentsError(("invalid input: {}, "
+                          "must be true/True/false/False").format(param))
+
+
 def check_word(word):
     """
     check world
     """
-    result = re.findall(r'([0x]*[a-f0-9]*)', word)
+    result = re.findall(r'([0x]*[a-fA-F0-9]*)', word)
     if result[0] != word:
         raise ArgumentsError(("invalid input {},"
                               " must be in 'a-f' or '0-9' or 'A-F'")
@@ -185,3 +205,47 @@ def parse_output(output, fn_name, contract_abi, args):
     fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
     decoderesult = decode_single(fn_output_types, decode_hex(output))
     return decoderesult
+
+
+def print_output_and_input(output, txinput, contract_name, contract_path):
+    """
+    parse_output_from_abi
+    """
+    abi_path = os.path.join(contract_path, contract_name + ".abi")
+    if os.path.isfile(abi_path) is False:
+        raise BcosException("parse outpt failed for {} doesn't exist"
+                            .format(abi_path))
+    try:
+        dataParser = DatatypeParser(abi_path)
+        # parse txinput
+        input_result = dataParser.parse_transaction_input(txinput)
+        if input_result is None:
+            print_info("WARN", "parsed txinput is None")
+            return
+        print_info("txinput result", input_result)
+        # get function name
+        fn_name = input_result["name"]
+        output_result = dataParser.parse_receipt_output(fn_name, output)
+        if output_result is None:
+            print_info("INFO", "empty return, output: {}".format(output))
+            return
+        print_info("output result", output_result)
+    except Exception as e:
+        raise BcosException("parse output failed for reason: {}".format(e))
+
+
+def parse_input(txinput, contract_name, contract_path):
+    """
+    parse txinput
+    """
+    abi_path = os.path.join(contract_path, contract_name + ".abi")
+    if os.path.isfile(abi_path) is False:
+        raise BcosException("parse txinput failed for {} doesn't exist"
+                            .format(abi_path))
+    try:
+        dataParser = DatatypeParser(abi_path)
+        result = dataParser.parse_transaction_input(txinput)
+        return result
+    except Exception as e:
+        raise BcosException("parse txinput failed for reason: {}"
+                            .format(e))
