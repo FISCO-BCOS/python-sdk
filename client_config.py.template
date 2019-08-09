@@ -34,4 +34,4 @@ class client_config:
     # ---------compiler related--------------
     # path of solc compiler
     solc_path = os.environ["HOME"] + "/.py-solc/solc-v0.4.25/bin/solc"
-    solcjs_path = "node_modules/solc/solcjs"
+    solcjs_path = "./solcjs"
