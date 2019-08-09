@@ -207,7 +207,7 @@ def parse_output(output, fn_name, contract_abi, args):
     return decoderesult
 
 
-def print_output_and_input(output, txinput, contract_name, contract_path):
+def print_output_and_input(logs, output, txinput, contract_name, contract_path):
     """
     parse_output_from_abi
     """
@@ -230,6 +230,8 @@ def print_output_and_input(output, txinput, contract_name, contract_path):
             print_info("INFO", "empty return, output: {}".format(output))
             return
         print_info("output result", output_result)
+        log_result = dataParser.parse_event_logs(logs)
+        print_info("log result", log_result)
     except Exception as e:
         raise BcosException("parse output failed for reason: {}".format(e))
 

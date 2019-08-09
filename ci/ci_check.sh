@@ -124,6 +124,9 @@ function test_contract()
     if [ -z "${ret}" ];then
         LOG_ERROR "sendtx failed to set HelloWorld failed!"
     fi
+    # deploy TableTest
+    execute_cmd "python console.py TableTest"
+    execute_cmd "python console.py ParallelOk"
     LOG_INFO "## test contract finished..."
 }
 
