@@ -325,7 +325,7 @@ def main(argv):
         # try to callback crud precompile
         precompile.call_crud_precompile()
         # try to callback rpc functions
-        rpcConsole = RPCConsole(cmd, inputparams)
+        rpcConsole = RPCConsole(cmd, inputparams, contracts_dir)
         rpcConsole.executeRpcCommand()
         if cmd == 'showaccount':
             # must be 2 params
