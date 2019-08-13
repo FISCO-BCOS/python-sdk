@@ -121,17 +121,17 @@ npm install solc@v0.4.25
 > 若没有执行以上初始化步骤，需要将`contracts/`目录下的`sol`代码手动编译成`bin`和`abi`文件并放置于`contracts`目录，才可以部署和调用相应合约。合约编译可以使用[remix](https://remix.ethereum.org)
 
 ### 修改 rpc 端口
-```bash
-# 修改 rcp 端口
-修改 client_config.py 文件中 remote_rpcurl 为实际的IP:端口
-remote_rpcurl = "http://127.0.0.1:8545"
 
-其中端口 8545 对应节点目录下 config.ini 文件中的 jsonrpc_listen_port 
+在节点目录下的 config.ini 文件中获取 jsonrpc_listen_port , 这里为 8545  
+```bash
 [rpc]
     listen_ip=0.0.0.0
     channel_listen_port=20200
     jsonrpc_listen_port=8545
 ```
+    
+修改 client_config.py 文件中 remote_rpcurl 为实际的IP:端口
+`remote_rpcurl = "http://127.0.0.1:8545"`
 
 ## SDK使用示例
 
