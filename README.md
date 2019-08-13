@@ -34,17 +34,17 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget git`
 - **MacOs**: `brew install wget npm git`
 
-
-### 拉取源代码
-
-```bash
-git clone https://github.com/FISCO-BCOS/python-sdk
-```
-
 ### 初始化环境(若python环境符合要求，可跳过)
 
 #### **Linux环境初始化**
 
+> 拉取源代码
+```bash
+cd
+git clone https://github.com/FISCO-BCOS/python-sdk
+```
+
+> 配置环境
 ```bash
 # 判断python版本，并为不符合条件的python环境安装python 3.7.3的虚拟环境，命名为python-sdk
 # 若python环境符合要求，可以跳过此步
@@ -62,14 +62,19 @@ source ~/.bashrc && pyenv activate python-sdk && pip install --upgrade pip
 
 > 安装依赖软件
 
-- 直接安装`python-3.7.3`和`git`软件，点击[这里](https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity_0.4.25.tar.gz)下载Windows版本solc。
-- [Visual C++ 14.0库](https://visualstudio.microsoft.com/downloads)
+- 直接安装[Python-3.7.x](https://blog.csdn.net/weixin_40844416/article/details/80889165)和[git](https://segmentfault.com/a/1190000011809698)软件  
+python环境变量配置可参考[这里](https://jingyan.baidu.com/article/b0b63dbff271e24a4830708d.html)
 
-> (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
+> 拉取源代码  
 
-> python环境变量配置可参考[这里](https://jingyan.baidu.com/article/b0b63dbff271e24a4830708d.html)
+打开 git，在任意目录执行如下命令
+```bash
+git clone https://github.com/FISCO-BCOS/python-sdk
+```
 
-> 下载并配置solc编译器，修改`client_config.py.template`，配置`solc`编译器路径，solc二进制下载请参考`bcos_solc.py`中的描述，并将`client_config.py.template`拷贝为`client_config.py`。
+> 下载Windows版本solc, 点击[这里](https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity-windows.zip)下载
+
+- solc编译器下载成功后，解压，将其中的 solc.exe 文件复制 ${python-sdk}\bin 目录下。若 python-sdk 路为 D:\open-source\python-sdk, 则 solc.exe 文件复制路径为D:\open-source\python-sdk\bin\solc.exe 
 
 ```bash
 # 修改client_config.py.template: 
@@ -79,9 +84,15 @@ solc_path = "D:\open-source\python-sdk\bin\solc.exe"
 # 将client_config.py.template拷贝到client_config.py
 ```
 
+- [Visual C++ 14.0库](https://visualstudio.microsoft.com/downloads)
+
+> (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
+
+
 ### **安装Python SDK依赖**
 
 ```bash
+cd python-sdk 
 pip install -r requirements.txt
 ```
 
