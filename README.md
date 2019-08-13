@@ -78,8 +78,8 @@ git clone https://github.com/FISCO-BCOS/python-sdk
 
 ```bash
 # 修改client_config.py.template: 
-# 配置solc编译器路径，若solc存放路径为D:\\open-source\\python-sdk\\bin\\solc.exe，则solc_path配置如下：
-solc_path = "D:\open-source\python-sdk\bin\solc.exe"
+# 配置solc编译器路径，若solc存放路径为D:\open-source\python-sdk\bin\solc.exe，则solc_path配置如下：
+solc_path = "D:\\open-source\\python-sdk\\bin\\solc.exe"
 
 # 将client_config.py.template拷贝到client_config.py
 ```
@@ -120,6 +120,18 @@ npm install solc@v0.4.25
 
 > 若没有执行以上初始化步骤，需要将`contracts/`目录下的`sol`代码手动编译成`bin`和`abi`文件并放置于`contracts`目录，才可以部署和调用相应合约。合约编译可以使用[remix](https://remix.ethereum.org)
 
+### 修改 rpc 连接
+```bash
+# 修改 rcp 连接端口
+修改 client_config.py 文件中 remote_rpcurl 为实际的地址/端口
+remote_rpcurl = "http://127.0.0.1:52001"
+
+其中端口 52001 对应节点目录下 config.ini 文件中的 jsonrpc_listen_port 
+[rpc]
+    listen_ip=0.0.0.0
+    channel_listen_port=51001
+    jsonrpc_listen_port=52001
+```
 
 ## SDK使用示例
 
