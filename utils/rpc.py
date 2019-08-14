@@ -1,7 +1,6 @@
 import logging
 import os
 import itertools
-import json
 from eth_utils import (
     to_dict,
     to_text,
@@ -25,6 +24,7 @@ from client import clientlogger
 def get_default_endpoint():
     return os.environ.get('WEB3_HTTP_PROVIDER_URI', 'http://localhost:8545')
 
+
 class JSONBaseProvider():
     def __init__(self):
         self.request_counter = itertools.count()
@@ -47,7 +47,7 @@ class JSONBaseProvider():
         try:
             response = self.make_request('getClientVersion', [])
 
-            #print(response["result"])
+            # print(response["result"])
         except IOError:
             return False
 
@@ -57,13 +57,11 @@ class JSONBaseProvider():
         return True
 
 
-
 class HTTPProvider(JSONBaseProvider):
     logger = logging.getLogger("client.providers.HTTPProvider")
     endpoint_uri = None
     _request_args = None
     _request_kwargs = None
-
 
     def __init__(self, endpoint_uri=None, request_kwargs=None):
         if endpoint_uri is None:
@@ -92,20 +90,22 @@ class HTTPProvider(JSONBaseProvider):
     def make_request(self, method, params):
 
         request_data = self.encode_rpc_request(method, params)
-        #print("request", request_data)
+        # print("request", request_data)
         stat = StatTool.begin()
         self.logger.debug("request: %s, %s,data: %s",
-                          self.endpoint_uri, method,request_data)
+                          self.endpoint_uri, method, request_data)
 
         raw_response = make_post_request(
             self.endpoint_uri,
+            method,
+            params,
             request_data,
             **self.get_request_kwargs()
         )
-        #print("raw response ",raw_response)
+        # self.logger.debug("raw response {}, method: {}".format(raw_response, method))
         response = self.decode_rpc_response(raw_response)
         stat.done()
-        stat.debug("make_request:{},sendbyts:{}".format(method,len(request_data)) )
+        stat.debug("make_request:{},sendbyts:{}".format(method, len(request_data)))
         self.logger.debug("GetResponse. %s, Response: %s",
-                           method, response)
+                          method, response)
         return response
