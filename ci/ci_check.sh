@@ -379,9 +379,18 @@ function test_channel()
     test_precompile
 }
 
+# test rpc
+function modify_to_rpc()
+{
+    # update config to channel
+    sed -i "s/client_protocol = \"channel\"/client_protocol = \"rpc\"/g" client_config.py
+}
+
 function main()
 {
-   execute_cmd "cp client_config.py.template client_config.py"   
+   execute_cmd "cp client_config.py.template client_config.py"
+   # test rpc
+   modify_to_rpc   
    build_blockchain
    start_nodes
    # callback demo_transaction

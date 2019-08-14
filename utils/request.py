@@ -21,9 +21,9 @@ def _get_session(*args, **kwargs):
     return _session_cache[cache_key]
 
 
-def make_post_request(endpoint_uri, data, *args, **kwargs):
+def make_post_request(endpoint_uri, method, params, data, *args, **kwargs):
     kwargs.setdefault('timeout', 10)
-    session = _get_session(endpoint_uri)
+    session = _get_session(endpoint_uri, method, params, kwargs)
     response = session.post(endpoint_uri, data=data, *args, **kwargs)
     response.raise_for_status()
 
