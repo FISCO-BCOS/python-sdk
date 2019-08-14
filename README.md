@@ -40,7 +40,6 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 
 > 拉取源代码
 ```bash
-cd
 git clone https://github.com/FISCO-BCOS/python-sdk
 ```
 
@@ -60,34 +59,32 @@ source ~/.bashrc && pyenv activate python-sdk && pip install --upgrade pip
 
 在Windows运行Python SDK，需要按照以下步骤安装依赖软件并配置合约编译器：
 
-> 安装依赖软件
+**安装依赖软件**
 
 - 直接安装[Python-3.7.x](https://www.python.org/downloads/release/python-373/)和[git](https://git-scm.com/download/win)软件  
-python环境变量配置可参考[这里](https://jingyan.baidu.com/article/b0b63dbff271e24a4830708d.html)
+> python环境变量配置可参考[这里](https://jingyan.baidu.com/article/b0b63dbff271e24a4830708d.html)
 
-> 拉取源代码  
+- [Visual C++ 14.0库](https://visualstudio.microsoft.com/downloads)
+> (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
+
+- 下载Windows版本solc, 点击[这里](https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity-windows.zip)下载
+> solc编译器下载成功后，解压，将其中的 solc.exe 文件复制 ${python-sdk}\bin 目录下。若 python-sdk 路为 D:\\open-source\\python-sdk, 则 solc.exe 文件复制路径为D:\\open-source\\python-sdk\\bin\\solc.exe 
+
+**拉取源代码**
 
 打开 git，在任意目录执行如下命令
 ```bash
 git clone https://github.com/FISCO-BCOS/python-sdk
 ```
 
-> 下载Windows版本solc, 点击[这里](https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity-windows.zip)下载
-
-- solc编译器下载成功后，解压，将其中的 solc.exe 文件复制 ${python-sdk}\bin 目录下。若 python-sdk 路为 D:\open-source\python-sdk, 则 solc.exe 文件复制路径为D:\open-source\python-sdk\bin\solc.exe 
-
+**配置solc编译器路径**
 ```bash
 # 修改client_config.py.template: 
-# 配置solc编译器路径，若solc存放路径为D:\\open-source\\python-sdk\\bin\\solc\\solc.exe，则solc_path配置如下：
-solc_path = "D:\\open-source\\python-sdk\\bin\\solc\\solc.exe"
+# 配置solc编译器路径，若solc存放路径为D:\\open-source\\python-sdk\\bin\\solc.exe，则solc_path配置如下：
+solc_path = "D:\\open-source\\python-sdk\\bin\\solc.exe"
 
 # 将client_config.py.template拷贝到client_config.py
 ```
-
-- [Visual C++ 14.0库](https://visualstudio.microsoft.com/downloads)
-
-> (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
-
 
 ### **安装Python SDK依赖**
 
@@ -120,9 +117,16 @@ npm install solc@v0.4.25
 
 > 若没有执行以上初始化步骤，需要将`contracts/`目录下的`sol`代码手动编译成`bin`和`abi`文件并放置于`contracts`目录，才可以部署和调用相应合约。合约编译可以使用[remix](https://remix.ethereum.org)
 
-### 修改 rpc 端口
 
-在节点目录下的 config.ini 文件中获取 jsonrpc_listen_port , 这里为 8545  
+## 配置Channel通信协议
+
+Python SDK支持使用[Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/protocol_description.html#channelmessage-v1)与FISCO BCOS节点通信，通过SSL加密通信保障SDK与节点通信的机密性。
+
+设SDK连接的节点部署在目录`~/fisco/nodes/127.0.0.1`目录下，则通过如下步骤使用Channel协议：
+
+**配置Channel信息**
+
+在节点目录下的 config.ini 文件中获取 channel_listen_port, 这里为20200  
 ```bash
 [rpc]
     listen_ip=0.0.0.0
@@ -130,8 +134,25 @@ npm install solc@v0.4.25
     jsonrpc_listen_port=8545
 ```
     
-修改 client_config.py 文件中 remote_rpcurl 为实际的IP:端口
-`remote_rpcurl = "http://127.0.0.1:8545"`
+切换到python-sdk目录，修改 client_config.py 文件中`channel_host`为实际的IP，`channel_port`为上步获取的`channel_listen_port`：
+
+```bash
+channel_host = "127.0.0.1"
+channel_port = 20200
+```
+
+**配置证书**
+```bash
+# 拷贝节点证书到SDK配置目录
+cp ~/fisco/nodes/127.0.0.1/sdk/* bin/
+```
+
+**使用Channel协议访问节点**
+
+```bash
+# 获取FISCO BCOS节点版本号
+./console.py getNodeVersion
+```
 
 ## SDK使用示例
 
