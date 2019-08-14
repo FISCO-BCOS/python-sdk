@@ -54,6 +54,7 @@ class ChannelHandler(threading.Thread):
         self.blockNumber = 0
         self.onResponsePrefix = "onResponse"
         self.getResultPrefix = "getResult"
+        self.lock = threading.RLock()
 
     def initTLSContext(self, ca_file, node_crt_file, node_key_file,
                        protocol=ssl.PROTOCOL_TLSv1_2,
@@ -103,7 +104,9 @@ class ChannelHandler(threading.Thread):
                     emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                                responsepack.seq, responsepack.type)
                     if emitter_str in self.requests:
+                        self.lock.acquire()
                         self.callbackEmitter.emit(emitter_str, responsepack)
+                        self.lock.release()
                 except Empty:
                     time.sleep(0.001)
         except Exception as e:
@@ -169,7 +172,9 @@ class ChannelHandler(threading.Thread):
         onresponse_emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                               seq, response_type)
         # register onResponse emitter
+        self.lock.acquire()
         self.callbackEmitter.on(onresponse_emitter_str, self.onResponse)
+        self.lock.release()
         self.requests.append(onresponse_emitter_str)
 
         emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
@@ -180,8 +185,10 @@ class ChannelHandler(threading.Thread):
             resolve promise
             """
             # register getResult emitter
+            self.lock.acquire()
             self.callbackEmitter.on(emitter_str, (lambda result, is_error: resolve(
                 result) if is_error is False else reject(result)))
+            self.lock.release()
         p = Promise(resolve_promise)
         return p.get()
 
