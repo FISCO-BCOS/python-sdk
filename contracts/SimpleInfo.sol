@@ -45,7 +45,7 @@ contract SimpleInfo{
 		addr = a;
 		emit on_set(0,n,b,a,"info set");
 		emit on_change(0,n,b,a,"info set");
-		return -1;
+		return 0;
     }
 	function add(uint256 b) public returns(uint256){
 		balance = balance +b;
