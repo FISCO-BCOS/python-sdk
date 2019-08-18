@@ -36,24 +36,8 @@ text_to_bytes = text_if_str(to_bytes)
 
 
 # watch for updates to signature format
-class SignableMessage(NamedTuple):
-    """
-    These are the components of an EIP-191_ signable message. Other message formats
-    can be encoded into this format for easy signing. This data structure doesn't need to
-    know about the original message format.
-
-    In typical usage, you should never need to create these by hand. Instead, use
-    one of the available encode_* methods in this module, like:
-
-        - :meth:`encode_structured_data`
-        - :meth:`encode_intended_validator`
-        - :meth:`encode_structured_data`
-
-    .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
-    """
-    version: HexBytes  # must be length 1
-    header: HexBytes  # aka "version specific data"
-    body: HexBytes  # aka "data to sign"
+SignableMessage = NamedTuple('SignableMessage', [(
+    'version', HexBytes), ('header', HexBytes), ('body', HexBytes)])
 
 
 def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
@@ -101,8 +85,9 @@ def encode_intended_validator(
     """
     if not is_valid_address(validator_address):
         raise ValidationError(
-            f"Cannot encode message with 'Validator Address': {validator_address}. "
+            "Cannot encode message with 'Validator Address': {}. "
             "It must be a checksum address, or an address converted to bytes."
+            .format(validator_address)
         )
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     return SignableMessage(

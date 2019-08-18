@@ -1,6 +1,3 @@
-parsimonious
-
-Crypto
 attrdict
 bumpversion<1,>=0.5.3
 configobj
@@ -12,3 +9,8 @@ requests
 toolz
 
 hypothesis>=3.6.1
+argcomplete
+py-solc
+pymitter
+asyncio
+promise

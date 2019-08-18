@@ -53,6 +53,7 @@ class PredicateMapping(Copyable):
     when their corresponding predicate matches a given input.  Predicates can
     also be labeled to facilitate removal from the mapping.
     """
+
     def __init__(self, name):
         self._name = name
         self._values = {}
@@ -96,12 +97,13 @@ class PredicateMapping(Copyable):
         if len(results) > 1:
             predicate_reprs = ', '.join(map(repr, predicates))
             raise MultipleEntriesFound(
-                f"Multiple matching entries for '{type_str}' in {self._name}: "
-                f"{predicate_reprs}. This occurs when two registrations match the "
+                "Multiple matching entries for '{}' in {}: "
+                "{}. This occurs when two registrations match the "
                 "same type string. You may need to delete one of the "
                 "registrations or modify its matching behavior to ensure it "
                 "doesn't collide with other registrations. See the \"Registry\" "
-                "documentation for more information."
+                "documentation for more information.".format(type_str,
+                                                             self._name, predicate_reprs)
             )
 
         return values[0]
@@ -189,9 +191,8 @@ class Predicate:
 
     def __eq__(self, other):
         return (
-            type(self) is type(other) and
-            tuple(self) == tuple(other)
-        )
+            type(self) is type(other)
+            and tuple(self) == tuple(other))
 
 
 class Equals(Predicate):
@@ -359,7 +360,7 @@ class ABIRegistry(Copyable, BaseRegistry):
         return coder
 
     @_clear_encoder_cache
-    def register_encoder(self, lookup: Lookup, encoder: Encoder, label: str=None) -> None:
+    def register_encoder(self, lookup: Lookup, encoder: Encoder, label: str = None) -> None:
         """
         Registers the given ``encoder`` under the given ``lookup``.  A unique
         string label may be optionally provided that can be used to refer to
@@ -380,7 +381,7 @@ class ABIRegistry(Copyable, BaseRegistry):
         self._unregister(self._encoders, lookup_or_label)
 
     @_clear_decoder_cache
-    def register_decoder(self, lookup: Lookup, decoder: Decoder, label: str=None) -> None:
+    def register_decoder(self, lookup: Lookup, decoder: Decoder, label: str = None) -> None:
         """
         Registers the given ``decoder`` under the given ``lookup``.  A unique
         string label may be optionally provided that can be used to refer to
@@ -400,7 +401,8 @@ class ABIRegistry(Copyable, BaseRegistry):
         """
         self._unregister(self._decoders, lookup_or_label)
 
-    def register(self, lookup: Lookup, encoder: Encoder, decoder: Decoder, label: str=None) -> None:
+    def register(self, lookup: Lookup, encoder: Encoder, decoder: Decoder,
+                 label: str = None) -> None:
         """
         Registers the given ``encoder`` and ``decoder`` under the given
         ``lookup``.  A unique string label may be optionally provided that can

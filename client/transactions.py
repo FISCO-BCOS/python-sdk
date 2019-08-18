@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import itertools
 
 from cytoolz import (
@@ -7,9 +9,6 @@ from cytoolz import (
     merge,
     partial,
     pipe,
-)
-from eth_rlp import (
-    HashableRLP,
 )
 from eth_rlp.HashableRLP import (
     HashableRLP
