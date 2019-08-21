@@ -80,7 +80,7 @@ class TransactionCommon(bcosclient.BcosClient):
                 if contract_bin is not None and len(contract_bin) > 0x40000:
                     raise BcosException(("contract bin size overflow,"
                                          " limit: 0x40000(256K), size: {})")
-                                        .format(int(len(contract_bin), 16)))
+                                        .format(len(contract_bin), 16))
             receipt = super().sendRawTransactionGetReceipt(self.contract_addr,
                                                            contract_abi, fn_name,
                                                            args, contract_bin, gasPrice)
