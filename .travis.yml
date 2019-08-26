@@ -3,6 +3,14 @@ git:
     depth: 5
 matrix:
   include:
+    - name: "Scan code with cobra"
+      python: 3.6
+      dist: xenial
+      before_cache:
+      cache:
+      before_install:
+      script: |
+        bash ci/code_security_audit.sh
     - name: "Python 3.7.1 on Xenial Linux"
       python: 3.7           # this works for Linux but is ignored on macOS or Windows
       dist: xenial          # required for Python >= 3.7
