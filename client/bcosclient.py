@@ -98,6 +98,11 @@ class BcosClient:
                 self.rpc.logger = self.logger
 
             if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
+                if os.path.exists(client_config.channel_node_cert) is False:
+                    raise BcosException("{} not found!".format(client_config.channel_node_cert))
+                if os.path.exists(client_config.channel_node_key) is False:
+                    raise BcosException("{} not found!".format(client_config.channel_node_key))
+
                 self.channel_handler = ChannelHandler()
                 self.channel_handler.logger = self.logger
                 self.channel_handler.initTLSContext(client_config.channel_ca,
