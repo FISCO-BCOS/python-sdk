@@ -43,14 +43,19 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 git clone https://github.com/FISCO-BCOS/python-sdk
 ```
 
-> 配置环境
+> 配置环境(安装pyenv和python，若python版本>=3.6.3可跳过本步)
 ```bash
+# 获取python版本
+python --version
+
+## --------若python版本小于3.6.3，执行下面流程--------------------------------------
 # 判断python版本，并为不符合条件的python环境安装python 3.7.3的虚拟环境，命名为python-sdk
 # 若python环境符合要求，可以跳过此步
 # 若脚本执行出错，请检查是否参考[依赖软件]说明安装了依赖
 # 提示：安装python-3.7.3可能耗时比较久
 cd python-sdk && bash init_env.sh -p
 
+## --------若通过bash init_env.sh -p安装了python-sdk虚拟环境，执行下面流程-------------
 # 激活python-sdk虚拟环境
 source ~/.bashrc && pyenv activate python-sdk && pip install --upgrade pip
 ```
