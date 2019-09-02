@@ -3,7 +3,7 @@
 set -e
 
 scan_code_script="python ~/cobra/cobra.py -t "
-ignore_files=(.ci)
+ignore_files=(.ci README.md)
 
 LOG_ERROR() {
     content=${1}
