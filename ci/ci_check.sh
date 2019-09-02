@@ -46,6 +46,8 @@ function build_blockchain()
   ./build_chain.sh -l "127.0.0.1:4"
   # copy certificate
   execute_cmd "cp nodes/127.0.0.1/sdk/* bin/"
+  execute_cmd "cp bin/node.crt bin/sdk.crt"
+  execute_cmd "cp bin/node.key bin/sdk.key"
 }
 
 # start the nodes
