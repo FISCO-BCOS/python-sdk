@@ -190,7 +190,7 @@ class ChannelHandler(threading.Thread):
                 result) if is_error is False else reject(result)))
             self.lock.release()
         p = Promise(resolve_promise)
-        return p.get()
+        return p.get(60)
 
     def setBlockNumber(self, blockNumber):
         """
