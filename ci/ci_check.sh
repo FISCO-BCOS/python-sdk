@@ -127,13 +127,8 @@ function test_contract()
         LOG_ERROR "sendtx failed to set HelloWorld failed!"
     fi
     # deploy TableTest
-<<<<<<< HEAD
-    execute_cmd "python console.py TableTest"
-    execute_cmd "python console.py ParallelOk"
-=======
     execute_cmd "python console.py deploy TableTest"
     execute_cmd "python console.py deploy ParallelOk"
->>>>>>> a5dba5d54c42a53e602265a6cd7087583a376d33
     LOG_INFO "## test contract finished..."
 }
 
