@@ -166,9 +166,14 @@ class BcosClient:
             stat.debug("commonrequest:{}:{}".format(cmd, memo))
             return response["result"]
         except Exception as e:
-            raise BcosError(-1, None, ("{} failed,"
-                                       " params: {}, response: {}, error information: {}").
-                            format(cmd, params, response, e))
+            # timeout exception
+            if "Timeout" in str(e):
+                raise BcosException(("{} timeout for without response after 60s, "
+                                     "please check the status of the node").format(cmd))
+            else:
+                raise BcosError(-1, None, ("{} failed,"
+                                           " params: {}, response: {}, error information: {}").
+                                format(cmd, params, response, e))
 
     def getNodeVersion(self):
         """
@@ -321,7 +326,8 @@ class BcosClient:
     def getPendingTxSize(self):
         cmd = "getPendingTxSize"
         params = [self.groupid]
-        return self.common_request(cmd, params)
+        tx_size = self.common_request(cmd, params)
+        return int(tx_size, 16)
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getcode
     def getCode(self, address):
