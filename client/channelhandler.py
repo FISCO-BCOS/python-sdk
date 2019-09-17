@@ -214,7 +214,8 @@ class ChannelHandler(threading.Thread):
 
             self.lock.release()
         p = Promise(resolve_promise)
-        return p.get()
+        # default timeout is 60s
+        return p.get(60)
 
     def setBlockNumber(self, blockNumber):
         """
