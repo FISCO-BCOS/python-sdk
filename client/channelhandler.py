@@ -281,6 +281,7 @@ class ChannelHandler(threading.Thread):
                     response_item["result"] = response
                 else:
                     response_item = response
+
                 self.callbackEmitter.emit(emitter_str, response_item, error_status)
                 self.logger.debug("response from server , seq: {}, type:{}".
                                   format(responsepack.seq, responsepack.type))
