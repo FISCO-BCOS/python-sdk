@@ -167,7 +167,8 @@ class BcosClient:
             return response["result"]
         except Exception as e:
             # timeout exception
-            if "Timeout" in str(e):
+            exception_str = str(e).lower()
+            if "timeout" in exception_str:
                 raise BcosException(("{} timeout for without response after 60s, "
                                      "please check the status of the node").format(cmd))
             else:
