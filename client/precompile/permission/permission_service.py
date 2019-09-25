@@ -50,9 +50,9 @@ class PermissionService:
         related api:
         function remove(string table_name, string addr) public returns(int256);
         """
-        fmt_accout_address = common.check_and_format_address(account_address)
+        common.check_and_format_address(account_address)
         fn_name = "remove"
-        fn_args = [table_name, fmt_accout_address]
+        fn_args = [table_name, account_address]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     @staticmethod
