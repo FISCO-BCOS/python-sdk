@@ -58,7 +58,7 @@ class CnsService:
         register cns contract: (name, version)->address
         precompile api: insert(string,string,string,string)
         """
-        formatted_addr = common.check_and_format_address(address)
+        common.check_and_format_address(address)
         version = re.sub(r"\s+", "", version)
         common.print_info("INFO", "CNS version (strip space): {}".format(version))
         # invalid version
@@ -70,7 +70,7 @@ class CnsService:
         # call insert function of CNS
         # function definition: insert(string,string,string,string)
         fn_name = "insert"
-        fn_args = [name, version, formatted_addr, json.dumps(abi)]
+        fn_args = [name, version, address, json.dumps(abi)]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     def query_cns_by_name(self, name):
