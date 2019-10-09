@@ -98,6 +98,11 @@ class BcosClient:
                 self.rpc.logger = self.logger
 
             if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
+                if os.path.exists(client_config.channel_node_cert) is False:
+                    raise BcosException("{} not found!".format(client_config.channel_node_cert))
+                if os.path.exists(client_config.channel_node_key) is False:
+                    raise BcosException("{} not found!".format(client_config.channel_node_key))
+
                 self.channel_handler = ChannelHandler()
                 self.channel_handler.logger = self.logger
                 self.channel_handler.initTLSContext(client_config.channel_ca,
@@ -163,7 +168,7 @@ class BcosClient:
         except Exception as e:
             # timeout exception
             exception_str = str(e).lower()
-            if exception_str.find("Timeout"):
+            if "timeout" in exception_str:
                 raise BcosException(("{} timeout for without response after 60s, "
                                      "please check the status of the node").format(cmd))
             else:

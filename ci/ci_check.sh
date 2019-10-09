@@ -46,6 +46,8 @@ function build_blockchain()
   ./build_chain.sh -l "127.0.0.1:4"
   # copy certificate
   execute_cmd "cp nodes/127.0.0.1/sdk/* bin/"
+  execute_cmd "cp bin/node.crt bin/sdk.crt"
+  execute_cmd "cp bin/node.key bin/sdk.key"
 }
 
 # start the nodes
@@ -125,8 +127,8 @@ function test_contract()
         LOG_ERROR "sendtx failed to set HelloWorld failed!"
     fi
     # deploy TableTest
-    execute_cmd "python console.py TableTest"
-    execute_cmd "python console.py ParallelOk"
+    execute_cmd "python console.py deploy TableTest"
+    execute_cmd "python console.py deploy ParallelOk"
     LOG_INFO "## test contract finished..."
 }
 
