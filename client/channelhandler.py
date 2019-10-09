@@ -214,6 +214,7 @@ class ChannelHandler(threading.Thread):
 
             self.lock.release()
         p = Promise(resolve_promise)
+        # default timeout is 60s
         return p.get(60)
 
     def setBlockNumber(self, blockNumber):
@@ -280,6 +281,7 @@ class ChannelHandler(threading.Thread):
                     response_item["result"] = response
                 else:
                     response_item = response
+
                 self.callbackEmitter.emit(emitter_str, response_item, error_status)
                 self.logger.debug("response from server , seq: {}, type:{}".
                                   format(responsepack.seq, responsepack.type))
