@@ -177,6 +177,19 @@ class ChannelHandler(threading.Thread):
         self.lock.release()
         self.requests.append(onresponse_emitter_str)
 
+        # register onResponse emitter of RPC
+        rpc_onresponse_emitter_str = None
+        rpc_result_emitter_str = None
+        if response_type is ChannelPack.TYPE_TX_COMMITTED:
+            rpc_onresponse_emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
+                                                                      seq, ChannelPack.TYPE_RPC)
+            self.requests.append(rpc_onresponse_emitter_str)
+            rpc_result_emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
+                                                                  seq, ChannelPack.TYPE_RPC)
+            self.lock.acquire()
+            self.callbackEmitter.on(rpc_onresponse_emitter_str, self.onResponse)
+            self.lock.release()
+
         emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
                                                    seq, response_type)
 
@@ -186,10 +199,22 @@ class ChannelHandler(threading.Thread):
             """
             # register getResult emitter
             self.lock.acquire()
-            self.callbackEmitter.on(emitter_str, (lambda result, is_error: resolve(
-                result) if is_error is False else reject(result)))
+            self.callbackEmitter.on(emitter_str, (lambda result, is_error: resolve(result)))
+
+            # 1. if send transaction failed, return the error message directly
+            #    and erase the registered 0x1002 emitter
+            # 2. if send transaction success, remove the registered 0x12 emitter
+            if rpc_result_emitter_str is not None:
+                self.callbackEmitter.on(
+                    rpc_result_emitter_str,
+                    (lambda result, is_error:
+                     resolve(result) and self.requests.remove(onresponse_emitter_str)
+                     if is_error is True else self.requests.remove(rpc_onresponse_emitter_str)
+                     if self.requests.count(rpc_onresponse_emitter_str) else None))
+
             self.lock.release()
         p = Promise(resolve_promise)
+        # default timeout is 60s
         return p.get(60)
 
     def setBlockNumber(self, blockNumber):
@@ -246,12 +271,18 @@ class ChannelHandler(threading.Thread):
                     responsepack.type == ChannelPack.TYPE_TX_COMMITTED:
                 response = FriendlyJsonSerde().json_decode(data)
                 response_item = None
-                if "result" not in response.keys():
+                error_status = False
+                if 'error' in response.keys():
+                    error_status = True
+                    response_item = dict()
+                    response_item["result"] = response
+                elif "result" not in response.keys():
                     response_item = dict()
                     response_item["result"] = response
                 else:
                     response_item = response
-                self.callbackEmitter.emit(emitter_str, response_item, False)
+
+                self.callbackEmitter.emit(emitter_str, response_item, error_status)
                 self.logger.debug("response from server , seq: {}, type:{}".
                                   format(responsepack.seq, responsepack.type))
             # block notify
