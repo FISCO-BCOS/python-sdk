@@ -5,7 +5,6 @@
 
 [![Build Status](https://travis-ci.org/FISCO-BCOS/python-sdk.svg?branch=master)](https://travis-ci.org/FISCO-BCOS/python-sdk)
 [![CodeFactor](https://www.codefactor.io/repository/github/fisco-bcos/python-sdk/badge)](https://www.codefactor.io/repository/github/fisco-bcos/python-sdk)
-![GitHub All Releases](https://img.shields.io/github/downloads/FISCO-BCOS/python-sdk/total.svg)
 [![GitHub license](https://img.shields.io/github/license/FISCO-BCOS/python-sdk.svg)](https://github.com/FISCO-BCOS/python-sdk/blob/master/LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/FISCO-BCOS/python-sdk.svg)](https://github.com/FISCO-BCOS/python-sdk/issues)
 --- 
