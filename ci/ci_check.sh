@@ -86,9 +86,16 @@ function test_common_rpcInterface()
 function test_contract()
 {
     LOG_INFO "## test contract..."
+    # deploy contract with params
+    local contract_addr=$(execute_cmd "python console.py deploy HelloWorldTest testCase | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    local ret=$(execute_cmd "python console.py call HelloWorldTest ${contract_addr} get |  grep testCase")
+    if [ "$ret" == "" ];then
+	LOG_ERROR "deploy contract HelloWorldTest with params failed, ret: ${ret}"
+    fi
+
     init_blockNumber=$(getBlockNumber)
     # deploy and get contract address
-    local contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
     updated_blockNumber=$(getBlockNumber)
     if [ $(($init_blockNumber + 1)) -ne $((updated_blockNumber)) ];then
         LOG_ERROR "deploy contract failed for blockNumber hasn't increased"

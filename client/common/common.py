@@ -76,6 +76,14 @@ def print_result(ret):
         print_info("    ", "{}".format(ret))
 
 
+def check_address_startwith_0x(address):
+    """
+    check the address: must be starts with 0x
+    """
+    if address.startswith("0x") is False:
+        raise ArgumentsError("invalid address {}, must be start with 0x".format(address))
+
+
 def check_and_format_address(address):
     """
     check address
@@ -216,7 +224,6 @@ def print_receipt_logs(logs):
             print("{}): log name: {} , data: {}".format(i, log['eventname'], log['eventdata']))
 
 
-
 def print_output_and_input(logs, output, txinput, contract_name, contract_path):
     """
     parse_output_from_abi
@@ -242,7 +249,7 @@ def print_output_and_input(logs, output, txinput, contract_name, contract_path):
         print_info("output result", output_result)
         log_result = dataParser.parse_event_logs(logs)
         print_receipt_logs(log_result)
-        #print_info("log result", log_result)
+        # print_info("log result", log_result)
 
     except Exception as e:
         raise BcosException("parse output failed for reason: {}".format(e))

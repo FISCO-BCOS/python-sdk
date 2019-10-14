@@ -179,10 +179,7 @@ def usage(client_config):
 
     usagemsg.append('''checkaddr [address]
         将普通地址转为自校验地址,自校验地址使用时不容易出错
-        change address to checksum address according EIP55:
-        to_checksum_address: 0xf2c07c98a6829ae61f3cb40c69f6b2f035dd63fc
-        -> 0xF2c07c98a6829aE61F3cB40c69f6b2f035dD63FC
-        ''')
+        change address to checksum address according EIP55''')
     return usagemsg
 
 
@@ -410,15 +407,20 @@ def main(argv):
         # --------------------------------------------------------------------------------------------
         if cmd == "deploy":
             '''deploy abi bin file'''
-            if len(inputparams) > 2:
-                raise ArgumentsError(("deploy failed, expected at most 2 params,"
-                                      " provided: {}").format(len(inputparams)))
-            # must be at most 2 params
-            common.check_param_num(inputparams, 1, False)
+            # must be at least 2 params
+            common.check_param_num(inputparams, 1)
             contractname = inputparams[0].strip()
             gasPrice = 30000000
+            # need save address whether or not
+            needSaveAddress = False
+            args_len = len(inputparams)
+            if inputparams[-1] == "save":
+                needSaveAddress = True
+                args_len = len(inputparams) - 1
+            # get the args
+            fn_args = inputparams[1:args_len]
             trans_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
-            result = trans_client.send_transaction_getReceipt(None, None, gasPrice, True)[0]
+            result = trans_client.send_transaction_getReceipt(None, fn_args, gasPrice, True)[0]
 
             print("deploy result  for [{}] is:\n {}".format(
                 contractname, json.dumps(result, indent=4)))
@@ -427,10 +429,9 @@ def main(argv):
             blocknum = int(result["blockNumber"], 16)
             ContractNote.save_contract_address(name, address)
             print("on block : {},address: {} ".format(blocknum, address))
-            if len(inputparams) == 2:
-                if inputparams[1] == "save":
-                    ContractNote.save_address(name, address, blocknum)
-                    print("address save to file: ", client_config.contract_info_file)
+            if needSaveAddress is True:
+                ContractNote.save_address(name, address, blocknum)
+                print("address save to file: ", client_config.contract_info_file)
             else:
                 print(
                     '''\nNOTE : if want to save new address as last
