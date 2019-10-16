@@ -32,6 +32,7 @@ from client import clientlogger
 from utils.contracts import get_function_info
 from utils.abi import itertools, get_fn_abi_types_single
 from eth_abi import decode_single
+from utils.contracts import get_aligned_function_data
 
 
 class BcosClient:
@@ -435,10 +436,17 @@ class BcosClient:
         if to_address != "":
             common.check_and_format_address(to_address)
         # 第三个参数是方法的abi，可以传入None，encode_transaction_data做了修改，支持通过方法+参数在整个abi里找到对应的方法abi来编码
+
         if bin_data is None:
             functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
-        else:
+        # the args is None
+        elif args is None:
             functiondata = bin_data
+        # deploy with params
+        else:
+            fn_data = get_aligned_function_data(contract_abi, None, args)
+            functiondata = bin_data + fn_data[2:]
+
         if to_address is not None and len(to_address) > 0:
             from eth_utils import to_checksum_address
             to_address = to_checksum_address(to_address)

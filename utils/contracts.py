@@ -45,6 +45,7 @@ from utils.normalizers import (
 from utils.exceptions import (
     ValidationError,
 )
+from utils.abi import get_constructor_abi
 
 
 def find_matching_event_abi(abi, event_name=None, argument_names=None):
@@ -123,7 +124,7 @@ def find_matching_fn_abi(abi, fn_identifier=None, args=None, kwargs=None):
         raise ValidationError(message)
 
 
-def encode_abi( abi, arguments, data=None):
+def encode_abi(abi, arguments, data=None):
     argument_types = get_abi_input_types(abi)
 
     if not check_if_arguments_can_be_encoded(abi, arguments, {}):
@@ -212,6 +213,16 @@ def encode_transaction_data(
         raise TypeError("Unsupported function identifier")
 
     return add_0x_prefix(encode_abi(fn_abi, fn_arguments, fn_selector))
+
+
+def get_aligned_function_data(contract_abi=None, fn_abi=None, args=None, kwargs=None):
+    if fn_abi is None:
+        fn_abi = get_constructor_abi(contract_abi)
+    if kwargs is None:
+        kwargs = {}
+    fn_arguments = merge_args_and_kwargs(fn_abi, args, kwargs)
+    _, aligned_fn_arguments = get_aligned_abi_inputs(fn_abi, fn_arguments)
+    return add_0x_prefix(encode_abi(fn_abi, fn_arguments, ""))
 
 
 def get_fallback_function_info(contract_abi=None, fn_abi=None):
