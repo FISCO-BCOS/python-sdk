@@ -87,6 +87,9 @@ class RPCConsole:
                                             "getTransactionByBlockHashAndIndex",
                                             "getTransactionByBlockNumberAndIndex"]
         RPCConsole.functions["parse_out"] = ["getTransactionReceipt"]
+        RPCConsole.functions["human_friendly_output"] = ["getTotalTransactionCount",
+                                                         "getPendingTxSize",
+                                                         "getPbftView"]
 
     @staticmethod
     def get_all_cmd():
@@ -215,6 +218,17 @@ class RPCConsole:
             return
         self.parse_output(cmd, params[2], result)
 
+    def convertHexToOct(self, cmd, json_str):
+        if cmd == "getTotalTransactionCount":
+            json_str["blockNumber"] = int(json_str["blockNumber"], 16)
+            json_str["failedTxSum"] = int(json_str["failedTxSum"], 16)
+            json_str["txSum"] = int(json_str["txSum"], 16)
+        elif cmd == "getPendingTxSize" or cmd == "getPbftView":
+            if isinstance(json_str, int):
+                return json_str
+            json_str = int(json_str, 16)
+        return json_str
+
     def exec_command(self, cmd, params):
         """
         exec_command
@@ -224,6 +238,8 @@ class RPCConsole:
         # execute function
         ret_json = eval(function_name)(*params)
         common.print_info("INFO", self.cmd)
+        if cmd in RPCConsole.functions["human_friendly_output"]:
+            ret_json = self.convertHexToOct(cmd, ret_json)
         common.print_result(ret_json)
         return ret_json
 
