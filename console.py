@@ -43,16 +43,25 @@ import argcomplete
 def default_abi_file(contractname):
     abi_file = contractname
     if not abi_file.endswith(".abi"):  # default from contracts/xxxx.abi,if only input a name
-        abi_file = contracts_dir + "/" + contractname + ".abi"
+        #For portable
+        #Modified by Bodhi Wang
+        #2019.11.26
+        #abi_file = contracts_dir + "/" + contractname + ".abi"
+        abi_file = os.path.join(contracts_dir,contractname + ".abi")
     return abi_file
 
 
 def fill_params(params, paramsname):
+    #modified by Bodhi Wang
+    #2019.11.26
+    """
     index = 0
     result = dict()
     for name in paramsname:
         result[name] = params[index]
         index += 1
+    """
+    result = dict(zip(paramsname, params))
     return result
 
 
@@ -62,11 +71,19 @@ def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
     if parser is None and len(contractname) > 0:
         parser = DatatypeParser(default_abi_file(contractname))
     logresult = parser.parse_event_logs(receipt["logs"])
+    # modified by Bodhi Wang
+    # 2019.11.26
+    """
     i = 0
     for log in logresult:
         if 'eventname' in log:
             i = i + 1
             print("{}): log name: {} , data: {}".format(i, log['eventname'], log['eventdata']))
+    """
+    for i,log in enumerate([result for result in logresult if 'eventname' in result]):
+        print("{}): log name: {} , data: {}".format(i, log['eventname'], log['eventdata']))
+        
+    
     txhash = receipt["transactionHash"]
     txresponse = client.getTransactionByHash(txhash)
     inputdetail = print_parse_transaction(txresponse, "", parser)
@@ -213,14 +230,20 @@ def list_contracts():
     """
     list all contractname for call
     """
-    return list_api(contracts_dir + "/*.sol")
+    #modified by Bodhi Wang
+    #2019.11.26
+    #return list_api(contracts_dir + "/*.sol")
+    return list_api(os.path.join(contracts_dir, "*.sol"))
 
 
 def list_accounts():
     """
     list all accounts
     """
-    return list_api("bin/accounts/*.keystore")
+    #modified by Bodhi Wang
+    #2019.11.26
+    #return list_api("bin/accounts/*.keystore")
+    return list_api(os.path.join("bin","accounts","*.keystore"))
 
 
 # get supported command
@@ -329,7 +352,10 @@ def main(argv):
             common.check_param_num(inputparams, 2, True)
             name = inputparams[0]
             password = inputparams[1]
-            keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+            # Modified by Bodhi Wang
+            # 2019.11.26
+            #keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+            keyfile = os.path.join(client_config.account_keyfile_path, name+".keystore")
             # the account doesn't exists
             if os.path.exists(keyfile) is False:
                 raise BcosException("account {} doesn't exists".format(name))
