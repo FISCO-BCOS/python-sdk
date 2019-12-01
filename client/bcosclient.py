@@ -175,7 +175,7 @@ class BcosClient:
             else:
                 raise BcosError(-1, None, ("{} failed,"
                                            " params: {}, response: {}, error information: {}").
-                                format(cmd, params, response, e))
+                                format(cmd, params, json.dumps(response), e))
 
     def getNodeVersion(self):
         """
