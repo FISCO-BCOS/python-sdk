@@ -30,6 +30,7 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 ### 依赖软件
 
 - **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget git`
+- **Alpine**: `apk add --no-cache gcc g++ python python-dev py-pip mysql-dev linux-headers libffi-dev openssl-dev `
 - **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget git`
 - **MacOs**: `brew install wget npm git`
 
@@ -137,7 +138,7 @@ Python SDK支持使用[Channel协议](https://fisco-bcos-documentation.readthedo
     channel_listen_port=20200
     jsonrpc_listen_port=8545
 ```
-    
+
 切换到python-sdk目录，修改 client_config.py 文件中`channel_host`为实际的IP，`channel_port`为上步获取的`channel_listen_port`：
 
 ```bash
