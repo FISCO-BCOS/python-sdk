@@ -17,6 +17,7 @@ RUN apt-get update && \
     mkdir /root/.pip && \
     touch /root/.pip/pip.conf && \
     echo -e """[global] \nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple \n[install] \ntrusted-host=mirrors.aliyun.com""" > /root/.pip/pip.conf && \
+    pip install -r requirements.txt && \
     bash init_env.sh -i
 
-EXPOSE 20200 
+EXPOSE 20200
