@@ -9,3 +9,5 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
     sh init_env.sh -i
 
 EXPOSE 20200
+
+CMD ["sh"]
