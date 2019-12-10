@@ -1,6 +1,6 @@
 FROM python:3.7-alpine
 
-LABEL maintainer 99kies 1290017556@qq.com https://github.com/99kies
+LABEL 99kies 1290017556@qq.com https://github.com/99kies
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
     apk update && \
