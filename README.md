@@ -30,7 +30,7 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 ### 依赖软件
 
 - **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget git`
-- **Alpine**: `apk add --no-cache gcc g++ python python-dev py-pip mysql-dev linux-headers libffi-dev openssl-dev git wget`
+- **Alpine**: `apk add --no-cache gcc g++ python python-dev py-pip mysql-dev linux-headers libffi-dev openssl-dev git wget bash`
 - **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget git`
 - **MacOs**: `brew install wget npm git`
 
