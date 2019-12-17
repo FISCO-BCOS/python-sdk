@@ -218,7 +218,7 @@ class RPCConsole:
             return
         self.parse_output(cmd, params[2], result)
 
-    def convertHexToOct(self, cmd, json_str):
+    def convertHexToDec(self, cmd, json_str):
         if cmd == "getTotalTransactionCount":
             json_str["blockNumber"] = int(json_str["blockNumber"], 16)
             json_str["failedTxSum"] = int(json_str["failedTxSum"], 16)
@@ -239,7 +239,7 @@ class RPCConsole:
         ret_json = eval(function_name)(*params)
         common.print_info("INFO", self.cmd)
         if cmd in RPCConsole.functions["human_friendly_output"]:
-            ret_json = self.convertHexToOct(cmd, ret_json)
+            ret_json = self.convertHexToDec(cmd, ret_json)
         common.print_result(ret_json)
         return ret_json
 
