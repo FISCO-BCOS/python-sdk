@@ -32,3 +32,4 @@ def keccak(
     if CRYPTO_TYPE ==CRYPTO_TYPE_GM:
         return gmhash(primitive,hexstr,text)
     return keccak_256(to_bytes(primitive, hexstr, text))
+

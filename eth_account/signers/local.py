@@ -31,6 +31,7 @@ class LocalAccount(BaseAccount):
         :param ~eth_account.account.Account account: the key-unaware management API
         """
         self._publicapi = account
+
         self._address = key.public_key.to_checksum_address()
 
         key_raw = key.to_bytes()
