@@ -14,9 +14,9 @@
 import os
 import sys
 import platform
-
+from client_config import  client_config
 platsys = platform.system()
-solc_bin = "bin/solc/solc"
+solc_bin = client_config.solc_path
 solc_option = "--abi --bin --overwrite"
 solc_default_output = "./contracts"
 
