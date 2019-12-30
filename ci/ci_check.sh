@@ -46,6 +46,8 @@ function build_blockchain()
   ./build_chain.sh -l "127.0.0.1:4"
   # copy certificate
   execute_cmd "cp nodes/127.0.0.1/sdk/* bin/"
+  execute_cmd "cp bin/node.crt bin/sdk.crt"
+  execute_cmd "cp bin/node.key bin/sdk.key"
 }
 
 # start the nodes
@@ -84,9 +86,16 @@ function test_common_rpcInterface()
 function test_contract()
 {
     LOG_INFO "## test contract..."
+    # deploy contract with params
+    local contract_addr=$(execute_cmd "python console.py deploy HelloWorldTest testCase | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    local ret=$(execute_cmd "python console.py call HelloWorldTest ${contract_addr} get |  grep testCase")
+    if [ "$ret" == "" ];then
+	LOG_ERROR "deploy contract HelloWorldTest with params failed, ret: ${ret}"
+    fi
+
     init_blockNumber=$(getBlockNumber)
     # deploy and get contract address
-    local contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
     updated_blockNumber=$(getBlockNumber)
     if [ $(($init_blockNumber + 1)) -ne $((updated_blockNumber)) ];then
         LOG_ERROR "deploy contract failed for blockNumber hasn't increased"
@@ -125,8 +134,8 @@ function test_contract()
         LOG_ERROR "sendtx failed to set HelloWorld failed!"
     fi
     # deploy TableTest
-    execute_cmd "python console.py TableTest"
-    execute_cmd "python console.py ParallelOk"
+    execute_cmd "python console.py deploy TableTest"
+    execute_cmd "python console.py deploy ParallelOk"
     LOG_INFO "## test contract finished..."
 }
 
