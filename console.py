@@ -15,6 +15,7 @@
 import argparse
 import sys
 import glob
+from client.gm_account import GM_Account
 from client.stattool import StatTool
 from client_config import client_config
 from eth_account.account import (
@@ -22,6 +23,7 @@ from eth_account.account import (
 )
 from eth_utils.hexadecimal import encode_hex
 from client.contractnote import ContractNote
+from eth_utils.crypto import CRYPTO_TYPE_GM
 import json
 import os
 from client.datatype_parser import DatatypeParser
@@ -327,11 +329,17 @@ def main(argv):
         # try to callback rpc functions
         rpcConsole = RPCConsole(cmd, inputparams, contracts_dir)
         rpcConsole.executeRpcCommand()
-        if cmd == 'showaccount':
-            # must be 2 params
-            common.check_param_num(inputparams, 2, True)
-            name = inputparams[0]
-            password = inputparams[1]
+
+        def show_gm_account(name, password):
+            account = GM_Account()
+            keyfile = "{}/{}.json".format(client_config.account_keyfile_path, name)
+            account.load_from_file(keyfile,password)
+            print("load account from file: ",keyfile)
+            print(account.getdetail())
+
+
+        def show_ecdsa_account(name,password):
+
             keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
             # the account doesn't exists
             if os.path.exists(keyfile) is False:
@@ -354,16 +362,37 @@ def main(argv):
                 raise BcosException(("load account info for [{}] failed,"
                                      " error info: {}!").format(name, e))
 
-        if cmd == 'newaccount':
+
+        if cmd == 'showaccount':
+            # must be 2 params
             common.check_param_num(inputparams, 2, True)
             name = inputparams[0]
-            max_account_len = 240
-            if len(name) > max_account_len:
-                common.print_info("WARNING", "account name should no more than {}"
-                                  .format(max_account_len))
-                sys.exit(1)
             password = inputparams[1]
-            print("starting : {} {} ".format(name, password))
+            if client_config.crypto_type is CRYPTO_TYPE_GM:
+                show_gm_account(name,password)
+            else:
+                show_ecdsa_account(name,password)
+
+        def create_gm_account(name,password,forcewrite):
+            keyfile =   "{}/{}.json".format(client_config.account_keyfile_path, name)
+            if not os.path.exists(keyfile): #如果默认文件不存在，直接写
+                forcewrite = True
+            else:
+                if not  common.backup_file(keyfile): #如果备份失败，不要覆盖写
+                    forcewrite = False
+
+            account = GM_Account()
+            account.create()
+            if forcewrite:
+                account.save_to_file(keyfile,password)
+            print("account created:")
+            print(account.getdetail())
+            if forcewrite:
+                print("account save to :",keyfile)
+
+
+
+        def create_ecdsa_account(name,password,forcewrite):
             ac = Account.create(password)
             print("new address :\t", ac.address)
             print("new privkey :\t", encode_hex(ac.key))
@@ -376,14 +405,14 @@ def main(argv):
             keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
             print("save to file : [{}]".format(keyfile))
             forcewrite = False
-            if not os.access(keyfile, os.F_OK):
+            if not os.access(keyfile, os.F_OK): #默认的账号文件不存在，就强行存一个
                 forcewrite = True
             else:
                 # old file exist,move to backup file first
                 if(len(inputparams) == 3 and inputparams[2] == "save"):
                     forcewrite = True
                 else:
-                    forcewrite = common.backup_file(keyfile)
+                    forcewrite = common.backup_file(keyfile)#如果备份文件不成功，就不要覆盖写了
             if forcewrite:
                 with open(keyfile, "w") as dump_f:
                     json.dump(kf, dump_f)
@@ -405,21 +434,45 @@ def main(argv):
                 print("\n**** please remember your password !!! *****")
                 dump_f.close()
 
+
+        if cmd == 'newaccount':
+            common.check_param_num(inputparams, 2, False)
+            name = inputparams[0]
+            max_account_len = 240
+            if len(name) > max_account_len:
+                common.print_info("WARNING", "account name should no more than {}"
+                                  .format(max_account_len))
+                sys.exit(1)
+            password = inputparams[1]
+            forcewrite = False
+            if (len(inputparams) == 3 and inputparams[2] == "save"):
+                forcewrite = True
+            print("starting : {} {}  , if save:{}".format(name, password,forcewrite))
+
+            if client_config.crypto_type is CRYPTO_TYPE_GM:
+                create_gm_account(name,password,forcewrite)
+            else:
+                create_ecdsa_account(name,password,forcewrite)
         # --------------------------------------------------------------------------------------------
         # console cmd entity
         # --------------------------------------------------------------------------------------------
         if cmd == "deploy":
             '''deploy abi bin file'''
-            if len(inputparams) > 2:
-                raise ArgumentsError(("deploy failed, expected at most 2 params,"
-                                      " provided: {}").format(len(inputparams)))
-            # must be at most 2 params
-            common.check_param_num(inputparams, 1, False)
+            # must be at least 2 params
+            common.check_param_num(inputparams, 1)
             contractname = inputparams[0].strip()
             gasPrice = 30000000
-            trans_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
-            result = trans_client.send_transaction_getReceipt(None, None, gasPrice, True)[0]
-
+            # need save address whether or not
+            needSaveAddress = False
+            args_len = len(inputparams)
+            if inputparams[-1] == "save":
+                needSaveAddress = True
+                args_len = len(inputparams) - 1
+            # get the args
+            fn_args = inputparams[1:args_len]
+            tx_client = transaction_common.TransactionCommon("", contracts_dir, contractname)
+            result = tx_client.send_transaction_getReceipt(None, fn_args, gasPrice, True)[0]
+            print("INFO >> client info: {}".format(tx_client.getinfo()))
             print("deploy result  for [{}] is:\n {}".format(
                 contractname, json.dumps(result, indent=4)))
             name = contractname
@@ -427,10 +480,9 @@ def main(argv):
             blocknum = int(result["blockNumber"], 16)
             ContractNote.save_contract_address(name, address)
             print("on block : {},address: {} ".format(blocknum, address))
-            if len(inputparams) == 2:
-                if inputparams[1] == "save":
-                    ContractNote.save_address(name, address, blocknum)
-                    print("address save to file: ", client_config.contract_info_file)
+            if needSaveAddress is True:
+                ContractNote.save_address(name, address, blocknum)
+                print("address save to file: ", client_config.contract_info_file)
             else:
                 print(
                     '''\nNOTE : if want to save new address as last
@@ -454,6 +506,7 @@ def main(argv):
                 address, contracts_dir, contractname)
             fn_name = params["func"]
             fn_args = inputparams[3:]
+            print("INFO>> client info: {}".format(tx_client.getinfo()))
             print("INFO >> {} {} , address: {}, func: {}, args:{}"
                   .format(cmd, contractname, address, fn_name, fn_args))
             if cmd == "call":
@@ -516,6 +569,12 @@ def main(argv):
         common.print_error_msg(cmd, e)
     except BcosException as e:
         common.print_error_msg(cmd, e)
+    except Exception as e:
+        print("exception happened!")
+        import traceback
+        print(traceback.format_exc())
+        exit(-1)
+
 
 
 if __name__ == "__main__":

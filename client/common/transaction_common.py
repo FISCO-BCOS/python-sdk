@@ -22,6 +22,7 @@ import client.bcosclient as bcosclient
 from eth_utils import to_checksum_address
 from client.bcoserror import BcosError, CompileError, ArgumentsError, BcosException
 from client.common.transaction_exception import TransactionException
+from utils.abi import get_constructor_abi
 
 
 class TransactionCommon(bcosclient.BcosClient):
@@ -157,14 +158,22 @@ class TransactionCommon(bcosclient.BcosClient):
         self.gen_contract_abi(needCover)
         data_parser = DatatypeParser(self.contract_abi_path)
         contract_abi = data_parser.contract_abi
+        args = None
         if fn_args is None:
             return (contract_abi, fn_args)
         if fn_name in data_parser.func_abi_map_by_name.keys() is None:
             raise BcosException("invalid function: {}, the right function list:"
                                 .format(fn_name,
                                         ''.join(data_parser.func_abi_map_by_name.keys())))
-        inputabi = data_parser.func_abi_map_by_name[fn_name]["inputs"]
-        args = TransactionCommon.format_args_by_abi(fn_args, inputabi)
+        if fn_name is not None:
+            inputabi = data_parser.func_abi_map_by_name[fn_name]["inputs"]
+            args = TransactionCommon.format_args_by_abi(fn_args, inputabi)
+        # the constructor with params
+        elif fn_args is not None and contract_abi is not None:
+            abidata = get_constructor_abi(contract_abi)
+            if abidata is not None:
+                inputabi = abidata["inputs"]
+                args = TransactionCommon.format_args_by_abi(fn_args, inputabi)
         return (contract_abi, args)
 
     def call_and_decode(self, fn_name, fn_args=None):

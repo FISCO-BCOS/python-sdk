@@ -61,10 +61,10 @@ class Compiler:
         """
         compile with solc
         """
-        print("INFO >> compile with solc compiler")
         # sol_file
         command = "{} --bin --abi {} -o {} --overwrite".format(
             Compiler.compiler_path, sol_file, output_path)
+        print("INFO >> compile with solc compiler : ",command)
         common.execute_cmd(command)
 
     @staticmethod

@@ -21,7 +21,7 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 支持合约编译，将`sol`合约编译成`abi`和`bin`文件。
 - 支持基于keystore的账户管理。
 - 支持合约历史查询。
-
+- 支持国密(SM2,SM3,SM4)
 ## 部署Python SDK
 
 ### 环境要求
@@ -147,10 +147,45 @@ channel_port = 20200
 ```
 
 **配置证书**
+
 ```bash
-# 拷贝节点证书到SDK配置目录
+# 若节点与python-sdk位于不同机器，请将节点sdk目录下所有相关文件拷贝到bin目录
+# 若节点与sdk位于相同机器，直接拷贝节点证书到SDK配置目录
 cp ~/fisco/nodes/127.0.0.1/sdk/* bin/
 ```
+
+**配置证书路径**
+
+  - `client_config.py`的`channel_node_cert`和`channel_node_key`选项分别用于配置SDK证书和私钥
+  - `release-2.1.0`版本开始，SDK证书和私钥更新为`sdk.crt`和`sdk.key`，配置证书路径前，请先检查上步拷贝的证书名和私钥名，并将`channel_node_cert`配置为SDK证书路径，将`channel_node_key`配置为SDK私钥路径
+
+检查从节点拷贝的sdk证书路径，若sdk证书和私钥路径分别为`bin/sdk.crt`和`bin/sdk.key`，则`client_config.py`中相关配置项如下：
+
+```bash
+channel_node_cert = "bin/sdk.crt"  # 采用channel协议时，需要设置sdk证书,如采用rpc协议通信，这里可以留空
+channel_node_key = "bin/sdk.key"   # 采用channel协议时，需要设置sdk私钥,如采用rpc协议通信，这里可以留空
+```
+
+若sdk证书和私钥路径分别为`bin/node.crt`和`bin/node.key`，则`client_config.py`中相关配置项如下:
+```bash
+channel_node_cert = "bin/node.crt"  # 采用channel协议时，需要设置sdk证书,如采用rpc协议通信，这里可以留空
+channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk私钥,如采用rpc协议通信，这里可以留空
+```
+
+**国密支持**
+ -  支持国密版本的非对称加密、签名验签(SM2), HASH算法(SM3),对称加解密(SM4)
+ -  国密版本在使用上和非国密版本基本一致，主要是配置差异。
+ -  国密版本sdk同一套代码可以连接国密和非国密的节点，需要根据不同的节点配置相应的IP端口和证书
+ -  因为当前版本的实现里，账户文件格式有差异，所以国密的账户文件和ECDSA的账户文件采用不同的配置
+
+连接国密节点时，有以下相关的配置项需要修改和确认，IP端口也需要确认是指向国密版本节点
+```bash
+crypto_type = "GM" 	#密码算法选择: 大小写不敏感："GM" 标识国密, "ECDSA" 或其他是椭圆曲线默认实现。
+gm_account_keyfile = "gm_account.json"  #国密账号的存储文件，可以加密存储,如果留空则不加载
+gm_account_password = "123456" 		#如果不设密码，置为None或""则不加密
+solc_path = "bin/solc/solc-gm" #合约编译器配置，请确认文件存在，有可执行权限，且为国密版本的编译器，如需下载，参见bin/solc/README.md
+```
+
 
 **使用Channel协议访问节点**
 
