@@ -65,10 +65,11 @@ def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
         parser = DatatypeParser(default_abi_file(contractname))
     logresult = parser.parse_event_logs(receipt["logs"])
     i = 0
+    print(json.dumps(logresult,indent=4))
     for log in logresult:
         if 'eventname' in log:
             i = i + 1
-            print("{}): log name: {} , data: {}".format(i, log['eventname'], log['eventdata']))
+            print("{}): log name: {} , data: {} , topic: {}".format(i, log['eventname'], log['eventdata'],log['topic']))
     txhash = receipt["transactionHash"]
     txresponse = client.getTransactionByHash(txhash)
     inputdetail = print_parse_transaction(txresponse, "", parser)
