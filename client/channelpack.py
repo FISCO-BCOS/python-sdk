@@ -57,7 +57,8 @@ class ChannelPack:
     @staticmethod
     def make_seq32():
         seq = uuid.uuid1()
-        seq32 = "".join(str(seq).split("-")).upper()
+        seq32 = seq.hex
+        #seq32 = "".join(str(seq).split("-")).upper()
         seq32bytes = bytes(seq32, encoding='utf-8')
         return seq32bytes
 

@@ -65,7 +65,7 @@ def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
         parser = DatatypeParser(default_abi_file(contractname))
     logresult = parser.parse_event_logs(receipt["logs"])
     i = 0
-    print(json.dumps(logresult,indent=4))
+    #print(json.dumps(logresult,indent=4))
     for log in logresult:
         if 'eventname' in log:
             i = i + 1
@@ -575,6 +575,8 @@ def main(argv):
         import traceback
         print(traceback.format_exc())
         exit(-1)
+
+
 
 
 

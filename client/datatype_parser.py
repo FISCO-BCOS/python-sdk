@@ -155,14 +155,20 @@ class DatatypeParser:
             v  =1
         return DatatypeParser.topic_from_int(v)
 
+
+    def topic_from_event_name(self,name):
+        abi = self.event_name_map[name]
+        v = event_abi_to_log_topic(abi)
+        return encode_hex(v)
+
     @staticmethod
-    def topic_from_event_name(abifile,name):
+    def topic_from_event_name_static(abifile,name):
         dp = DatatypeParser()
         dp.load_abi_file(abifile)
         abi = dp.event_name_map[name]
-        print(abi)
+#        print(abi)
         v = event_abi_to_log_topic(abi)
-        return encode_hex(v);
+        return encode_hex(v)
 
 
     @staticmethod

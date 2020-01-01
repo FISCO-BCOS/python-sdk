@@ -189,7 +189,7 @@ class BcosClient:
             if client_config.client_protocol == client_config.PROTOCOL_RPC:
                 response = self.rpc.make_request(cmd, params)
             if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
-                response = self.channel_handler.make_request(
+                response = self.channel_handler.make_channel_rpc_request(
                     cmd, params, ChannelPack.TYPE_RPC, packet_type)
             self.is_error_response(response)
             memo = "DONE"

@@ -44,6 +44,7 @@ class ChannelHandler(threading.Thread):
     logger = None
     recvThread = None
     sendThread = None
+    keepWorking = False
 
     def __init__(self, max_timeout=10, name="channelHandler"):
         self.timeout = max_timeout
@@ -63,6 +64,7 @@ class ChannelHandler(threading.Thread):
             context = ssl.SSLContext(protocol)
             context.check_hostname = False
             context.load_verify_locations(ca_file)
+
             context.load_cert_chain(node_crt_file, node_key_file)
             # print(context.get_ca_certs())
             context.set_ecdh_curve(self.ECDH_curve)
@@ -101,6 +103,7 @@ class ChannelHandler(threading.Thread):
                     if responsepack is None and self.keepWorking:
                         time.sleep(0.001)
                         continue
+                    print("response:",responsepack.data)
                     emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                                responsepack.seq, responsepack.type)
                     if emitter_str in self.requests:
@@ -162,12 +165,10 @@ class ChannelHandler(threading.Thread):
     errorMsg[101] = "sdk unreachable"
     errorMsg[102] = "timeout"
 
-    def make_request(self, method, params, packet_type=ChannelPack.TYPE_RPC,
-                     response_type=ChannelPack.TYPE_RPC):
-        rpc_data = self.encode_rpc_request(method, params)
-        self.logger.debug("request rpc_data : {}".format(rpc_data))
+    def make_channel_request(self,data, packet_type,
+                             response_type=None):
         seq = ChannelPack.make_seq32()
-        request_pack = ChannelPack(packet_type, seq, 0, rpc_data)
+        request_pack = ChannelPack(packet_type, seq, 0, data)
         self.send_pack(request_pack)
         onresponse_emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                               seq, response_type)
@@ -189,10 +190,8 @@ class ChannelHandler(threading.Thread):
             self.lock.acquire()
             self.callbackEmitter.on(rpc_onresponse_emitter_str, self.onResponse)
             self.lock.release()
-
         emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
                                                    seq, response_type)
-
         def resolve_promise(resolve, reject):
             """
             resolve promise
@@ -211,11 +210,18 @@ class ChannelHandler(threading.Thread):
                      resolve(result) and self.requests.remove(onresponse_emitter_str)
                      if is_error is True else self.requests.remove(rpc_onresponse_emitter_str)
                      if self.requests.count(rpc_onresponse_emitter_str) else None))
-
             self.lock.release()
         p = Promise(resolve_promise)
         # default timeout is 60s
         return p.get(60)
+
+    def make_channel_rpc_request(self, method, params, packet_type=ChannelPack.TYPE_RPC,
+                                 response_type=ChannelPack.TYPE_RPC):
+        rpc_data = self.encode_rpc_request(method, params)
+        self.logger.debug("request rpc_data : {}".format(rpc_data))
+        return self.make_channel_request(rpc_data,packet_type,response_type)
+
+
 
     def setBlockNumber(self, blockNumber):
         """
