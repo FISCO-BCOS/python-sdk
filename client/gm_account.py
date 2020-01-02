@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  terms of the MIT License as published by the Free Software Foundation. This project is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
+  authors and contributors of eth-abi, eth-account, eth-hash，eth-keys, eth-typing, eth-utils,
+  rlp, eth-rlp , hexbytes ... and relative projects
+  @author: kentzhang
+  @date: 2020-01
+'''
+
 #建立一个简单的国密账户类，只管理私钥，和转换到公钥，地址
 #可以保存为pem文件，或者从明文文件加载私钥，然后转换
 #不做签名，Account应该是签名的一个输入参数

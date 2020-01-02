@@ -29,7 +29,7 @@ from client.channelpack import ChannelPack
 from utils.encoding import FriendlyJsonSerde
 from client.bcoserror import BcosError, ChannelException
 from eth_utils import (to_text, to_bytes)
-
+from client.channel_push_dispatcher import ChannelPushDispatcher
 
 class ChannelHandler(threading.Thread):
     context = None
@@ -45,6 +45,7 @@ class ChannelHandler(threading.Thread):
     recvThread = None
     sendThread = None
     keepWorking = False
+    pushDispacher = ChannelPushDispatcher()
 
     def __init__(self, max_timeout=10, name="channelHandler"):
         self.timeout = max_timeout
@@ -92,6 +93,8 @@ class ChannelHandler(threading.Thread):
         if self.sendThread is not None:
             self.sendThread.finish()
             self.sendThread.join(timeout=2)
+        if self.pushDispacher is not None:
+            self.pushDispacher.finish()
 
     def run(self):
         try:
@@ -103,13 +106,18 @@ class ChannelHandler(threading.Thread):
                     if responsepack is None and self.keepWorking:
                         time.sleep(0.001)
                         continue
-                    print("response:",responsepack.data)
+                    #print("response {} , {}, {}".format(hex(responsepack.type),responsepack.seq,responsepack.data) )
                     emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                                responsepack.seq, responsepack.type)
                     if emitter_str in self.requests:
                         self.lock.acquire()
                         self.callbackEmitter.emit(emitter_str, responsepack)
                         self.lock.release()
+                    else:
+                        #并非客户端指定的等待接受的来自节点的包，可能是push来的消息，包括amop，event push等
+                        #独立接口处理
+                       # print("push  type ",hex(responsepack.type) )
+                        self.pushDispacher.push(responsepack)
                 except Empty:
                     time.sleep(0.001)
         except Exception as e:
@@ -132,6 +140,7 @@ class ChannelHandler(threading.Thread):
             self.recvThread.start()
             self.sendThread = ChannelSendThread(self)
             self.sendThread.start()
+            self.pushDispacher.start()
             super().start()
         except Exception as e:
             raise ChannelException(("start channelHandler Failed for {},"
@@ -181,12 +190,13 @@ class ChannelHandler(threading.Thread):
         # register onResponse emitter of RPC
         rpc_onresponse_emitter_str = None
         rpc_result_emitter_str = None
-        if response_type is ChannelPack.TYPE_TX_COMMITTED:
+        if response_type is ChannelPack.TYPE_TX_COMMITTED \
+            or response_type is ChannelPack.CLIENT_REGISTER_EVENT_LOG:
             rpc_onresponse_emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
-                                                                      seq, ChannelPack.TYPE_RPC)
+                                                                      seq, packet_type)
             self.requests.append(rpc_onresponse_emitter_str)
             rpc_result_emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
-                                                                  seq, ChannelPack.TYPE_RPC)
+                                                                  seq, packet_type)
             self.lock.acquire()
             self.callbackEmitter.on(rpc_onresponse_emitter_str, self.onResponse)
             self.lock.release()
@@ -299,6 +309,13 @@ class ChannelHandler(threading.Thread):
                 if self.blockNumber < number:
                     self.blockNumber = number
                 self.logger.debug("currentBlockNumber: {}".format(self.blockNumber))
+            elif responsepack.type == ChannelPack.CLIENT_REGISTER_EVENT_LOG:
+                self.logger.debug("receive event register result: seq: {} type:{}".
+                                  format(responsepack.seq, responsepack.type))
+                #print("receive event register result: seq: {} type:{}".format(responsepack.seq, responsepack.type))
+                self.callbackEmitter.emit(emitter_str, responsepack.data, 0)
+            elif responsepack.type == ChannelPack.EVENT_LOG_PUSH:
+                print("event log push:",responsepack.data)
         except Exception as e:
             self.logger.error("decode response failed, seq:{}, type:{}, error info: {}"
                               .format(responsepack.seq, responsepack.type, e))
@@ -359,6 +376,7 @@ class ChannelRecvThread(threading.Thread):
         # -1 means no enough bytes for decode, should break to  continue read and wait
         while code != -1:
             (code, decodelen, responsePack) = ChannelPack.unpack(bytes(self.respbuffer))
+            #print("respbuffer:",self.respbuffer)
             if decodelen > 0:
                 # cut the buffer from last decode  pos
                 self.respbuffer = self.respbuffer[decodelen:]

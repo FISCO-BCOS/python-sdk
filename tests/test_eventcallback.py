@@ -10,6 +10,24 @@ from eth_utils import encode_hex,decode_hex
 import uuid
 from eth_utils.crypto import  keccak
 import json
+import struct
+from utils.encoding import FriendlyJsonSerde
+from client.bcoserror import BcosError, ChannelException
+from eth_utils import (to_text, to_bytes)
+from client.channel_push_dispatcher import ChannelPushHandler
+from client.channelpack import ChannelPack
+class TestEventPushHandler(ChannelPushHandler):
+    parser = DatatypeParser()
+    def on_push(self,packmsg:ChannelPack):
+        print("EventPushHandler",packmsg.detail())
+        strmsg = packmsg.data.decode("utf-8")
+        response = json.loads( strmsg )
+        print("response filterID:",response['filterID'])
+        #print("response:", json.dumps(response,indent=4))
+        loglist = parser.parse_event_logs(response["logs"])
+        print(json.dumps(loglist,indent=4))
+
+
 # 从文件加载abi定义
 abi_file = "contracts/HelloEvent.abi"
 parser = data_parser = DatatypeParser(abi_file)
@@ -28,37 +46,6 @@ params_settwo_1 = ["settwo_aabb",10,'key1']
 params_settwo_2 = ["settwo_aabb",10,'key2']
 
 
-def format_event_register_request(from_block,to_block,addresses,topics,groupid = "1",filterid= None):
-    '''
-    {
-  "fromBlock": "latest",
-  "toBlock": "latest",
-  "addresses": [
-    0xca5ed56862869c25da0bdf186e634aac6c6361ee
-  ],
-  "topics": [
-    "0x91c95f04198617c60eaf2180fbca88fc192db379657df0e412a9f7dd4ebbe95d"
-  ],
-  "groupID": "1",
-  "filterID": "bb31e4ec086c48e18f21cb994e2e5967"
-}'''
-    request = dict()
-    request["fromBlock"] = from_block
-    request["toBlock"] = to_block
-    request["addresses"] = addresses
-    request["topics"] = topics
-    request["groupID"] = groupid
-    if filterid == None:
-        #generate an id in uuid
-        seq = uuid.uuid1()
-        #seq32 = "".join(str(seq).split("-")).upper()
-       # seq32bytes = bytes(seq32, encoding='utf-8')
-        #sha_seq =  keccak(bytes(seq32bytes))
-        filterid = seq.hex
-    request["filterID"] = filterid
-   # print(json.dumps(request,indent=4))
-    return request
-
 
 '''
     CHANNEL_RPC_REQUEST = 0x12,        // type for rpc request
@@ -75,16 +62,16 @@ def format_event_register_request(from_block,to_block,addresses,topics,groupid =
     BLOCK_NOTIFY = 0x1001,             // type for  block notify
     EVENT_LOG_PUSH = 0x1002            // type for event log push
 '''
-CLIENT_REGISTER_EVENT_LOG = 0x15 # type for event log filter register request and response
-REQUEST_TOPICCERT = 0x37 # type request verify
+
+
+
+from event_callback import (format_event_register_request,register_event_callback)
+
 
 def test_register_event():
-    topic = parser.topic_from_event_name("onset")
-    requestdata = format_event_register_request("lastest", "lastest", address, [topic])
-    print("register event: ",requestdata)
-    result =  client.channel_handler.make_channel_request(requestdata,CLIENT_REGISTER_EVENT_LOG,REQUEST_TOPICCERT)
-    print("after register:")
-    print(result)
+
+    register_event_callback("HelloEvent","on_address",None)
+
 
 def test_event():
     receipt = client.rpc_sendRawTransactionGetReceipt(address,contract_abi,"set",params_set)
@@ -101,8 +88,10 @@ def test_event():
 
 topic = parser.topic_from_event_name("onset")
 format_event_register_request("lastest","lastest",address,[topic])
-#test_event()
+#
 test_register_event()
+#test_event()
 import time
 time.sleep(5)
+print("test done")
 client.finish()
