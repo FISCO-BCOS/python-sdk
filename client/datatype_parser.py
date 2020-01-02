@@ -178,3 +178,15 @@ class DatatypeParser:
             value = value[2:]
         return '0x'+value.zfill(64)
 
+    @staticmethod
+    def topic_from_type(intype,v):
+        topic = None
+        if intype.startswith('int'):
+            topic = DatatypeParser.topic_from_int(v)
+        if intype == 'string':
+            topic = DatatypeParser.topic_from_string(v)
+        if intype == 'address':
+            topic = DatatypeParser.topic_from_address(v)
+        if intype == 'bool':
+            topic = DatatypeParser.topic_from_boolean(v)
+        return topic

@@ -34,10 +34,10 @@ from client.channelpack import ChannelPack
 
 
 def usage():
-    usagetext = "params: [contractname] [address(last)] [event_name] [indexed value]\n"
-    usagetext = usagetext+"eg: for contract sample [contracts/HelloEvent.sol], use:\n"
-    usagetext = usagetext+"python event_callback HelloEvent last on_set \n"
-    usagetext = usagetext+"python event_callback HelloEvent last on_number 5\n...(and other events)"
+    usagetext = "params: [contractname] [address(可以为last)] [event_name] [indexed value(根据event定义，可以为多个)]\n\n"
+    usagetext = usagetext+"\teg: for contract sample [contracts/HelloEvent.sol], use cmdline:\n\n"
+    usagetext = usagetext+"\tpython event_callback HelloEvent last on_set \n"
+    usagetext = usagetext+"\tpython event_callback HelloEvent last on_number 5\n\n...(and other events)"
     print(usagetext)
 
 
@@ -86,7 +86,7 @@ def register_event_callback(addresses,event_name,indexed_value):
     topic0 = parser.topic_from_event_name(event_name)
     topics.append(topic0)
     event_abi = parser.event_name_map[event_name]
-    print(event_abi)
+    print("event abi:",event_abi)
     if len(indexed_value) > 0:
         indexedinput=[]
         for input in event_abi["inputs"]:
@@ -95,17 +95,8 @@ def register_event_callback(addresses,event_name,indexed_value):
         print(indexedinput)
         i = 0
         for v in indexed_value:
-            print(v)
             itype = indexedinput[i][1]
-            topic = None
-            if itype.startswith('int'):
-                topic = DatatypeParser.topic_from_int(v)
-            if type == 'string':
-                topic = DatatypeParser.topic_from_string(v)
-            if type == 'address':
-                topic = DatatypeParser.topic_from_address(v)
-            if type == 'boolean':
-                topic = DatatypeParser.topic_from_boolean(v)
+            topic = DatatypeParser.topic_from_type(itype,v)
             if not (topic is None):
                 topics.append(topic)
             i = i+1

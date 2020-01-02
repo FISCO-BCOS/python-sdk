@@ -13,6 +13,13 @@ contract HelloEvent{
     function get() constant public returns(string){
         return name;
     }
+
+	function setbool(string n ,bool i) public
+	{
+		
+		name = n;
+		
+	}
 	
 	function settwo(string n ,int i,string key) public
 	{
