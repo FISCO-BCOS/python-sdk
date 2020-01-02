@@ -195,9 +195,9 @@ solc_path = "bin/solc/solc-gm" #合约编译器配置，请确认文件存在，
 ```
 
 **Event事件回调**
-针对已经部署在链上某个地址的合约，先注册要监听的事件，当合约被交易调用，且生成事件时，节点可以向客户端推送相应的事件
-事件定义如有indexed类型的输入，可以指定监听某个特定值作为过滤，如事件定义为 on_set(string name,int indexed value),可以增加一个针对value的topic监听，只监听value=5的事件
-具体实现，参考event_callback.py,使用的命令行为：
+ -  针对已经部署在链上某个地址的合约，先注册要监听的事件，当合约被交易调用，且生成事件时，节点可以向客户端推送相应的事件
+ -  事件定义如有indexed类型的输入，可以指定监听某个特定值作为过滤，如事件定义为 on_set(string name,int indexed value),可以增加一个针对value的topic监听，只监听value=5的事件
+ -  具体实现参考event_callback.py,使用的命令行为：
 ```bash
 params: [contractname] [address(可以为last)] [event_name] [indexed value(根据event定义，可以为多个)]
 
