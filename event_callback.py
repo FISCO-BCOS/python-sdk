@@ -36,23 +36,37 @@ from client.channelpack import ChannelPack
 def usage():
     usagetext = "params: [contractname] [address(可以为last)] [event_name] [indexed value(根据event定义，可以为多个)]\n\n"
     usagetext = usagetext+"\teg: for contract sample [contracts/HelloEvent.sol], use cmdline:\n\n"
-    usagetext = usagetext+"\tpython event_callback HelloEvent last on_set \n"
-    usagetext = usagetext+"\tpython event_callback HelloEvent last on_number 5\n\n...(and other events)"
+    usagetext = usagetext+"\tpython event_callback.py HelloEvent last on_set \n"
+    usagetext = usagetext+"\tpython event_callback.py HelloEvent last on_number 5\n\n...(and other events)"
     print(usagetext)
 
 
-class EventPushHandler(ChannelPushHandler):
+class EventPushHandler01(ChannelPushHandler):
     parser = DatatypeParser()
     def on_push(self,packmsg:ChannelPack):
-        print("EventPushHandler",packmsg.detail())
+        print("--------------------EventPushHandler01",packmsg.detail())
+
         strmsg = packmsg.data.decode("utf-8")
         response = json.loads( strmsg )
         loglist = parser.parse_event_logs(response["logs"])
-        print(json.dumps(loglist,indent=4))
+        print("FilterID ",response["filterID"])
+        print("--------------------EventPushHandler01",json.dumps(loglist,indent=4))
+
+class EventPushHandler02(ChannelPushHandler):
+    parser = DatatypeParser()
+    def on_push(self,packmsg:ChannelPack):
+        print(">>>>>>>>>>>>>>>>>>EventPushHandler02",packmsg.detail())
+        strmsg = packmsg.data.decode("utf-8")
+        response = json.loads( strmsg )
+        loglist = parser.parse_event_logs(response["logs"])
+        print("FilterID ",response["filterID"])
+        print(">>>>>>>>>>>>>>>>>>EventPushHandler02",json.dumps(loglist,indent=4))
 
 parser :DatatypeParser= None
 client :BcosClient= None
-eventHandler = EventPushHandler()
+eventHandler01 = EventPushHandler01()
+eventHandler02 = EventPushHandler02()
+
 
 def format_event_register_request(from_block,to_block,addresses,topics,groupid = "1",filterid= None):
     '''
@@ -102,7 +116,8 @@ def register_event_callback(addresses,event_name,indexed_value):
             i = i+1
     requestJson = format_event_register_request("latest","latest",addresses,topics)
     requestbytes  = ChannelPack.pack_amop_topic_message("",requestJson)
-    client.channel_handler.pushDispacher.add_handler(ChannelPack.EVENT_LOG_PUSH,eventHandler)
+    client.channel_handler.pushDispacher.add_handler(ChannelPack.EVENT_LOG_PUSH,eventHandler01)
+    client.channel_handler.pushDispacher.add_handler(ChannelPack.EVENT_LOG_PUSH,eventHandler02)
     response =  client.channel_handler.make_channel_request(requestbytes,
                                                             ChannelPack.CLIENT_REGISTER_EVENT_LOG,
                                                             ChannelPack.CLIENT_REGISTER_EVENT_LOG)

@@ -26,31 +26,48 @@ class ChannelPushDispatcher (threading.Thread):
     keepWorking = False
     logger = clientlogger.logger
     pushQueue = queue.Queue(1024*10)
-
+    lock = threading.RLock()
     def __init__(self):
         threading.Thread.__init__(self)
 
     def add_handler(self,pack_type,handler):
-        if pack_type in self.dispatch_register:
-            self.dispatch_register[pack_type][handler] = True
-        else:
-            handlerMap = dict()
-            handlerMap[handler]  =True
-            self.dispatch_register[pack_type] = handlerMap
+        try:
+            self.lock.acquire()
+            if pack_type in self.dispatch_register:
+                self.dispatch_register[pack_type][handler] = True
+            else:
+                handlerMap = dict()
+                handlerMap[handler]  =True
+                self.dispatch_register[pack_type] = handlerMap
+        except Exception as e:
+            self.logger.error("channel push dispatcher add handler error",e)
+        finally:
+            self.lock.release()
 
     def remove_handler(self,pack_type,handler):
-        if pack_type in self.dispatch_register:
-            if handler in self.dispatch_register[pack_type]:
-                self.dispatch_register[pack_type].pop(handler)
-        else:
-            return
+        try:
+            self.lock.acquire()
+            if pack_type in self.dispatch_register:
+                if handler in self.dispatch_register[pack_type]:
+                    self.dispatch_register[pack_type].pop(handler)
+            else:
+                return
+        except Exception as e:
+            self.logger.error("channel push dispatcher remove_handler error",e)
+        finally:
+            self.lock.release()
 
     def getHandler(self,pack_type):
-        if pack_type in self.dispatch_register:
-            return self.dispatch_register[pack_type]
-        else:
-            return dict()
-
+        try:
+            self.lock.acquire()
+            if pack_type in self.dispatch_register:
+                return self.dispatch_register[pack_type]
+            else:
+                return dict()
+        except Exception as e:
+            self.logger.error("channel push dispatcher remove_handler error",e)
+        finally:
+            self.lock.release()
 
     def finish(self):
         if self.keepWorking is True:
@@ -64,6 +81,20 @@ class ChannelPushDispatcher (threading.Thread):
             self.logger.error("Push queue FULL pop and LOST: {}".format(pack.detail()))
         self.pushQueue.put_nowait(packmsg)
 
+    def dealmsg(self,packmsg):
+        try:
+            self.lock.acquire()
+            handlers = self.getHandler(packmsg.type)
+            if handlers is None:
+                #no handler register
+                return
+            for handler in handlers:
+                if isinstance(handler, ChannelPushHandler):
+                    handler.on_push(packmsg)
+        except Exception as e:
+            print("{} push handler error {},{},{}".format(self.name, e, packmsg.type, packmsg.data))
+            self.logger.error("{} push handler error {},{},{}".format(self.name, e, packmsg.type, packmsg.data))
+
     def run(self) :
         try:
             self.keepWorking = True
@@ -75,19 +106,10 @@ class ChannelPushDispatcher (threading.Thread):
                 if not self.pushQueue.empty():
                     packmsg:ChannelPack =self.pushQueue.get_nowait()
                 if packmsg is None and self.keepWorking:
-                    time.sleep(1)
+                    time.sleep(0.01)
                     #print("push running")
                     continue
-                handlers = self.getHandler(packmsg.type)
-                if handlers is None:
-                    continue
-                for handler in handlers:
-                    if isinstance(handler,ChannelPushHandler):
-                        try:
-                            handler.on_push(packmsg)
-                        except Exception as e:
-                            print("{} push handler error {},{},{}".format(self.name, e,packmsg.type,packmsg.data) )
-                            self.logger.error("{} push handler error {},{},{}".format(self.name, e,packmsg.type,packmsg.data))
+                self.dealmsg(packmsg)
         except Exception as e:
             print("push Thread exception:",e)
             self.logger.error("{} push dispatcher error {}".format(self.name, e))
