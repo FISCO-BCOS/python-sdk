@@ -197,7 +197,6 @@ def prepare_transaction(
 
 
 def encode_transaction_data(
-
         fn_identifier,
         contract_abi=None,
         fn_abi=None,

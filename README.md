@@ -20,7 +20,8 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 支持合约编译，将`sol`合约编译成`abi`和`bin`文件。
 - 支持基于keystore的账户管理。
 - 支持合约历史查询。
-
+- 支持国密(SM2,SM3,SM4)
+- 支持event回调监听
 ## 部署Python SDK
 
 ### 环境要求
@@ -171,12 +172,44 @@ channel_node_cert = "bin/node.crt"  # 采用channel协议时，需要设置sdk�
 channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk私钥,如采用rpc协议通信，这里可以留空
 ```
 
+**国密支持**
+ -  支持国密版本的非对称加密、签名验签(SM2), HASH算法(SM3),对称加解密(SM4)
+ -  国密版本在使用上和非国密版本基本一致，主要是配置差异。
+ -  国密版本sdk同一套代码可以连接国密和非国密的节点，需要根据不同的节点配置相应的IP端口和证书
+ -  因为当前版本的实现里，账户文件格式有差异，所以国密的账户文件和ECDSA的账户文件采用不同的配置
+
+连接国密节点时，有以下相关的配置项需要修改和确认，IP端口也需要确认是指向国密版本节点
+```bash
+crypto_type = "GM" 	#密码算法选择: 大小写不敏感："GM" 标识国密, "ECDSA" 或其他是椭圆曲线默认实现。
+gm_account_keyfile = "gm_account.json"  #国密账号的存储文件，可以加密存储,如果留空则不加载
+gm_account_password = "123456" 		#如果不设密码，置为None或""则不加密
+solc_path = "bin/solc/solc-gm" #合约编译器配置，请确认文件存在，有可执行权限，且为国密版本的编译器，如需下载，参见bin/solc/README.md
+```
+
+
 **使用Channel协议访问节点**
 
 ```bash
 # 获取FISCO BCOS节点版本号
 ./console.py getNodeVersion
 ```
+
+**Event事件回调**
+ -  针对已经部署在链上某个地址的合约，先注册要监听的事件，当合约被交易调用，且生成事件时，节点可以向客户端推送相应的事件
+ -  事件定义如有indexed类型的输入，可以指定监听某个特定值作为过滤，如事件定义为 on_set(string name,int indexed value),可以增加一个针对value的topic监听，只监听value=5的事件
+ -  具体实现参考event_callback.py,使用的命令行为：
+```bash
+params: [contractname] [address(可以为last)] [event_name] [indexed value(根据event定义，可以为多个)]
+
+        eg: for contract sample [contracts/HelloEvent.sol], use cmdline:
+
+        python event_callback HelloEvent last on_set
+        python event_callback HelloEvent last on_number 5
+
+...(and other events)
+
+```
+
 
 ## SDK使用示例
 

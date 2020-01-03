@@ -77,7 +77,7 @@ rpc = utils.rpc.HTTPProvider(url)
 if False:
     param = [1,encode_hex(signedTxResult.rawTransaction)]
     #发送
-    response = rpc.make_request("sendRawTransaction",param)
+    response = rpc.make_channel_rpc_request("sendRawTransaction", param)
     print(response)
 
 if True:
