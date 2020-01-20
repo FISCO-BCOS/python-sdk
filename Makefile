@@ -26,6 +26,8 @@ BLKHASH=0x015d3c87b00bb116781722e7ff8e46d600d8d994d2655ce7f6db0ea42a626fc6
 #Permission
 TBLNM=t_demo
 
+install:
+    @
 usage:
 	@$(CONSOLE) $@
 	
