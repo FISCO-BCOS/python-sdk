@@ -26,7 +26,10 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 ### Docker 操作
 > step1 获得镜像
 1. Dockerfile
-通过 ```docker build -t python_sdk .``` 创建镜像
+通过本地Dockerfile创建镜像 
+```bash
+docker build -t python_sdk .
+``` 
 2. 官方镜像 **(fiscoorg/playground:python_sdk)**
 ```bash
 docker pull fiscoorg/playground:python_sdk 
@@ -38,7 +41,7 @@ docker run -it -p 20200:20200 --name python_sdk fiscoorg/playground:python_sdk
 
 > step3 进入docker容器启动节点之后即可使用FISCO-BCOS/python-sdk框架
 ```bash
-bash nodes/127.0.0.1/start_all.sh 
+bash nodes/127.0.0.1/start_all.sh
 ```
 
 ### 环境要求
