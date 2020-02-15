@@ -24,4 +24,3 @@ WORKDIR /python-sdk
 EXPOSE 20200 30300 8545
 
 CMD ["bash"]
-~                
