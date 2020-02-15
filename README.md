@@ -31,14 +31,14 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 ```bash
 docker pull fiscoorg/playground:python_sdk 
 ```
-> step3 运行docker容器
+> step2 运行docker容器
 ```bash
 docker run -it -p 20200:20200 --name python_sdk fiscoorg/playground:python_sdk 
 ```
 
-> step2 进入docker容器启动节点之后即可使用FISCO-BCOS/python-sdk框架
+> step3 进入docker容器启动节点之后即可使用FISCO-BCOS/python-sdk框架
 ```bash
-bash /root/fisco/nodes/127.0.0.1/start_all.sh 
+bash nodes/127.0.0.1/start_all.sh 
 ```
 
 ### 环境要求
@@ -49,6 +49,7 @@ bash /root/fisco/nodes/127.0.0.1/start_all.sh
 
 - **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget git`
 - **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget git`
+- **Alpine**: `apk add --no-cache gcc g++ python python-dev py-pip linux-headers libffi-dev openssl-dev wget git `
 - **MacOs**: `brew install wget npm git`
 
 ### 初始化环境(若python环境符合要求，可跳过)
