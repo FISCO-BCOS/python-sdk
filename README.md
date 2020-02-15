@@ -22,6 +22,30 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 支持合约历史查询。
 
 ## 部署Python SDK
+### Docker 操作
+
+> step1 获取镜像
+
+**1. Dockerfile**
+
+通过本地Dockerfile创建镜像 
+```bash
+docker build -t python_sdk .
+``` 
+**2. 官方镜像 (fiscoorg/playground:python_sdk)**
+```bash
+docker pull fiscoorg/playground:python_sdk 
+```
+> step2 运行docker容器
+
+```bash
+docker run -it -p 20200:20200 --name python_sdk fiscoorg/playground:python_sdk 
+```
+> step3 进入docker容器启动节点之后即可使用FISCO-BCOS/python-sdk框架
+
+```bash
+bash nodes/127.0.0.1/start_all.sh
+```
 
 ### 环境要求
 - Python环境：python 3.6.3, 3.7.x
@@ -30,7 +54,7 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 ### 依赖软件
 
 - **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget git`
-- **Alpine**: `apk add --no-cache gcc g++ python python-dev py-pip mysql-dev linux-headers libffi-dev openssl-dev `
+- **Alpine**: `apk add --no-cache gcc g++ python python-dev py-pip linux-headers libffi-dev openssl-dev wget git`
 - **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget git`
 - **MacOs**: `brew install wget npm git`
 
