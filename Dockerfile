@@ -2,7 +2,7 @@ FROM python:3.7-alpine
 
 LABEL 99kies 1290017556@qq.com https://github.com/99kies
 
-ADD . /python-sdk
+COPY . /python-sdk
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     apk update && \
