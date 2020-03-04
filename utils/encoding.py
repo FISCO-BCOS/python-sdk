@@ -230,6 +230,7 @@ class FriendlyJsonSerde:
     information on which fields failed, to show more
     helpful information in the raised error messages.
     """
+
     def _json_mapping_errors(self, mapping):
         for key, val in mapping.items():
             try:

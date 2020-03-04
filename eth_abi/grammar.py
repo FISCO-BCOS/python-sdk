@@ -156,7 +156,7 @@ class ABIType:
     def __eq__(self, other):
         # Two ABI types are equal if their string representations are equal
         return (
-            type(self) is type(other) and
+            isinstance(self, type(other)) and
             self.to_type_str() == other.to_type_str()
         )
 

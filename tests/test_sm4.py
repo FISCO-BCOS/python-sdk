@@ -12,7 +12,7 @@ decrypt_value = crypt_sm4.crypt_ecb(encrypt_value)
 assert value == decrypt_value
 
 crypt_sm4.set_key(key, SM4_ENCRYPT)
-encrypt_value = crypt_sm4.crypt_cbc(iv , value)
+encrypt_value = crypt_sm4.crypt_cbc(iv, value)
 crypt_sm4.set_key(key, SM4_DECRYPT)
-decrypt_value = crypt_sm4.crypt_cbc(iv , encrypt_value)
+decrypt_value = crypt_sm4.crypt_cbc(iv, encrypt_value)
 assert value == decrypt_value

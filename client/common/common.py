@@ -47,7 +47,11 @@ def backup_file(file_name):
     if(forcewrite):
         filestat = os.stat(file_name)
         filetime = time.strftime("%Y%m%d%H%M%S", time.localtime(filestat.st_ctime))
-        backupfile = "{}.{}".format(file_name, filetime)
+        filepath, shortname = os.path.split(file_name)
+        backuppath = "{}/{}".format(filepath, "backup")
+        if not os.path.exists(backuppath):
+            os.mkdir(backuppath)
+        backupfile = "{}/{}.{}".format(backuppath, shortname, filetime)
         print("backup [{}] to [{}]".format(file_name, backupfile))
         shutil.move(file_name, backupfile)
     return forcewrite

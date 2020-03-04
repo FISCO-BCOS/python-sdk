@@ -34,7 +34,13 @@ class SM3:
     def update(self, msg):
         if msg is not None:
             array_type = ctypes.c_ubyte * len(msg)
-            sm3_update(ctypes.POINTER(SM3Context)(self._sm3_ctx), array_type(*msg), ctypes.c_int(len(msg)))
+            sm3_update(
+                ctypes.POINTER(SM3Context)(
+                    self._sm3_ctx),
+                array_type(
+                    *msg),
+                ctypes.c_int(
+                    len(msg)))
 
     def finish(self, msg=None):
         self.update(msg)

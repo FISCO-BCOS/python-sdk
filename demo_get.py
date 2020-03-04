@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''
+"""
   bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
   bcosliteclientpy is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
@@ -11,7 +11,7 @@
   rlp, eth-rlp , hexbytes ... and relative projects
   @author: kentzhang
   @date: 2019-06
-'''
+"""
 
 from client.bcosclient import BcosClient
 import os
@@ -31,11 +31,11 @@ data_parser.load_abi_file(abi_file)
 contract_abi = data_parser.contract_abi
 
 # 以下是查询类的接口，大部分是返回json，可以根据对fisco bcos rpc接口json格式的理解，进行字段获取和转码
-'''
+"""
 useful helper:
 int(num,16)  hex -> int
 hex(num)  : int -> hex
-'''
+"""
 try:
     client = BcosClient()
     info = client.getinfo()
@@ -62,18 +62,32 @@ try:
     block = client.getBlockByHash(blockhash)
     print("getBlockByHash", block)
     if isinstance(block, dict) and "transactions" in block.keys():
-        txhash = block['transactions'][0]["hash"]
-        print("\n>>---------------------------------------------------------------------")
+        txhash = block["transactions"][0]["hash"]
+        print(
+            "\n>>---------------------------------------------------------------------"
+        )
         print("getTransactionByHash", client.getTransactionByHash(txhash))
-        print("\n>>---------------------------------------------------------------------")
-        print("getTransactionByBlockHashAndIndex",
-              client.getTransactionByBlockHashAndIndex(blockhash, 0))
-        print("\n>>---------------------------------------------------------------------")
-        print("getTransactionByBlockNumberAndIndex",
-              client.getTransactionByBlockNumberAndIndex(1, 0))
-        print("\n>>---------------------------------------------------------------------")
+        print(
+            "\n>>---------------------------------------------------------------------"
+        )
+        print(
+            "getTransactionByBlockHashAndIndex",
+            client.getTransactionByBlockHashAndIndex(blockhash, 0),
+        )
+        print(
+            "\n>>---------------------------------------------------------------------"
+        )
+        print(
+            "getTransactionByBlockNumberAndIndex",
+            client.getTransactionByBlockNumberAndIndex(1, 0),
+        )
+        print(
+            "\n>>---------------------------------------------------------------------"
+        )
         print("getTransactionReceipt", client.getTransactionReceipt(txhash))
-        print("\n>>---------------------------------------------------------------------")
+        print(
+            "\n>>---------------------------------------------------------------------"
+        )
     print("getPendingTransactions", client.getPendingTransactions())
     print("\n>>---------------------------------------------------------------------")
     print("getPendingTxSize", client.getPendingTxSize())
@@ -102,8 +116,11 @@ try:
     print("getGroupList", client.getGroupList())
     stat.done()
     reqcount = next(client.request_counter)
-    print("demo get finish, total request {},usedtime {},avgtime:{}".format(
-        reqcount, stat.time_used, (stat.time_used / reqcount)))
+    print(
+        "demo get finish, total request {},usedtime {},avgtime:{}".format(
+            reqcount, stat.time_used, (stat.time_used / reqcount)
+        )
+    )
     client.finish()
 except BcosException as e:
     print("demo_get failed, error information: {}".format(e))

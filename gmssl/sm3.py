@@ -14,4 +14,5 @@ else:
     from .libsm3 import *
 
 
-assert sm3_hash(b'01').upper() == "7f4528abbaeb75420d8ae5842f12b221deb73722d49e02fccb461450e0c1d7ad".upper()
+assert sm3_hash(b'01').upper(
+) == "7f4528abbaeb75420d8ae5842f12b221deb73722d49e02fccb461450e0c1d7ad".upper()

@@ -53,7 +53,6 @@ class DatatypeParser:
             load_f.close()
             self.set_abi(contract_abi)
 
-
     def parse_abi(self):
         '''for item in self.contract_abi:
             if (item["type"] != "constructor"):
@@ -77,7 +76,7 @@ class DatatypeParser:
             # print(encode_hex(topic) )
             event['topic'] = encode_hex(topic)
             self.event_topic_map[encode_hex(topic)] = event
-            self.event_name_map[event["name"] ] = event
+            self.event_name_map[event["name"]] = event
 
     # 用于receipt，解析eventlog数组，在原数据中增加解析后的 eventname，eventdata两个数据
     def parse_event_logs(self, logs):
@@ -137,32 +136,32 @@ class DatatypeParser:
             return None
         # abi = self.func_abi_map_by_name[name]
         return abi_to_signature(name)
+
     @staticmethod
     def topic_from_int(value):
         s = str(value)
         s = s.zfill(64)
-        return "0x"+s
+        return "0x" + s
 
     @staticmethod
     def topic_from_string(value):
-        s = encode_hex(keccak(bytes(value,"utf-8")))[2:]
-        return "0x"+s
+        s = encode_hex(keccak(bytes(value, "utf-8")))[2:]
+        return "0x" + s
 
     @staticmethod
     def topic_from_boolean(value):
         v = 0
         if value:
-            v  =1
+            v = 1
         return DatatypeParser.topic_from_int(v)
 
-
-    def topic_from_event_name(self,name):
+    def topic_from_event_name(self, name):
         abi = self.event_name_map[name]
         v = event_abi_to_log_topic(abi)
         return encode_hex(v)
 
     @staticmethod
-    def topic_from_event_name_static(abifile,name):
+    def topic_from_event_name_static(abifile, name):
         dp = DatatypeParser()
         dp.load_abi_file(abifile)
         abi = dp.event_name_map[name]
@@ -170,16 +169,15 @@ class DatatypeParser:
         v = event_abi_to_log_topic(abi)
         return encode_hex(v)
 
-
     @staticmethod
     def topic_from_address(value):
-        #assume input address is string
+        # assume input address is string
         if value.startswith("0x"):
             value = value[2:]
-        return '0x'+value.zfill(64)
+        return '0x' + value.zfill(64)
 
     @staticmethod
-    def topic_from_type(intype,v):
+    def topic_from_type(intype, v):
         topic = None
         if intype.startswith('int'):
             topic = DatatypeParser.topic_from_int(v)

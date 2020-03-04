@@ -34,13 +34,18 @@ from utils.abi import itertools, get_fn_abi_types_single
 from eth_abi import decode_single
 from utils.contracts import get_aligned_function_data
 from client.gm_account import GM_Account
-from eth_utils.crypto import  CRYPTO_TYPE_GM
+from eth_utils.crypto import CRYPTO_TYPE_GM
+from client.signtransaction import SignTx
+from client.bcoskeypair import BcosKeyPair
+
+
 class BcosClient:
-    client_account = None
-    keystore_file =""
+    ecdsa_account = None
+    keystore_file = ""
     gm_account = None
     gm_account_file = ""
-    address_from = None
+    keypair = None
+
     rpc = None
     channel_handler = None
     fiscoChainId = None
@@ -66,30 +71,30 @@ class BcosClient:
     # load the account from keyfile
     def load_default_account(self):
         if client_config.crypto_type == CRYPTO_TYPE_GM:
-            #加载国密账号
+            # 加载国密账号
             if self.gm_account is not None:
-                return
+                return  # 不需要重复加载
             try:
                 self.gm_account = GM_Account()
                 self.gm_account_file = "{}/{}".format(client_config.account_keyfile_path,
-                                            client_config.gm_account_keyfile)
+                                                      client_config.gm_account_keyfile)
                 if os.path.exists(self.gm_account_file) is False:
                     raise BcosException(("gm account keyfile file {} doesn't exist, "
                                          "please check client_config.py again "
                                          "and make sure this account exist")
                                         .format(self.keystore_file))
-                self.gm_account.load_from_file(self.gm_account_file,client_config.gm_account_password)
-                self.address_from = self.gm_account.address
+                self.gm_account.load_from_file(
+                    self.gm_account_file, client_config.gm_account_password)
+                self.keypair = self.gm_account.keypair
                 return
             except Exception as e:
                 raise BcosException("load gm account from {} failed, reason: {}"
                                     .format(self.keystore_file, e))
 
-
-        #默认的 ecdsa 账号
+        # 默认的 ecdsa 账号
         try:
-            if self.client_account is not None:
-                return;
+            if self.ecdsa_account is not None:
+                return  # 不需要重复加载
             # check account keyfile
             self.keystore_file = "{}/{}".format(client_config.account_keyfile_path,
                                                 client_config.account_keyfile)
@@ -101,8 +106,12 @@ class BcosClient:
             with open(self.keystore_file, "r") as dump_f:
                 keytext = json.load(dump_f)
                 privkey = Account.decrypt(keytext, client_config.account_password)
-                self.client_account = Account.from_key(privkey)
-                self.address_from = self.client_account.address
+                self.ecdsa_account = Account.from_key(privkey)
+                keypair = BcosKeyPair()
+                keypair.private_key = self.ecdsa_account.privateKey
+                keypair.public_key = self.ecdsa_account.publickey
+                keypair.address = self.ecdsa_account.address
+                self.keypair = keypair
         except Exception as e:
             raise BcosException("load account from {} failed, reason: {}"
                                 .format(self.keystore_file, e))
@@ -118,7 +127,6 @@ class BcosClient:
             if client_config.client_protocol.lower() not in BcosClient.protocol_list:
                 raise BcosException("invalid configuration, must be: {}".
                                     format(''.join(BcosClient.protocol_list)))
-
 
             self.fiscoChainId = client_config.fiscoChainId
             self.groupid = client_config.groupid
@@ -163,8 +171,8 @@ class BcosClient:
         if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
             info = "channel {}:{}".format(self.channel_handler.host, self.channel_handler.port)
         info += ",groupid :{}\n".format(self.groupid)
-        if self.client_account is not None:
-            info += "account address: {}\n".format(self.address_from)
+        if self.ecdsa_account is not None:
+            info += "account address: {}\n".format(self.keypair.address)
         return info
 
     def is_error_response(self, response):
@@ -428,15 +436,14 @@ class BcosClient:
         cmd = "call"
         if to_address != "":
             common.check_and_format_address(to_address)
-        if self.client_account is None:
-            self.load_default_account()
+
+        self.load_default_account()
         functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
         callmap = dict()
         callmap["data"] = functiondata
-        callmap["from"] = self.address_from
+        callmap["from"] = self.keypair.address
         callmap["to"] = to_address
         callmap["value"] = 0
-
 
         # send transaction to the given group
         params = [client_config.groupid, callmap]
@@ -484,9 +491,8 @@ class BcosClient:
             to_address = to_checksum_address(to_address)
 
         # load default account if not set .notice: account only use for
-        # sign transaction for sendRawTransaction
-        if self.client_account is None:
-            self.load_default_account()
+        # sign transaction for sendRawTransa# if self.client_account is None:
+        self.load_default_account()
         # 填写一个bcos transaction 的 mapping
         import random
         txmap = dict()
@@ -502,19 +508,15 @@ class BcosClient:
         txmap["groupId"] = self.groupid
         txmap["extraData"] = ""
         #print("\n>>>>functiondata ",functiondata)
-        from client.signtransaction import SignTx
-        if client_config.crypto_type is CRYPTO_TYPE_GM:
-            #国密签名,国密版本将account和交易签名的流程解耦了
-            sign = SignTx()
-            sign.account = self.gm_account
-            signedTxResult = sign.sign_transaction(txmap)
-        else:
-            # 只需要用sign_transaction就可以获得rawTransaction的编码数据了,input :txmap,私钥
-            signedTxResult = Account.sign_transaction(txmap, self.client_account.privateKey)
-
+        sign = SignTx()
+        sign.crypto_type = client_config.crypto_type
+        # 关键流程：对交易签名，重构后全部统一到 SignTx 类(client/signtransaction.py)完成
+        sign.gm_account = self.gm_account
+        sign.ecdsa_account = self.ecdsa_account
+        signed_result = sign.sign_transaction(txmap)
         #print("@@@@@rawTransaction : ",encode_hex(signedTxResult.rawTransaction))
         # signedTxResult.rawTransaction是二进制的，要放到rpc接口里要encode下
-        params = [self.groupid, encode_hex(signedTxResult.rawTransaction)]
+        params = [self.groupid, encode_hex(signed_result.rawTransaction)]
         result = self.common_request(cmd, params, packet_type)
         return result
 

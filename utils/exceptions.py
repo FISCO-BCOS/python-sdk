@@ -45,6 +45,7 @@ class StaleBlockchain(Exception):
     """
     Raised by the stalecheck_middleware when the latest block is too old.
     """
+
     def __init__(self, block, allowable_delay):
         last_block_date = datetime.datetime.fromtimestamp(block.timestamp).strftime('%c')
         message = (

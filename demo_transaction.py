@@ -20,7 +20,7 @@ from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 from client.bcoserror import BcosException, BcosError
 from client_config import client_config
-
+import sys
 
 # 从文件加载abi定义
 if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
@@ -87,9 +87,11 @@ try:
     print("call getname:", res)
     res = client.call(to_address, contract_abi, "getall")
     print("call getall result:", res)
-    print("demo_tx,total req {}".format(client.request_counter))
-    client.finish()
+    print("done,demo_tx,total req {}".format(client.request_counter))
+
 except BcosException as e:
     print("execute demo_transaction failed for: {}".format(e))
 except BcosError as e:
     print("execute demo_transaction failed for: {}".format(e))
+client.finish()
+sys.exit(0)

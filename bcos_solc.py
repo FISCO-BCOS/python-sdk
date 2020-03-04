@@ -14,7 +14,7 @@
 import os
 import sys
 import platform
-from client_config import  client_config
+from client_config import client_config
 platsys = platform.system()
 solc_bin = client_config.solc_path
 solc_option = "--abi --bin --overwrite"
@@ -90,7 +90,8 @@ def print_solc_url():
         i += 1
         print("{} ): {}  :  {}".format(i, url[0], url[1]))
     print("\n>>>TIPS:")
-    print('''1. Download the solc binary according to your OS type (e.g. Linux/Windows) and solidity version.
+    print(
+        '''1. Download the solc binary according to your OS type (e.g. Linux/Windows) and solidity version.
 2. Copy the solc binary to {python-sdk}/bin/solc/.
 3. Make sure that the name of solc binary file is renamed to "solc",
 or update the solc binary path constant in python-sdk/solcpy.py.''')

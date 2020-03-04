@@ -113,15 +113,15 @@ class ChannelPack:
 
     @staticmethod
     def unpack_amop_topic_message(data):
-        (headerlen,) = struct.unpack_from("!B",data,0)
+        (headerlen,) = struct.unpack_from("!B", data, 0)
         if headerlen > 1:
-            fmt = "%ds"%(headerlen - 1)
-            (topic,) = struct.unpack_from(fmt,data,1)
+            fmt = "%ds" % (headerlen - 1)
+            (topic,) = struct.unpack_from(fmt, data, 1)
         else:
             topic = ""
-        fmt = "%ds"%(len(data) - headerlen)
-        (content,) = struct.unpack_from(fmt,data,headerlen)
-        return (topic,content)
+        fmt = "%ds" % (len(data) - headerlen)
+        (content,) = struct.unpack_from(fmt, data, headerlen)
+        return (topic, content)
 
     @staticmethod
     def pack_amop_topic_message(topic, data):
@@ -133,6 +133,7 @@ class ChannelPack:
         headerlen = len(topic) + 1
         resbytes = struct.pack(fmt, headerlen, topic, data)
         return resbytes
+
 
 '''
 x	pad byte	no value

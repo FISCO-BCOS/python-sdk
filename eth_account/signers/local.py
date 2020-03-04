@@ -25,6 +25,7 @@ class LocalAccount(BaseAccount):
         >>> bytes(my_local_account)
         b"\\x01\\x23..."
     """
+
     def __init__(self, key, account):
         """
         :param eth_keys.PrivateKey key: to prefill in private key execution
@@ -46,6 +47,7 @@ class LocalAccount(BaseAccount):
     @property
     def publickey(self):
         return self._key_obj.public_key
+
     @property
     def privateKey(self):
         """
