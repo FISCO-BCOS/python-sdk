@@ -21,7 +21,7 @@ from client.common.compiler import Compiler
 from client.bcoserror import BcosException, BcosError
 from client_config import client_config
 import sys
-
+import traceback
 # 从文件加载abi定义
 if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
     Compiler.compile_file("contracts/HelloWorld.sol")
@@ -90,8 +90,13 @@ try:
     print("done,demo_tx,total req {}".format(client.request_counter))
 
 except BcosException as e:
-    print("execute demo_transaction failed for: {}".format(e))
+    print("execute demo_transaction failed ,BcosException for: {}".format(e))
+    traceback.print_exc()
 except BcosError as e:
-    print("execute demo_transaction failed for: {}".format(e))
+    print("execute demo_transaction failed ,BcosError for: {}".format(e))
+    traceback.print_exc()
+except Exception as e:
+    client.finish()
+    traceback.print_exc()
 client.finish()
 sys.exit(0)

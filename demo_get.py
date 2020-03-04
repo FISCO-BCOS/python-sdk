@@ -20,7 +20,7 @@ from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 from client_config import client_config
 from client.bcoserror import BcosException, BcosError
-
+import traceback
 # 从文件加载abi定义
 if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
     Compiler.compile_file("contracts/HelloWorld.sol")
@@ -122,7 +122,13 @@ try:
         )
     )
     client.finish()
+
 except BcosException as e:
-    print("demo_get failed, error information: {}".format(e))
+    print("demo_get failed, BcosException information: {}".format(e))
+    traceback.print_exc()
 except BcosError as e:
-    print("demo_get failed, error information: {}".format(e))
+    print("demo_get failed, BcosError information: {}".format(e))
+    traceback.print_exc()
+except Exception as e:
+    traceback.print_exc()
+client.finish()
