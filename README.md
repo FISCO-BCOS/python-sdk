@@ -276,7 +276,6 @@ source ~/.bashrc
 - 我们欢迎并非常感谢您的贡献，请参阅[代码贡献流程](https://mp.weixin.qq.com/s/hEn2rxqnqp0dF6OKH6Ua-A
 )。
 - 如项目对您有帮助，欢迎star支持！
-- 如果发现代码存在安全漏洞，请在[这里](https://security.webank.com)上报。
 
 
 ## 加入社区
