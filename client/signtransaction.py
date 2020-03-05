@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -66,9 +66,9 @@ STRUCTURED_DATA_SIGN_VERSION = b'\x01'  # Hex value 0x01
 
 
 class SignTx():
-    gm_account = None
-    ecdsa_account = None
-    crypto_type = None
+    gm_account = None  #国密的账号
+    ecdsa_account = None #ECDSA的公私钥对象，类型为 LocalAccount : eth_account/signers/local.py
+    crypto_type = None # 加密类型，国密或通用，来自eth_utils/crypto.py的CRYPTO_TYPE_GM，CRYPTO_TYPE_ECDSA
 
     def to_eth_v(self, v_raw, chain_id=None):
         if chain_id is None:
