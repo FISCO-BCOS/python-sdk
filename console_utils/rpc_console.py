@@ -17,6 +17,7 @@ from client.bcosclient import BcosClient
 from client.bcoserror import ArgumentsError
 from eth_utils import to_checksum_address
 from client.common import common
+from client.contractnote import ContractNote
 
 
 class RPCConsole:
@@ -108,11 +109,17 @@ class RPCConsole:
         """
         parse the result
         """
+        if "blockNumber" in result:
+            blocknum = result["blockNumber"]
+            if blocknum.startswith("0x"):
+                blocknum = int(blocknum,16)
+            print("transaction in block number :",blocknum)
+
         if cmd in self.functions["parse_in"]:
             decode_result = common.parse_input(result["input"],
                                                contract_name,
                                                self.contract_path)
-            common.print_info("input of transaction: {}", decode_result)
+            common.print_info("transaction input", decode_result)
         if cmd in self.functions["parse_out"]:
             common.print_output_and_input(result["logs"], result["output"], result["input"],
                                           contract_name, self.contract_path)
@@ -166,6 +173,22 @@ class RPCConsole:
         number = common.check_int_range(params[0])
         self.exec_command(cmd, [number])
 
+    def parse_tx_and_receipt(self, result, cmd, params):
+        if result is None:
+            return
+        # decode output
+        contractname = None
+        if len(params) == 3:
+            contractname = params[2]
+        else:
+            hisdetail = ContractNote.get_address_history(result["to"])
+            if hisdetail is not None:
+                contractname = hisdetail["name"]
+            print("transaction to contract : {} (deploy time: {})".format(contractname,hisdetail["timestr"]) )
+        if contractname is None:
+            return
+        self.parse_output(cmd, contractname, result)
+
     def exec_cmd_with_hash_param(self, cmd, params):
         """
         execute cmd with one hash param
@@ -190,9 +213,7 @@ class RPCConsole:
             # check hash
             common.check_hash(params[0])
             result = self.exec_command(cmd, [params[0]])
-            if len(params) < 2 or result is None:
-                return
-            self.parse_output(cmd, params[1], result)
+            self.parse_tx_and_receipt(result, cmd, params)
 
     def exec_cmd_with_two_param(self, cmd, params):
         """
@@ -213,10 +234,7 @@ class RPCConsole:
         if cmd == "getTransactionByBlockNumberAndIndex":
             number = common.check_int_range(params[0])
             result = self.exec_command(cmd, [number, index])
-        # decode input
-        if len(params) < 3 or result is None:
-            return
-        self.parse_output(cmd, params[2], result)
+        self.parse_tx_and_receipt(result, cmd, params)
 
     def convertHexToDec(self, cmd, json_str):
         if cmd == "getTotalTransactionCount":

@@ -535,10 +535,11 @@ def main(argv):
             name = contractname
             address = result["contractAddress"]
             blocknum = int(result["blockNumber"], 16)
+            txhash = result["transactionHash"]
             ContractNote.save_contract_address(name, address)
             print("on block : {},address: {} ".format(blocknum, address))
             if needSaveAddress is True:
-                ContractNote.save_address(name, address, blocknum)
+                ContractNote.save_address(name, address, blocknum,txhash)
                 print("address save to file: ", client_config.contract_info_file)
             else:
                 print(

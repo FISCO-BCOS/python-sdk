@@ -61,7 +61,7 @@ def print_info(level, cmd):
     """
     print information
     """
-    print("{} >> {}".format(level, cmd))
+    print("{} : {}".format(level, cmd))
 
 
 def print_result(ret):

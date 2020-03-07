@@ -28,24 +28,44 @@ class ContractNote:
         return address
 
     @staticmethod
-    def save_address(contractname, newaddress, blocknum=None, memo=None):
+    def get_address_history(address):
+        config = ConfigObj(client_config.contract_info_file,
+                           encoding='UTF8')
+        try:
+            if address in config["history"]:
+                historystr = config["history"][address]
+                res = historystr.split("|")
+                detail = {}
+                detail["name"] = res[0].strip()
+                detail["timestr"] = res[1].strip()
+                detail["blocknum"] = res[2].strip()
+                detail["txhash"] = res[3].strip()
+                return detail
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return None
+        return None
 
+    @staticmethod
+    def save_address(contractname, newaddress, blocknum=None, txhash=None):
         # write to file
         config = ConfigObj(client_config.contract_info_file,
                            encoding='UTF8')
         if 'address' not in config:
             # print("address not in config",config)
             config['address'] = {}
-
         config['address'][contractname] = newaddress
         # print (config)
         if blocknum is not None:
             if "history" not in config:
                 config["history"] = {}
             timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-            detail = "{}:{},block:{}".format(contractname, timestr, blocknum)
-            if memo is not None:
-                detail = "{},{}".format(detail, memo)
+            if blocknum is None:
+                blocknum = "-1"  # -1 means unknown
+            if txhash is None:
+                txhash = ""
+            detail = "{} | {} | {} | {}".format(contractname, timestr, blocknum, txhash)
             config["history"][newaddress] = detail
         config.write()
 

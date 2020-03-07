@@ -17,7 +17,7 @@ import platform
 from client_config import client_config
 platsys = platform.system()
 solc_bin = client_config.solc_path
-solc_option = "--abi --bin --overwrite"
+solc_option = "--abi --bin --bin-runtime --overwrite"
 solc_default_output = "./contracts"
 
 if platsys.lower().startswith("win"):
