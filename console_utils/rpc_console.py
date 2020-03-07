@@ -112,8 +112,8 @@ class RPCConsole:
         if "blockNumber" in result:
             blocknum = result["blockNumber"]
             if blocknum.startswith("0x"):
-                blocknum = int(blocknum,16)
-            print("transaction in block number :",blocknum)
+                blocknum = int(blocknum, 16)
+            print("transaction in block number :", blocknum)
 
         if cmd in self.functions["parse_in"]:
             decode_result = common.parse_input(result["input"],
@@ -184,7 +184,10 @@ class RPCConsole:
             hisdetail = ContractNote.get_address_history(result["to"])
             if hisdetail is not None:
                 contractname = hisdetail["name"]
-            print("transaction to contract : {} (deploy time: {})".format(contractname,hisdetail["timestr"]) )
+            print(
+                "transaction to contract : {} (deploy time: {})".format(
+                    contractname,
+                    hisdetail["timestr"]))
         if contractname is None:
             return
         self.parse_output(cmd, contractname, result)
