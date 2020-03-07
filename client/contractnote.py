@@ -18,6 +18,21 @@ import os
 
 
 class ContractNote:
+
+    @staticmethod
+    def get_last_contracts():
+        config = ConfigObj(client_config.contract_info_file, encoding='UTF8')
+        if "address" not in config:
+            return None
+        return config["address"]
+
+    @staticmethod
+    def get_history_list():
+        config = ConfigObj(client_config.contract_info_file, encoding='UTF8')
+        if "history" not in config:
+            return None
+        return config["history"]
+
     @staticmethod
     def get_last(name):
         config = ConfigObj(client_config.contract_info_file, encoding='UTF8')
@@ -48,7 +63,7 @@ class ContractNote:
         return None
 
     @staticmethod
-    def save_address(contractname, newaddress, blocknum=None, txhash=None):
+    def save_address(contractname, newaddress):
         # write to file
         config = ConfigObj(client_config.contract_info_file,
                            encoding='UTF8')
@@ -56,7 +71,12 @@ class ContractNote:
             # print("address not in config",config)
             config['address'] = {}
         config['address'][contractname] = newaddress
+
+    @staticmethod
+    def save_history(contractname,newaddress,blocknum=None,txhash=None):
         # print (config)
+        config = ConfigObj(client_config.contract_info_file,
+                           encoding='UTF8')
         if blocknum is not None:
             if "history" not in config:
                 config["history"] = {}

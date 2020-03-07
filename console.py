@@ -114,6 +114,8 @@ def get_validcmds():
     validcmds = [
         "showaccount",
         "newaccount",
+        "deploylast",
+        "deploylog",
         "deploy",
         "call",
         "sendtx",
@@ -503,6 +505,17 @@ def main(argv):
                 create_gm_account(name, password, forcewrite)
             else:
                 create_ecdsa_account(name, password, forcewrite)
+
+        if cmd == "deploylast":
+            contracts  = ContractNote.get_last_contracts()
+            for name in contracts:
+                print("{} -> {}".format(name,contracts[name]))
+
+        if cmd == "deploylog":
+            historys = ContractNote.get_history_list()
+            for address in historys:
+                print("{} -> {} ".format(address,historys[address]) )
+
         # --------------------------------------------------------------------------------------------
         # console cmd entity
         # --------------------------------------------------------------------------------------------
@@ -546,6 +559,7 @@ def main(argv):
                     """\nNOTE : if want to save new address as last
                     address for (call/sendtx)\nadd 'save' to cmdline and run again"""
                 )
+            ContractNote.save_history(name, address, blocknum, txhash)
 
         # --------------------------------------------------------------------------------------------
         # console cmd entity
