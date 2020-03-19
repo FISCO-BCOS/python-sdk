@@ -21,6 +21,7 @@ from client.common.compiler import Compiler
 from client_config import client_config
 from client.bcoserror import BcosException, BcosError
 import traceback
+import json
 # 从文件加载abi定义
 if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
     Compiler.compile_file("contracts/HelloWorld.sol")
@@ -44,17 +45,17 @@ try:
     print("\n>>---------------------------------------------------------------------")
     res = client.getNodeVersion()
     print("\n>>---------------------------------------------------------------------")
-    print("getClientVersion", res)
+    print("getClientVersion", json.dumps(res,indent=4))
     print("\n>>---------------------------------------------------------------------")
     try:
         res = client.getBlockNumber()
-        print("getBlockNumber", res)
+        print("getBlockNumber", json.dumps(res,indent=4))
     except BcosError as e:
         print("bcos client error,", e.info())
     print("\n>>---------------------------------------------------------------------")
     print("getPeers", client.getPeers())
     print("\n>>---------------------------------------------------------------------")
-    print("getBlockByNumber", client.getBlockByNumber(1))
+    print("getBlockByNumber", json.dumps(client.getBlockByNumber(1)) )
     print("\n>>---------------------------------------------------------------------")
     blockhash = client.getBlockHashByNumber(1)
     print("getBlockHashByNumber", blockhash)
@@ -66,13 +67,13 @@ try:
         print(
             "\n>>---------------------------------------------------------------------"
         )
-        print("getTransactionByHash", client.getTransactionByHash(txhash))
+        print("getTransactionByHash", json.dumps(client.getTransactionByHash(txhash) ))
         print(
             "\n>>---------------------------------------------------------------------"
         )
         print(
             "getTransactionByBlockHashAndIndex",
-            client.getTransactionByBlockHashAndIndex(blockhash, 0),
+            json.dumps(client.getTransactionByBlockHashAndIndex(blockhash, 0) ),
         )
         print(
             "\n>>---------------------------------------------------------------------"
@@ -84,7 +85,7 @@ try:
         print(
             "\n>>---------------------------------------------------------------------"
         )
-        print("getTransactionReceipt", client.getTransactionReceipt(txhash))
+        print("getTransactionReceipt", json.dumps(client.getTransactionReceipt(txhash)))
         print(
             "\n>>---------------------------------------------------------------------"
         )
