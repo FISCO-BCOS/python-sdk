@@ -69,7 +69,7 @@ source ~/.bashrc && pyenv activate python-sdk && pip install --upgrade pip
 > python环境变量配置可参考[这里](https://jingyan.baidu.com/article/b0b63dbff271e24a4830708d.html)
 
 - [Visual C++ 14.0库](https://visualstudio.microsoft.com/downloads)
-> (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
+> (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
 
 - 下载Windows版本solc, 点击[这里](https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity-windows.zip)下载
 > solc编译器下载成功后，解压，将其中的 solc.exe 文件复制 ${python-sdk}\bin 目录下。若 python-sdk 路为 D:\\open-source\\python-sdk, 则 solc.exe 文件复制路径为D:\\open-source\\python-sdk\\bin\\solc.exe 
@@ -137,7 +137,7 @@ Python SDK支持使用[Channel协议](https://fisco-bcos-documentation.readthedo
     channel_listen_port=20200
     jsonrpc_listen_port=8545
 ```
-
+    
 切换到python-sdk目录，修改 client_config.py 文件中`channel_host`为实际的IP，`channel_port`为上步获取的`channel_listen_port`：
 
 ```bash
@@ -274,7 +274,7 @@ source ~/.bashrc
 ## 贡献代码
 
 - 我们欢迎并非常感谢您的贡献，请参阅[代码贡献流程](https://mp.weixin.qq.com/s/hEn2rxqnqp0dF6OKH6Ua-A
-  )。
+)。
 - 如项目对您有帮助，欢迎star支持！
 
 
