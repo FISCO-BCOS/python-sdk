@@ -3,7 +3,7 @@
 set -e
 
 scan_code_script="python ~/cobra/cobra.py -t "
-ignore_files=(.ci README.md console.py eth_account eth_abi eth_hash eth_keys eth_rlp eth_typing eth_utils)
+ignore_files=(.ci README.md console.py event_callback.py eth_account eth_abi eth_hash eth_keys eth_rlp eth_typing eth_utils )
 
 LOG_ERROR() {
     content=${1}
