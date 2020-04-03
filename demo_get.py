@@ -93,8 +93,6 @@ try:
     print("\n>>---------------------------------------------------------------------")
     print("getPendingTxSize", client.getPendingTxSize())
     print("\n>>---------------------------------------------------------------------")
-    print("getCode", client.getCode("0x83592a3cf1af302612756b8687c8dc7935c0ad1d"))
-    print("\n>>---------------------------------------------------------------------")
     print("getTotalTransactionCount", client.getTotalTransactionCount())
     print("\n>>---------------------------------------------------------------------")
     print("getSystemConfigByKey", client.getSystemConfigByKey("tx_count_limit"))
