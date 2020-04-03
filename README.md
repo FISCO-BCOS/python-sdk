@@ -22,30 +22,6 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 支持合约历史查询。
 
 ## 部署Python SDK
-### Docker 操作
-
-> step1 获取镜像
-
-**1. Dockerfile**
-
-通过本地Dockerfile创建镜像 
-```bash
-docker build -t python_sdk .
-``` 
-**2. 官方镜像 (fiscoorg/playground:python_sdk)**
-```bash
-docker pull fiscoorg/playground:python_sdk 
-```
-> step2 运行docker容器
-
-```bash
-docker run -it -p 20200:20200 --name python_sdk fiscoorg/playground:python_sdk 
-```
-> step3 进入docker容器启动节点之后即可使用FISCO-BCOS/python-sdk框架
-
-```bash
-bash nodes/127.0.0.1/start_all.sh
-```
 
 ### 环境要求
 - Python环境：python 3.6.3, 3.7.x
@@ -54,7 +30,6 @@ bash nodes/127.0.0.1/start_all.sh
 ### 依赖软件
 
 - **Ubuntu**: `sudo apt install -y zlib1g-dev libffi6 libffi-dev wget git`
-- **Alpine**: `apk add --no-cache gcc g++ python python-dev py-pip linux-headers libffi-dev openssl-dev wget git`
 - **CentOS**：`sudo yum install -y zlib-devel libffi-devel wget git`
 - **MacOs**: `brew install wget npm git`
 
@@ -159,49 +134,49 @@ Python SDK支持使用[Channel协议](https://fisco-bcos-documentation.readthedo
 ```bash
 [rpc]
     listen_ip=0.0.0.0
-    channel_listen_port=20200
-    jsonrpc_listen_port=8545
-```
+        channel_listen_port=20200
+            jsonrpc_listen_port=8545
+            ```
+                
+                切换到python-sdk目录，修改 client_config.py 文件中`channel_host`为实际的IP，`channel_port`为上步获取的`channel_listen_port`：
 
-切换到python-sdk目录，修改 client_config.py 文件中`channel_host`为实际的IP，`channel_port`为上步获取的`channel_listen_port`：
+                ```bash
+                channel_host = "127.0.0.1"
+                channel_port = 20200
+                ```
 
-```bash
-channel_host = "127.0.0.1"
-channel_port = 20200
-```
+                **配置证书**
 
-**配置证书**
-
-```bash
+                ```bash
 # 若节点与python-sdk位于不同机器，请将节点sdk目录下所有相关文件拷贝到bin目录
 # 若节点与sdk位于相同机器，直接拷贝节点证书到SDK配置目录
-cp ~/fisco/nodes/127.0.0.1/sdk/* bin/
-```
+                cp ~/fisco/nodes/127.0.0.1/sdk/* bin/
+                ```
 
-**配置证书路径**
+                **配置证书路径**
 
-  - `client_config.py`的`channel_node_cert`和`channel_node_key`选项分别用于配置SDK证书和私钥
-  - `release-2.1.0`版本开始，SDK证书和私钥更新为`sdk.crt`和`sdk.key`，配置证书路径前，请先检查上步拷贝的证书名和私钥名，并将`channel_node_cert`配置为SDK证书路径，将`channel_node_key`配置为SDK私钥路径
+                  - `client_config.py`的`channel_node_cert`和`channel_node_key`选项分别用于配置SDK证书和私钥
+                    - `release-2.1.0`版本开始，SDK证书和私钥更新为`sdk.crt`和`sdk.key`，配置证书路径前，请先检查上步拷贝的证书名和私钥名，并将`channel_node_cert`配置为SDK证书路径，将`channel_node_key`配置为SDK私钥路径
 
-检查从节点拷贝的sdk证书路径，若sdk证书和私钥路径分别为`bin/sdk.crt`和`bin/sdk.key`，则`client_config.py`中相关配置项如下：
+                    检查从节点拷贝的sdk证书路径，若sdk证书和私钥路径分别为`bin/sdk.crt`和`bin/sdk.key`，则`client_config.py`中相关配置项如下：
 
-```bash
-channel_node_cert = "bin/sdk.crt"  # 采用channel协议时，需要设置sdk证书,如采用rpc协议通信，这里可以留空
-channel_node_key = "bin/sdk.key"   # 采用channel协议时，需要设置sdk私钥,如采用rpc协议通信，这里可以留空
-```
+                    ```bash
+                    channel_node_cert = "bin/sdk.crt"  # 采用channel协议时，需要设置sdk证书,如采用rpc协议通信，这里可以留空
+                    channel_node_key = "bin/sdk.key"   # 采用channel协议时，需要设置sdk私钥,如采用rpc协议通信，这里可以留空
+                    ```
 
-若sdk证书和私钥路径分别为`bin/node.crt`和`bin/node.key`，则`client_config.py`中相关配置项如下:
-```bash
-channel_node_cert = "bin/node.crt"  # 采用channel协议时，需要设置sdk证书,如采用rpc协议通信，这里可以留空
-channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk私钥,如采用rpc协议通信，这里可以留空
-```
+                    若sdk证书和私钥路径分别为`bin/node.crt`和`bin/node.key`，则`client_config.py`中相关配置项如下:
+                    ```bash
+                    channel_node_cert = "bin/node.crt"  # 采用channel协议时，需要设置sdk证书,如采用rpc协议通信，这里可以留空
+                    channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk私钥,如采用rpc协议通信，这里可以留空
+                    ```
 
-**使用Channel协议访问节点**
+                    **使用Channel协议访问节点**
 
-```bash
+                    ```bash
 # 获取FISCO BCOS节点版本号
-./console.py getNodeVersion
-```
+                    ./console.py getNodeVersion
+                    ```
 
 ## SDK使用示例
 
@@ -228,35 +203,35 @@ backup [contracts/HelloWorld.bin] to [contracts/HelloWorld.bin.20190807102912]
 INFO >> compile with solc compiler
 deploy result  for [HelloWorld] is:
  {
-    "blockHash": "0x3912605dde5f7358fee40a85a8b97ba6493848eae7766a8c317beecafb2e279d",
-    "blockNumber": "0x1",
-    "contractAddress": "0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce",
-    "from": "0x95198b93705e394a916579e048c8a32ddfb900f7",
-    "gasUsed": "0x44ab3",
-    "input": "0x6080604052...省略若干行...c6f2c20576f726c642100000000000000000000000000",
-    "logs": [],
-    "logsBloom": "0x000...省略若干行...0000",
-    "output": "0x",
-    "status": "0x0",
-    "to": "0x0000000000000000000000000000000000000000",
-    "transactionHash": "0xb291e9ca38b53c897340256b851764fa68a86f2a53cb14b2ecdcc332e850bb91",
-    "transactionIndex": "0x0"
-}
-on block : 1,address: 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce 
-address save to file:  bin/contract.ini
-```
+         "blockHash": "0x3912605dde5f7358fee40a85a8b97ba6493848eae7766a8c317beecafb2e279d",
+             "blockNumber": "0x1",
+                 "contractAddress": "0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce",
+                     "from": "0x95198b93705e394a916579e048c8a32ddfb900f7",
+                         "gasUsed": "0x44ab3",
+                             "input": "0x6080604052...省略若干行...c6f2c20576f726c642100000000000000000000000000",
+                                 "logs": [],
+                                     "logsBloom": "0x000...省略若干行...0000",
+                                         "output": "0x",
+                                             "status": "0x0",
+                                                 "to": "0x0000000000000000000000000000000000000000",
+                                                     "transactionHash": "0xb291e9ca38b53c897340256b851764fa68a86f2a53cb14b2ecdcc332e850bb91",
+                                                         "transactionIndex": "0x0"
+ }
+ on block : 1,address: 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce 
+ address save to file:  bin/contract.ini
+ ```
 
-**调用HelloWorld合约**
+ **调用HelloWorld合约**
 
-```bash
+ ```bash
 # 合约地址：0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce
 # 调用接口：get
-$./console.py  call HelloWorld 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce get 
+ $./console.py  call HelloWorld 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce get 
 
-INFO >> user input : ['call', 'HelloWorld', '0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce', 'get']
+ INFO >> user input : ['call', 'HelloWorld', '0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce', 'get']
 
-INFO >> call HelloWorld , address: 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce, func: get, args:[]
-INFO >> call result: ('Hello, World!',)
+ INFO >> call HelloWorld , address: 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce, func: get, args:[]
+ INFO >> call result: ('Hello, World!',)
 
 # 合约名：HelloWorld
 # 合约地址：0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce
@@ -272,7 +247,7 @@ INFO >>  receipt logs :
 INFO >> transaction hash :  0xc20cbc6b0f28ad8fe1c560c8ce28c0e7eb7719a4a618a81604ac87ac46cc60f0
 tx input data detail:
  {'name': 'set', 'args': ('Hello, FISCO',), 'signature': 'set(string)'}
-receipt output : ()
+ receipt output : ()
 
 # 调用get接口获取更新后字符串
 $./console.py call HelloWorld 0x2d1c577e41809453c50e7e5c3f57d06f3cdd90ce get
@@ -301,7 +276,6 @@ source ~/.bashrc
 - 我们欢迎并非常感谢您的贡献，请参阅[代码贡献流程](https://mp.weixin.qq.com/s/hEn2rxqnqp0dF6OKH6Ua-A
 )。
 - 如项目对您有帮助，欢迎star支持！
-- 如果发现代码存在安全漏洞，请在[这里](https://security.webank.com)上报。
 
 
 ## 加入社区
@@ -314,3 +288,4 @@ source ~/.bashrc
 ![license](https://img.shields.io/github/license/FISCO-BCOS/python-sdk.svg)
 
 Python SDK的开源协议为[MIT License](https://opensource.org/licenses/MIT). 详情参考[LICENSE](./LICENSE)。
+
