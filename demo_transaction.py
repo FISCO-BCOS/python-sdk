@@ -45,8 +45,8 @@ try:
     contract_name = os.path.splitext(os.path.basename(abi_file))[0]
     memo = "tx:" + result["transactionHash"]
     # 把部署结果存入文件备查
-    ContractNote.save_address(contract_name,
-                              result["contractAddress"])
+    ContractNote.save_address_to_contract_note(contract_name,
+                                               result["contractAddress"])
     # 发送交易，调用一个改写数据的接口
     print("\n>>sendRawTransaction:----------------------------------------------------")
     to_address = result['contractAddress']  # use new deploy address

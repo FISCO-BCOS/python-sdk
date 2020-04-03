@@ -63,7 +63,7 @@ class ContractNote:
         return None
 
     @staticmethod
-    def save_address(contractname, newaddress):
+    def save_address_to_contract_note(contractname, newaddress):
         # write to file
         config = ConfigObj(client_config.contract_info_file,
                            encoding='UTF8')

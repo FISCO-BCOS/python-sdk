@@ -33,7 +33,7 @@ print("new address : ", result["contractAddress"])
 contract_name = contractname = os.path.splitext(os.path.basename(contractFile))[0]
 memo = "tx:" + result["transactionHash"]
 # 把部署结果存入文件备查
-ContractNote.save_address(
+ContractNote.save_address_to_contract_note(
     contract_name, result["contractAddress"], int(
         result["blockNumber"], 16), memo)
 
