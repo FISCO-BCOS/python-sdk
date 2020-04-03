@@ -156,17 +156,24 @@ def main(argv):
     event_name = argv[2]
     indexed_value = argv[3:]
 
-    print("usage input {},{},{},{}".format(contractname, address, event_name, indexed_value))
-    if address == "last":
-        cn = ContractNote()
-        address = cn.get_last(contractname)
-        print("hex address :", address)
-    abifile = "contracts/" + contractname + ".abi"
-    parser = DatatypeParser(abifile)
-    client = BcosClient()
-    print(client.getinfo())
-    register_event_callback([address], event_name, indexed_value)
-
+    try:
+        print("usage input {},{},{},{}".format(contractname, address, event_name, indexed_value))
+        if address == "last":
+            cn = ContractNote()
+            address = cn.get_last(contractname)
+            print("hex address :", address)
+        abifile = "contracts/" + contractname + ".abi"
+        parser = DatatypeParser(abifile)
+        client = BcosClient()
+        print(client.getinfo())
+        register_event_callback([address], event_name, indexed_value)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        client.finish()
+        import time
+        time.sleep(0.5)
+        sys.exit(-1)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -46,8 +46,7 @@ try:
     memo = "tx:" + result["transactionHash"]
     # 把部署结果存入文件备查
     ContractNote.save_address(contract_name,
-                              result["contractAddress"],
-                              int(result["blockNumber"], 16), memo)
+                              result["contractAddress"])
     # 发送交易，调用一个改写数据的接口
     print("\n>>sendRawTransaction:----------------------------------------------------")
     to_address = result['contractAddress']  # use new deploy address

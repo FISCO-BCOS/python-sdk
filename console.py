@@ -552,7 +552,7 @@ def main(argv):
             ContractNote.save_contract_address(name, address)
             print("on block : {},address: {} ".format(blocknum, address))
             if needSaveAddress is True:
-                ContractNote.save_address(name, address, blocknum,txhash)
+                ContractNote.save_address(name, address)
                 print("address save to file: ", client_config.contract_info_file)
             else:
                 print(

@@ -70,7 +70,9 @@ class ContractNote:
         if 'address' not in config:
             # print("address not in config",config)
             config['address'] = {}
+        print("save new address {} -> {}".format(contractname,newaddress))
         config['address'][contractname] = newaddress
+        config.write()
 
     @staticmethod
     def save_history(contractname,newaddress,blocknum=None,txhash=None):
