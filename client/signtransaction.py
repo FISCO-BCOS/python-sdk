@@ -66,9 +66,9 @@ STRUCTURED_DATA_SIGN_VERSION = b'\x01'  # Hex value 0x01
 
 
 class SignTx():
-    gm_account = None  #国密的账号
-    ecdsa_account = None #ECDSA的公私钥对象，类型为 LocalAccount : eth_account/signers/local.py
-    crypto_type = None # 加密类型，国密或通用，来自eth_utils/crypto.py的CRYPTO_TYPE_GM，CRYPTO_TYPE_ECDSA
+    gm_account = None  # 国密的账号
+    ecdsa_account = None  # ECDSA的公私钥对象，类型为 LocalAccount : eth_account/signers/local.py
+    crypto_type = None  # 加密类型，国密或通用，来自eth_utils/crypto.py的CRYPTO_TYPE_GM，CRYPTO_TYPE_ECDSA
 
     def to_eth_v(self, v_raw, chain_id=None):
         if chain_id is None:

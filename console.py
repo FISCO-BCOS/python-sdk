@@ -507,14 +507,14 @@ def main(argv):
                 create_ecdsa_account(name, password, forcewrite)
 
         if cmd == "deploylast":
-            contracts  = ContractNote.get_last_contracts()
+            contracts = ContractNote.get_last_contracts()
             for name in contracts:
-                print("{} -> {}".format(name,contracts[name]))
+                print("{} -> {}".format(name, contracts[name]))
 
         if cmd == "deploylog":
             historys = ContractNote.get_history_list()
             for address in historys:
-                print("{} -> {} ".format(address,historys[address]) )
+                print("{} -> {} ".format(address, historys[address]))
 
         # --------------------------------------------------------------------------------------------
         # console cmd entity

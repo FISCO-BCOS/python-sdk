@@ -45,17 +45,17 @@ try:
     print("\n>>---------------------------------------------------------------------")
     res = client.getNodeVersion()
     print("\n>>---------------------------------------------------------------------")
-    print("getClientVersion", json.dumps(res,indent=4))
+    print("getClientVersion", json.dumps(res, indent=4))
     print("\n>>---------------------------------------------------------------------")
     try:
         res = client.getBlockNumber()
-        print("getBlockNumber", json.dumps(res,indent=4))
+        print("getBlockNumber", json.dumps(res, indent=4))
     except BcosError as e:
         print("bcos client error,", e.info())
     print("\n>>---------------------------------------------------------------------")
     print("getPeers", client.getPeers())
     print("\n>>---------------------------------------------------------------------")
-    print("getBlockByNumber", json.dumps(client.getBlockByNumber(1)) )
+    print("getBlockByNumber", json.dumps(client.getBlockByNumber(1)))
     print("\n>>---------------------------------------------------------------------")
     blockhash = client.getBlockHashByNumber(1)
     print("getBlockHashByNumber", blockhash)
@@ -67,13 +67,13 @@ try:
         print(
             "\n>>---------------------------------------------------------------------"
         )
-        print("getTransactionByHash", json.dumps(client.getTransactionByHash(txhash) ))
+        print("getTransactionByHash", json.dumps(client.getTransactionByHash(txhash)))
         print(
             "\n>>---------------------------------------------------------------------"
         )
         print(
             "getTransactionByBlockHashAndIndex",
-            json.dumps(client.getTransactionByBlockHashAndIndex(blockhash, 0) ),
+            json.dumps(client.getTransactionByBlockHashAndIndex(blockhash, 0)),
         )
         print(
             "\n>>---------------------------------------------------------------------"

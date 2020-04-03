@@ -21,7 +21,7 @@ import binascii
 from gmssl import sm2, func
 from gmssl import sm2_helper
 from gmssl import sm3, func
-from eth_utils.hexadecimal import decode_hex, encode_hex
+from eth_utils.hexadecimal import decode_hex
 from eth_utils import to_checksum_address
 from eth_utils.crypto import *
 from gmssl.sm4 import CryptSM4, SM4_DECRYPT, SM4_ENCRYPT
@@ -54,7 +54,6 @@ class GM_Account(object):
         self.keypair.public_key = sm2_helper.sm2_privkey_to_pub(privkey)
         self.keypair.private_key = privkey
         self.keypair.address = self.publickey_to_address(self.keypair.public_key)
-
 
     def pwd_ljust(self, password):
         return password.ljust(16, '0')

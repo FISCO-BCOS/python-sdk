@@ -57,6 +57,7 @@ class ContractNote:
                 detail["txhash"] = res[3].strip()
                 return detail
         except Exception as e:
+            print(e)
             import traceback
             traceback.print_exc()
             return None
@@ -70,12 +71,12 @@ class ContractNote:
         if 'address' not in config:
             # print("address not in config",config)
             config['address'] = {}
-        print("save new address {} -> {}".format(contractname,newaddress))
+        print("save new address {} -> {}".format(contractname, newaddress))
         config['address'][contractname] = newaddress
         config.write()
 
     @staticmethod
-    def save_history(contractname,newaddress,blocknum=None,txhash=None):
+    def save_history(contractname, newaddress, blocknum=None, txhash=None):
         # print (config)
         config = ConfigObj(client_config.contract_info_file,
                            encoding='UTF8')
