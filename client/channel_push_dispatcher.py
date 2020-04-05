@@ -99,6 +99,8 @@ class ChannelPushDispatcher (threading.Thread):
             self.logger.error(
                 "{} push handler error {},{},{}".format(
                     self.name, e, packmsg.type, packmsg.data))
+        finally:
+            self.lock.release()
 
     def run(self):
         try:
@@ -107,9 +109,9 @@ class ChannelPushDispatcher (threading.Thread):
             #print(self.name + ":start thread-->")
             while self.keepWorking:
                 #print(self.name + ":start-->",self.keepWorking)
-                packmsg: ChannelPack = None
+                packmsg = None
                 if not self.pushQueue.empty():
-                    packmsg: ChannelPack = self.pushQueue.get_nowait()
+                    packmsg = self.pushQueue.get_nowait()
                 if packmsg is None and self.keepWorking:
                     time.sleep(0.01)
                     #print("push running")
