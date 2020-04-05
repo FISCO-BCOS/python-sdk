@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -64,7 +64,7 @@ class Compiler:
         # sol_file
         command = "{} --bin --abi {} -o {} --overwrite".format(
             Compiler.compiler_path, sol_file, output_path)
-        print("INFO >> compile with solc compiler : ",command)
+        print("INFO >> compile with solc compiler : ", command)
         common.execute_cmd(command)
 
     @staticmethod

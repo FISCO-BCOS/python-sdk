@@ -4,13 +4,15 @@
 # @Author: yubo
 # @Date  : 2019/12/12
 # @Desc  :
-import os, sys
+import os
+import sys
 import platform
 import ctypes
 import time
 from functools import wraps
 
 __all__ = ['SM3Context', 'lib_sm3', 'sm3_starts', 'sm3_update', 'sm3_finish', 'sm3']
+
 
 def timethis(func):
     '''
@@ -21,9 +23,10 @@ def timethis(func):
         start = time.time()
         result = func(*args, **kwargs)
         end = time.time()
-        print(func.__name__, end-start)
+        print(func.__name__, end - start)
         return result
     return wrapper
+
 
 c_ubyte_p = ctypes.POINTER(ctypes.c_ubyte)
 
@@ -66,7 +69,10 @@ if lib_sm3 is not None:
 
     sm3 = lib_sm3.sm3
     sm3.restype = None
-    sm3.argtypes = (ctypes.POINTER(ctypes.c_ubyte), ctypes.c_int, ctypes.POINTER(ctypes.c_ubyte * 32))
+    sm3.argtypes = (
+        ctypes.POINTER(
+            ctypes.c_ubyte), ctypes.c_int, ctypes.POINTER(
+            ctypes.c_ubyte * 32))
 
 #
 # data = bytes.fromhex("3031")

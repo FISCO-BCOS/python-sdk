@@ -7,6 +7,7 @@ contract SimpleInfo{
 	uint256 counter=0;
 	event on_set(int retcode,string name,uint256 balance,address addr,string memo);
 	event on_change(int retcode,string indexed name,uint256 balance,address indexed addr,string memo);
+	event on_sender(int retcode,string name,uint256 balance,address  addr,string memo);
     event on_reset(int retcode,string indexed name) anonymous;
 	
 
@@ -44,7 +45,8 @@ contract SimpleInfo{
         balance = b;
 		addr = a;
 		emit on_set(0,n,b,a,"info set");
-		emit on_change(0,n,b,a,"info set");
+		emit on_change(0,name,balance,addr,"on_set_change");
+		emit on_sender(0,n,b,msg.sender,"change by sender");
 		return 0;
     }
 	function add(uint256 b) public returns(uint256){

@@ -7,6 +7,7 @@ from rlp.exceptions import (
 class Boolean:
     """A sedes for booleans
     """
+
     def serialize(self, obj):
         if not isinstance(obj, bool):
             raise SerializationError('Can only serialize integers', obj)

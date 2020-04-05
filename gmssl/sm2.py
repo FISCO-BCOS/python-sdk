@@ -8,13 +8,14 @@ default_ecc_table = {
     'n': 'FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFF7203DF6B21C6052B53BBF40939D54123',
     'p': 'FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF',
 
-    'g': '32c4ae2c1f1981195f9904466a39c9948fe30bbff2660be1715a4589334c74c7'\
+    'g': '32c4ae2c1f1981195f9904466a39c9948fe30bbff2660be1715a4589334c74c7'
          'bc3736a2f4f6779c59bdcee36b692153d0a9877cc62a474002df32e52139f0a0',
     'a': 'FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFC',
 
     'b': '28E9FA9E9D9F5E344D5A9E4BCF6509A7F39789F515AB8F92DDBCBD414D940E93',
 
 }
+
 
 class CryptSM2(object):
 
@@ -49,7 +50,7 @@ class CryptSM2(object):
     def _double_point(self, Point):  # 倍点
         l = len(Point)
         len_2 = 2 * self.para_len
-        if l< self.para_len * 2:
+        if l < self.para_len * 2:
             return None
         else:
             x1 = int(Point[0:self.para_len], 16)
@@ -77,7 +78,8 @@ class CryptSM2(object):
             x3 = (T3 - T5) % int(self.ecc_table['p'], base=16)
 
             if (T5 % 2) == 1:
-                T4 = (T5 + ((T5 + int(self.ecc_table['p'], base=16)) >> 1) - T3) % int(self.ecc_table['p'], base=16)
+                T4 = (T5 + ((T5 + int(self.ecc_table['p'], base=16))
+                            >> 1) - T3) % int(self.ecc_table['p'], base=16)
             else:
                 T4 = (T5 + (T5 >> 1) - T3) % int(self.ecc_table['p'], base=16)
 
@@ -127,7 +129,7 @@ class CryptSM2(object):
             form = form * 3
             return form % (X3, Y3, Z3)
 
-    def _convert_jacb_to_nor(self, Point): # Jacobian加重射影坐标转换成仿射坐标
+    def _convert_jacb_to_nor(self, Point):  # Jacobian加重射影坐标转换成仿射坐标
         len_2 = 2 * self.para_len
         x = int(Point[0:self.para_len], 16)
         y = int(Point[self.para_len:len_2], 16)
@@ -148,7 +150,7 @@ class CryptSM2(object):
     def verify_with_e(self, Sign, data):
         # 验签函数，sign签名r||s，E消息hash，public_key公钥
         r = int(Sign[0:self.para_len], 16)
-        s = int(Sign[self.para_len:2*self.para_len], 16)
+        s = int(Sign[self.para_len:2 * self.para_len], 16)
         e = int(data.hex(), 16)
         t = (r + s) % int(self.ecc_table['n'], base=16)
         if t == 0:
@@ -179,7 +181,7 @@ class CryptSM2(object):
         return self.sign_with_e(bytes.fromhex(e), k)
 
     def sign_with_e(self, data, K):  # 签名函数, data消息的hash，private_key私钥，K随机数，均为16进制字符串
-        E = data.hex() # 消息转化为16进制字符串
+        E = data.hex()  # 消息转化为16进制字符串
         e = int(E, 16)
 
         d = int(self.private_key, 16)
@@ -191,19 +193,19 @@ class CryptSM2(object):
         R = ((e + x) % int(self.ecc_table['n'], base=16))
         if R == 0 or R + k == int(self.ecc_table['n'], base=16):
             return None
-        d_1 = pow(d+1, int(self.ecc_table['n'], base=16) - 2, int(self.ecc_table['n'], base=16))
-        S = (d_1*(k + R) - R) % int(self.ecc_table['n'], base=16)
+        d_1 = pow(d + 1, int(self.ecc_table['n'], base=16) - 2, int(self.ecc_table['n'], base=16))
+        S = (d_1 * (k + R) - R) % int(self.ecc_table['n'], base=16)
         if S == 0:
             return None
         else:
-            return (R,S)
-            #return '%064x%064x' % (R,S)
-    def combine_signed_R_S(self,R,S):
+            return (R, S)
+            # return '%064x%064x' % (R,S)
+
+    def combine_signed_R_S(self, R, S):
         return '%064x%064x' % (R, S)
 
-
     def get_e(self, msg):
-        if msg[0:2]=="0x":
+        if msg[0:2] == "0x":
             msg = msg[2:]
         entla = "0080"
         ida = "31323334353637383132333435363738"
@@ -218,23 +220,23 @@ class CryptSM2(object):
 
     def encrypt(self, data):
         # 加密函数，data消息(bytes)
-        msg = data.hex() # 消息转化为16进制字符串
+        msg = data.hex()  # 消息转化为16进制字符串
         k = func.random_hex(self.para_len)
-        C1 = self._kg(int(k,16),self.ecc_table['g'])
-        xy = self._kg(int(k,16),self.public_key)
+        C1 = self._kg(int(k, 16), self.ecc_table['g'])
+        xy = self._kg(int(k, 16), self.public_key)
         x2 = xy[0:self.para_len]
-        y2 = xy[self.para_len:2*self.para_len]
+        y2 = xy[self.para_len:2 * self.para_len]
         ml = len(msg)
-        t = sm3.sm3_kdf(xy.encode('utf8'), ml/2)
-        if int(t,16)==0:
+        t = sm3.sm3_kdf(xy.encode('utf8'), ml / 2)
+        if int(t, 16) == 0:
             return None
         else:
             form = '%%0%dx' % ml
             C2 = form % (int(msg, 16) ^ int(t, 16))
             C3 = sm3.sm3_hash([
-                i for i in bytes.fromhex('%s%s%s'% (x2,msg,y2))
+                i for i in bytes.fromhex('%s%s%s' % (x2, msg, y2))
             ])
-            return bytes.fromhex('%s%s%s' % (C1,C3,C2))
+            return bytes.fromhex('%s%s%s' % (C1, C3, C2))
 
     def decrypt(self, data):
         # 解密函数，data密文（bytes）
@@ -244,21 +246,18 @@ class CryptSM2(object):
         C1 = data[0:len_2]
         C3 = data[len_2:len_3]
         C2 = data[len_3:]
-        xy = self._kg(int(self.private_key,16),C1)
+        xy = self._kg(int(self.private_key, 16), C1)
         # print('xy = %s' % xy)
         x2 = xy[0:self.para_len]
         y2 = xy[self.para_len:len_2]
         cl = len(C2)
-        t = sm3.sm3_kdf(xy.encode('utf8'), cl/2)
+        t = sm3.sm3_kdf(xy.encode('utf8'), cl / 2)
         if int(t, 16) == 0:
             return None
         else:
             form = '%%0%dx' % cl
-            M = form % (int(C2,16) ^ int(t,16))
+            M = form % (int(C2, 16) ^ int(t, 16))
             u = sm3.sm3_hash([
-                i for i in bytes.fromhex('%s%s%s'% (x2,M,y2))
+                i for i in bytes.fromhex('%s%s%s' % (x2, M, y2))
             ])
             return bytes.fromhex(M)
-
-from .sm2_helper import sm2_key_pair_gen
-

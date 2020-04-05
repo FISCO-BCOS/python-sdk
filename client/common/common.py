@@ -1,6 +1,6 @@
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -47,7 +47,11 @@ def backup_file(file_name):
     if(forcewrite):
         filestat = os.stat(file_name)
         filetime = time.strftime("%Y%m%d%H%M%S", time.localtime(filestat.st_ctime))
-        backupfile = "{}.{}".format(file_name, filetime)
+        filepath, shortname = os.path.split(file_name)
+        backuppath = "{}/{}".format(filepath, "backup")
+        if not os.path.exists(backuppath):
+            os.mkdir(backuppath)
+        backupfile = "{}/{}.{}".format(backuppath, shortname, filetime)
         print("backup [{}] to [{}]".format(file_name, backupfile))
         shutil.move(file_name, backupfile)
     return forcewrite
@@ -57,7 +61,7 @@ def print_info(level, cmd):
     """
     print information
     """
-    print("{} >> {}".format(level, cmd))
+    print("{} : {}".format(level, cmd))
 
 
 def print_result(ret):

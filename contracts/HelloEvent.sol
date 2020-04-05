@@ -1,8 +1,9 @@
 pragma solidity ^0.4.24;
 
 contract HelloEvent{
-    string name;
-    event onset(string newname);
+    string name ;
+	bool b;
+    event on_set(string newname);
 	event on_number(string name,int indexed age);
 	event on_two_event(string name ,int indexed age, string indexed key);
 	event on_address(address addr);
@@ -18,6 +19,7 @@ contract HelloEvent{
 	{
 		
 		name = n;
+		b = i;
 		
 	}
 	
@@ -35,10 +37,9 @@ contract HelloEvent{
 	}
 
     function set(string n) public{
-		emit onset(n);
+		emit on_set(n);
 		emit on_number(n,5);
 		emit on_address(0xAb3BB3C6111ff74A280B3A560eB204FC9538061E);
-		name = n;
-		
+		name = n;		
     }
 }

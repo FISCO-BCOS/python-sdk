@@ -77,5 +77,5 @@ def get_Gy():
 def get_n():
     return int(sm2_param_n, 16)
 
-set_q(int(sm2_param_p, 16))
 
+set_q(int(sm2_param_p, 16))

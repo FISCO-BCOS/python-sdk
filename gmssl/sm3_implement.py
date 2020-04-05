@@ -66,7 +66,8 @@ def sm3_cf(v_i, b_i):
 
     for j in range(16, 68):
         w.append(0)
-        w[j] = sm3_p_1(w[j - 16] ^ w[j - 9] ^ (rotl(w[j - 3], 15 % 32))) ^ (rotl(w[j - 13], 7 % 32)) ^ w[j - 6]
+        w[j] = sm3_p_1(w[j - 16] ^ w[j - 9] ^ (rotl(w[j - 3], 15 % 32))
+                       ) ^ (rotl(w[j - 13], 7 % 32)) ^ w[j - 6]
         str1 = "%08x" % w[j]
     w_1 = []
     for j in range(0, 64):
@@ -145,6 +146,8 @@ def sm3_hash(in_msg):
 
 # key : bytes
 # in_msg: bytes
+
+
 def sm3_hmac(key, in_msg):
     ipad = [0x36 for i in range(64)]
     opad = [0x5c for i in range(64)]
@@ -159,6 +162,7 @@ def sm3_hmac(key, in_msg):
     h1 = sm3_hash(list(bytes(ipad) + in_msg))
     return sm3_hash(opad + list(bytes.fromhex(h1)))
 
+
 class SM3():
     GROUP_BYTES = 64
 
@@ -166,7 +170,7 @@ class SM3():
         self.B = []
         self.V = []
         self.msg = []
-        self.msg_len = 0;
+        self.msg_len = 0
         self.V.append(IV)
 
     def _add_msg(self, msg=[]):
@@ -246,6 +250,7 @@ def sm3_kdf(z, klen):  # z为16进制表示的比特串（str），klen为密钥
         ha = ha + sm3_hash(msg)
         ct += 1
     return ha[0: klen * 2]
+
 
 def sm3_kdf_ex(z, klen):  # z为16进制表示的比特串（str），klen为密钥长度（单位byte）
     klen = int(klen)

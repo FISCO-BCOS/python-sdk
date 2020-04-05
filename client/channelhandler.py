@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -30,6 +30,7 @@ from utils.encoding import FriendlyJsonSerde
 from client.bcoserror import BcosError, ChannelException
 from eth_utils import (to_text, to_bytes)
 from client.channel_push_dispatcher import ChannelPushDispatcher
+
 
 class ChannelHandler(threading.Thread):
     context = None
@@ -113,8 +114,8 @@ class ChannelHandler(threading.Thread):
                         self.callbackEmitter.emit(emitter_str, responsepack)
                         self.lock.release()
                     else:
-                        #并非客户端指定的等待接受的来自节点的包，可能是push来的消息，包括amop，event push等
-                        #独立接口处理
+                        # 并非客户端指定的等待接受的来自节点的包，可能是push来的消息，包括amop，event push等
+                        # 独立接口处理
                        # print("push  type ",hex(responsepack.type) )
                         self.pushDispacher.push(responsepack)
                 except Empty:
@@ -174,7 +175,7 @@ class ChannelHandler(threading.Thread):
     errorMsg[101] = "sdk unreachable"
     errorMsg[102] = "timeout"
 
-    def make_channel_request(self,data, packet_type,
+    def make_channel_request(self, data, packet_type,
                              response_type=None):
         seq = ChannelPack.make_seq32()
         request_pack = ChannelPack(packet_type, seq, 0, data)
@@ -191,7 +192,7 @@ class ChannelHandler(threading.Thread):
         rpc_onresponse_emitter_str = None
         rpc_result_emitter_str = None
         if response_type is ChannelPack.TYPE_TX_COMMITTED \
-            or response_type is ChannelPack.CLIENT_REGISTER_EVENT_LOG:
+                or response_type is ChannelPack.CLIENT_REGISTER_EVENT_LOG:
             rpc_onresponse_emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                                       seq, packet_type)
             self.requests.append(rpc_onresponse_emitter_str)
@@ -202,6 +203,7 @@ class ChannelHandler(threading.Thread):
             self.lock.release()
         emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
                                                    seq, response_type)
+
         def resolve_promise(resolve, reject):
             """
             resolve promise
@@ -229,9 +231,7 @@ class ChannelHandler(threading.Thread):
                                  response_type=ChannelPack.TYPE_RPC):
         rpc_data = self.encode_rpc_request(method, params)
         self.logger.debug("request rpc_data : {}".format(rpc_data))
-        return self.make_channel_request(rpc_data,packet_type,response_type)
-
-
+        return self.make_channel_request(rpc_data, packet_type, response_type)
 
     def setBlockNumber(self, blockNumber):
         """
@@ -315,7 +315,7 @@ class ChannelHandler(threading.Thread):
                 #print("receive event register result: seq: {} type:{}".format(responsepack.seq, responsepack.type))
                 self.callbackEmitter.emit(emitter_str, responsepack.data, 0)
             elif responsepack.type == ChannelPack.EVENT_LOG_PUSH:
-                print("event log push:",responsepack.data)
+                print("event log push:", responsepack.data)
         except Exception as e:
             self.logger.error("decode response failed, seq:{}, type:{}, error info: {}"
                               .format(responsepack.seq, responsepack.type, e))
@@ -376,7 +376,7 @@ class ChannelRecvThread(threading.Thread):
         # -1 means no enough bytes for decode, should break to  continue read and wait
         while code != -1:
             (code, decodelen, responsePack) = ChannelPack.unpack(bytes(self.respbuffer))
-            #print("respbuffer:",self.respbuffer)
+            # print("respbuffer:",self.respbuffer)
             if decodelen > 0:
                 # cut the buffer from last decode  pos
                 self.respbuffer = self.respbuffer[decodelen:]

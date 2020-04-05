@@ -11,7 +11,7 @@ if(True):
     parser.load_abi_file("sample/SimpleInfo.abi")
     parser.parse_abi()
 
-    with open("sample/receipt.json","r") as f :
+    with open("sample/receipt.json", "r") as f:
         receipt = json.load(f)
         f.close()
     logs = receipt["logs"]
@@ -19,14 +19,14 @@ if(True):
     print("parse result")
     for log in logs:
         print(log)
-    result = parser.parse_receipt_output("set",receipt['output'])
-    print("output :",result)
+    result = parser.parse_receipt_output("set", receipt['output'])
+    print("output :", result)
 
 if True:
     parser = DatatypeParser()
     parser.load_abi_file("sample/SimpleInfo.abi")
     parser.parse_abi()
-    with open("sample/tx_simpleinfo_set.json","r") as f :
+    with open("sample/tx_simpleinfo_set.json", "r") as f:
         tx = json.load(f)
         f.close()
     result = parser.parse_transaction_input(tx["input"])

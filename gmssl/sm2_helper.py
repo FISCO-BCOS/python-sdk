@@ -8,19 +8,24 @@
 import math
 from .sm2_parameter import *
 
+
 class Point(object):
-    def __init__(self,x=0,y=0):
-        self._x=x
-        self._y=y
+    def __init__(self, x=0, y=0):
+        self._x = x
+        self._y = y
+
     @property
     def x(self):
         return self._x
+
     @x.setter
     def x(self, value):
         self._x = value
+
     @property
     def y(self):
         return self._y
+
     @y.setter
     def y(self, value):
         self._y = value
@@ -30,8 +35,9 @@ class Point(object):
     def isnearby(self,p):
         return((self.x-p.x)**2+(self.y-p.y)**2)**0.5
     '''
+
     def __str__(self):
-        return '('+str(self.x)+', '+str(self.y)+')'
+        return '(' + str(self.x) + ', ' + str(self.y) + ')'
 
 
 def remove_0b_at_beginning(a):
@@ -54,7 +60,7 @@ def padding_0_to_length(S, length):
 
 
 '''
-input：非负整数x，以及字节串的目标长度k  
+input：非负整数x，以及字节串的目标长度k
 output：长度为k的字节串M
 '''
 
@@ -99,7 +105,7 @@ def bytes_to_int(M):
         x = x * 256 + int(b)
     '''
     while (i < k):
-        x = x + int( M[k-i-1:k-i] ) * (2**(8*i)) 
+        x = x + int( M[k-i-1:k-i] ) * (2**(8*i))
         i = i + 1
     '''
     return x
@@ -143,7 +149,7 @@ def bits_to_bytes(s):
         M.reverse()
     else:
         print("*** ERROR: 输入必须为比特串 *** function：bits_to_bytes(s) ***")
-        return -1;
+        return -1
     return M
 
 
@@ -186,6 +192,8 @@ def bytes_to_bits(M):
 input：Fq中的元素a，模数q
 output：长度l=t/8（取上整）的字节串S，其中t=lb(q)(取上整)
 '''
+
+
 def ele_to_bytes(a):
     # print("--- 域元素到字节串的转换 ---")
     S = []
@@ -197,9 +205,9 @@ def ele_to_bytes(a):
             S = int_to_bytes(a, l)
         else:
             print("*** ERROR: 域元素须在区间[0, q-1]上 *** function：ele_to_bytes(a) ***")
-            return -1;
+            return -1
     elif is_q_power_of_two():  # q为2的幂
-        if type(a) == str and a[0:2] == '0b':
+        if isinstance(a, str) and a[0:2] == '0b':
             m = math.ceil(math.log(q, 2))
             a = padding_0_to_length(a, m)
             '''temp = a
@@ -214,13 +222,13 @@ def ele_to_bytes(a):
                 S = bits_to_bytes(a)
             else:
                 print("*** ERROR: 域元素必须为长度为m的比特串 *** function：ele_to_bytes(a)")
-                return -1;
+                return -1
         else:
             print("*** ERROR: 输入必须为比特串 *** function：ele_to_bytes(a) ***")
-            return -1;
+            return -1
     else:
         print("*** ERROR: q不满足奇素数或2的幂 *** function：ele_to_bytes(a) ***")
-        return -1;
+        return -1
     return S
 
 
@@ -244,7 +252,7 @@ def bytes_to_ele(q, S):
         a = bytes_to_int(S)
         if not (a >= 0 and a <= q - 1):
             print("*** ERROR: 域元素须在区间[0, q-1]上 *** function：bytes_to_ele(q, S) ***")
-            return -1;
+            return -1
     elif is_q_power_of_two():  # q为2的幂
         m = math.ceil(math.log(q, 2))
         a = padding_0_to_length(a, m)
@@ -259,10 +267,10 @@ def bytes_to_ele(q, S):
                                     a = a + temp[i+2]'''
         if not len(a) - 2 == m:
             print("*** ERROR: 域元素必须为长度为m的比特串 *** function：bytes_to_ele(q, S)")
-            return -1;
+            return -1
     else:
         print("*** ERROR: q不满足奇素数或2的幂 *** function：bytes_to_ele(q, S) ***")
-        return -1;
+        return -1
     return a
 
 
@@ -312,7 +320,7 @@ def ele_to_int(a):
     if (is_q_prime() and q % 2 == 1):  # q为奇素数
         x = a
     elif is_q_power_of_two():  # q为2的幂
-        if type(a) == str and a[0:2] == '0b':
+        if isinstance(a, str) and a[0:2] == '0b':
             m = math.log(q, 2)
             if len(a) - 2 == m:
                 # a = a.replace('0b', '')
@@ -321,13 +329,13 @@ def ele_to_int(a):
                     x = x * 2 + int(i)
             else:
                 print("*** ERROR: 域元素必须为长度为m的比特串 *** function：ele_to_int(a, q)")
-                return -1;
+                return -1
         else:
             print("*** ERROR: 输入必须为比特串 *** function：ele_to_int(a, q) ***")
-            return -1;
+            return -1
     else:
         print("*** ERROR: q不满足奇素数或2的幂 *** function：ele_to_int(a, q) ***")
-        return -1;
+        return -1
     return x
 
 
@@ -419,7 +427,7 @@ def point_to_bytes(point):
     return S
 
 
-### test point_to_bytes
+# test point_to_bytes
 # config.set_q(211)
 # point = Point(142, 15)
 # print(point_to_bytes(point))
@@ -472,9 +480,9 @@ def bytes_to_point(a, b, S):
         print('ERROR in bytes_to_point')
     # f.
     result = 0
-    if (type(x) != type(1)):
+    if (not isinstance(x, type(1))):
         x = int(x, 2)
-    if (type(y) != type(1)):
+    if (not isinstance(y, type(1))):
         y = int(y, 2)
     if (is_q_prime() and q % 2 == 1):  # q为奇素数
         if (y ** 2) % q != (x ** 3 + a * x + b) % q:
@@ -508,6 +516,8 @@ def str_to_bytes(x):
 ##########################################################################################
 
 # 多项式加法单位元 #
+
+
 def polynomial_zero():
     return '0b0'
 
@@ -618,11 +628,13 @@ def polynomial_a_mod_b(a, b):
 ##########################################################################################
 
 # 判断是否为有限域元素 #
+
+
 def in_field(a):
     q = get_q()
     # q 为奇素数
     if is_q_prime() and q > 2:
-        if not (a >= 0 and a<= q-1):
+        if not (a >= 0 and a <= q - 1):
             print("*** ERROR: a不是有限域中元素 *** function: in_field ***")
             return False
         else:
@@ -630,7 +642,7 @@ def in_field(a):
     # q 为 2 的幂
     elif is_q_power_of_two():
         m = math.log2(q)
-        if (len(a)-2) > m:
+        if (len(a) - 2) > m:
             print("*** ERROR: a 不是有限域元素 *** function: in_field ***")
             return False
         else:
@@ -661,10 +673,12 @@ def field_ele_zero():
         print("*** ERROR: 模数q不是奇素数或者2的幂 *** function: field_ele_zero ***")
         return -1
 ### test field_ele_zero ###
-#config.set_q(16)
-#print(field_ele_zero())
+# config.set_q(16)
+# print(field_ele_zero())
 
 # 有限域乘法单位元 #
+
+
 def field_ele_one():
     q = get_q()
     # q 为奇素数
@@ -682,8 +696,9 @@ def field_ele_one():
         print("*** ERROR: 模数q不是奇素数或者2的幂 *** function: field_ele_one ***")
         return -1
 ### test field_ele_one ###
-#config.set_q(16)
-#print(field_ele_one())
+# config.set_q(16)
+# print(field_ele_one())
+
 
 # 3.1 有限域计算 #
 # 有限域加法 #
@@ -691,6 +706,8 @@ def field_ele_one():
 input: 域元素 a 和 b
 output: 域元素 (a+b)
 '''
+
+
 def field_ele_add(a, b):
     #print("--- 有限域 加法 ---")
 
@@ -720,16 +737,19 @@ def field_ele_add(a, b):
         print("*** ERROR: 模数q不是奇素数或者2的幂 *** function: field_ele_add ***")
         return -1
 ### test field_ele_add ###
-#config.set_q(997)
+# config.set_q(997)
 #print(field_ele_add(996, 2))
-#config.set_q(1024)
+# config.set_q(1024)
 #print(field_ele_add('0b1010101010', '0b1111111100'))
+
 
 # 有限域加法逆元 #
 '''
 input: 域元素 a
 output: a 的逆元素
 '''
+
+
 def field_ele_inverse_add(a):
     q = get_q()
     # q 为奇素数
@@ -751,25 +771,31 @@ def field_ele_inverse_add(a):
         print("*** ERROR: 模数q不是奇素数或2的幂 *** function: field_ele_inverse_add ***")
         return -1
 ### test field_ele_inverse_add ###
-#config.set_q(23)
-#print(field_ele_inverse_add(8))
-#config.set_q(16)
-#config.set_fx('0b10011')
-#print(field_ele_inverse_add('0b0101'))
+# config.set_q(23)
+# print(field_ele_inverse_add(8))
+# config.set_q(16)
+# config.set_fx('0b10011')
+# print(field_ele_inverse_add('0b0101'))
+
 
 # 有限域减法 #
 '''
 input: 被减元素 a 和减元素 b
 output: 域元素 (a-b)
 '''
+
+
 def field_ele_sub(a, b):
     return field_ele_add(a, field_ele_inverse_add(b))
+
 
 # 有限域乘法 #
 '''
 input: 域元素 a 和 b
 output: 域元素 (a*b)
 '''
+
+
 def field_ele_times(a, b):
     #print("--- 有限域 乘法 ---")
 
@@ -797,17 +823,20 @@ def field_ele_times(a, b):
         print("*** ERROR: 模数q不是奇素数或2的幂 *** function: field_ele_times ***")
         return -1
 ### test field_ele_time ###
-#config.set_q(997)
+# config.set_q(997)
 #print(field_ele_times(56, 46))
-#config.set_q(16)
-#config.set_fx('0b10011')
+# config.set_q(16)
+# config.set_fx('0b10011')
 #print(field_ele_times('0b0100', '0b1110'))
+
 
 # 有限域幂运算 #
 '''
 iuput: 域元素 g 和 幂次 a
 output: 域元素 g**a
 '''
+
+
 def field_ele_g_pow_a(g, a):
     #print("--- 有限域 幂运算 ---")
 
@@ -821,7 +850,7 @@ def field_ele_g_pow_a(g, a):
             e = a % (q - 1)
             if e == 0:
                 return 1
-            r = int(math.log2(e))# + 1 - 1
+            r = int(math.log2(e))  # + 1 - 1
             x = g
             for i in range(0, r):
                 x = field_ele_times(x, x)
@@ -835,10 +864,10 @@ def field_ele_g_pow_a(g, a):
             print("*** ERROR: 参数不是二元扩域元素 *** function: field_ele_g_pow_a ***")
             return -1
         else:
-            e = a % (q -1)
+            e = a % (q - 1)
             if e == 0:
                 return polynomial_one()
-            r = int(math.log2(e))# + 1 - 1
+            r = int(math.log2(e))  # + 1 - 1
             x = g
             for i in range(0, r):
                 x = field_ele_times(x, x)
@@ -849,17 +878,20 @@ def field_ele_g_pow_a(g, a):
         print("*** ERROR: 模数q不是奇素数或2的幂 *** function: field_ele_g_pow_a ***")
         return -1
 ### test field_ele_g_pow_a ###
-#config.set_q(23)
+# config.set_q(23)
 #print(field_ele_g_pow_a(8, 2))
-#config.set_q(16)
-#config.set_fx('0b10011')
+# config.set_q(16)
+# config.set_fx('0b10011')
 #print(field_ele_g_pow_a('0b0010', 9))
+
 
 # 有限域逆元素 #
 '''
 input: 元素 a
 output: 元素 a 的逆元素
 '''
+
+
 def field_ele_inverse_times(a):
     q = get_q()
     # q 为奇素数
@@ -881,41 +913,50 @@ def field_ele_inverse_times(a):
         print("*** ERROR: 模数q不是奇素数或2的幂 *** function: field_ele_inverse_times ***")
         return -1
 ### test field_ele_inverse_times ###
-#config.set_q(23)
-#print(field_ele_inverse_times(8))
-#config.set_q(16)
-#config.set_fx('0b10011')
-#print(field_ele_inverse_times('0b0010'))
+# config.set_q(23)
+# print(field_ele_inverse_times(8))
+# config.set_q(16)
+# config.set_fx('0b10011')
+# print(field_ele_inverse_times('0b0010'))
+
 
 # 有限域除法 #
 '''
 input: 被除数 a 和除数 b
 output: 除法所得商
 '''
+
+
 def field_ele_a_devide_b(a, b):
     #print("--- 有限域 除法 ---")
     return field_ele_times(a, field_ele_inverse_times(b))
 ### test field_ele_a_devide_b ###
-#config.set_q(23)
+# config.set_q(23)
 #print(field_ele_a_devide_b(3, 8))
-#config.set_q(16)
-#config.set_fx('0b10011')
+# config.set_q(16)
+# config.set_fx('0b10011')
 #print(field_ele_a_devide_b('0b1001', '0b0101'))
 
 # 3.2.3 椭圆曲线群 #
 
 # 椭圆曲线无穷远点 #
+
+
 def ECG_ele_zero():
     return Point(field_ele_zero(), field_ele_zero())
 
 # 椭圆曲线元素判断 #
 # 元素为零 #
+
+
 def ECG_ele_is_zero(p):
     if p.x == field_ele_zero() and p.y == field_ele_zero():
         return True
     else:
         return False
 # 元素互为逆元素 #
+
+
 def ECG_is_inverse_ele(p1, p2):
     q = get_q()
     # q 为素数
@@ -933,17 +974,22 @@ def ECG_is_inverse_ele(p1, p2):
         print("*** ERROR: q 不是素数或者 2 的幂 *** function: ECG_is_inverse_ele ***")
         return False
 # 元素相等 #
+
+
 def ECG_ele_equal(p1, p2):
     if p1.x == p2.x and p1.y == p2.y:
         return True
     else:
         return False
 
+
 # 椭圆曲线加法 #
 '''
 input: 椭圆曲线群中点 a 和 b
 output: 椭圆曲线群中点(a+b)
 '''
+
+
 def ECG_ele_add(p1, p2):
     # Fp 上的椭圆曲线群
     if is_q_prime():
@@ -986,13 +1032,13 @@ def ECG_ele_add(p1, p2):
             #x = lam**2 + lam + config.get_a()
             x = field_ele_add(field_ele_add(field_ele_g_pow_a(lam, 2), lam), get_a())
             #y = p1.x**2 + (lam + 1) * x
-            y = field_ele_add(field_ele_g_pow_a(p1.x, 2), \
-                field_ele_times(field_ele_add(lam, field_ele_one()), x))
+            y = field_ele_add(field_ele_g_pow_a(p1.x, 2),
+                              field_ele_times(field_ele_add(lam, field_ele_one()), x))
             return Point(x, y)
         else:
             #lam = (p1.y + p2.y) / (p1.x + p2.x)
-            lam = field_ele_a_devide_b(field_ele_add(p1.y, p2.y), \
-                field_ele_add(p1.x, p2.x))
+            lam = field_ele_a_devide_b(field_ele_add(p1.y, p2.y),
+                                       field_ele_add(p1.x, p2.x))
             #x = lam**2 + lam + p1.x + p2.x + config.get_a()
             t1 = field_ele_add(field_ele_g_pow_a(lam, 2), lam)
             t2 = field_ele_add(field_ele_add(p1.x, p2.x), get_a())
@@ -1003,11 +1049,14 @@ def ECG_ele_add(p1, p2):
             y = field_ele_add(t1, t2)
             return Point(x, y)
 
+
 # 椭圆曲线求 2 倍点 #
 '''
 input: 椭圆曲线点 p
 output: 点(P+P)
 '''
+
+
 def ECG_double_point(p):
     # Fp 上的椭圆曲线群
     if is_q_prime():
@@ -1027,8 +1076,8 @@ def ECG_double_point(p):
         else:
             lam = field_ele_add(p.x, field_ele_a_devide_b(p.y, p.x))
             x = field_ele_add(field_ele_add(field_ele_g_pow_a(lam, 2), lam), get_a())
-            y = field_ele_add(field_ele_g_pow_a(p.x, 2), \
-                field_ele_times(field_ele_add(lam, field_ele_one()), x))
+            y = field_ele_add(field_ele_g_pow_a(p.x, 2),
+                              field_ele_times(field_ele_add(lam, field_ele_one()), x))
             return Point(x, y)
 
 
@@ -1037,10 +1086,12 @@ def ECG_double_point(p):
 input: 倍数 k 和椭圆曲线点 p
 output: p 的 k 倍点
 '''
+
+
 def ECG_k_point(k, p):
     #print('[' + str(k) + ']P')
-    l = int(math.log2(k)) + 1# - 1
-    #print(l)
+    l = int(math.log2(k)) + 1  # - 1
+    # print(l)
     point_q = ECG_ele_zero()
     for i in range(0, l):
         #print('i = ' + str(i))
@@ -1056,27 +1107,28 @@ def ECG_k_point(k, p):
             #print('add:' + str(t_end - t_start))
     return point_q
 
+
 def fix_integer(num):
     int_hex = hex(num)[2:]
-    return '0'*(64-len(int_hex)) + int_hex
+    return '0' * (64 - len(int_hex)) + int_hex
 
 
 # Fp 椭圆曲线测试 #
-#config.set_q(23)
-#config.set_a(1)
-#config.set_b(1)
+# config.set_q(23)
+# config.set_a(1)
+# config.set_b(1)
 ### test ECG_ele_add ###
-#print(ECG_ele_add(Point(3, 10), Point(9, 7)))   #(3, 10) + (9, 7) = (17, 20)
+# print(ECG_ele_add(Point(3, 10), Point(9, 7)))   #(3, 10) + (9, 7) = (17, 20)
 ### test ECG_double_point ###
-#print(ECG_double_point(Point(3, 10)))   # 2(3, 10) = (7, 12)
+# print(ECG_double_point(Point(3, 10)))   # 2(3, 10) = (7, 12)
 ### test ECG_k_point ###
 #print(ECG_k_point(3, Point(3, 10)))
 
 # F2^m 椭圆曲线测试 #
-#config.set_q(32)
-#config.set_fx('0b100101')
-#config.set_a('0b00001')
-#config.set_b('0b00001')
+# config.set_q(32)
+# config.set_fx('0b100101')
+# config.set_a('0b00001')
+# config.set_b('0b00001')
 ### test ECG_ele_add ###
 # (01010, 11000) + (01000, 11111) = (11110, 10101)
 #print(ECG_ele_add(Point('0b01010', '0b11000'), Point('0b01000', '0b11111')))
@@ -1092,6 +1144,8 @@ def fix_integer(num):
 input: 有效的椭圆曲线系统参数集合
 output: 与输入参数相关的一个密钥对(d, P)
 '''
+
+
 def key_pair_generation(privkey=None):
     '''
     config.set_q(parameters['q'])
@@ -1109,8 +1163,8 @@ def key_pair_generation(privkey=None):
     if privkey is None:
         d = random.randint(1, n - 2)
     else:
-        if isinstance(privkey ,str):
-            privkey = int(privkey,16)
+        if isinstance(privkey, str):
+            privkey = int(privkey, 16)
         d = privkey
     p = ECG_k_point(d, point_g)
     keypair = []
@@ -1118,7 +1172,8 @@ def key_pair_generation(privkey=None):
     keypair.append(p)
     return keypair
 
-def sm2_privkey_to_pub(privkey,toupper=False):
+
+def sm2_privkey_to_pub(privkey, toupper=False):
     keypair = key_pair_generation(privkey)
     pair = sm2_key_pair_gen(keypair)
     if toupper:
@@ -1126,19 +1181,21 @@ def sm2_privkey_to_pub(privkey,toupper=False):
     return pair[1]
 
 # 产生密钥对 #
+
+
 def sm2_key_pair_gen(key_pair=None):
     if(key_pair is None):
         key_pair = key_pair_generation()
     prive_key = key_pair[0]
     pub_key = bytes_to_str(point_to_bytes(key_pair[1]))
 
-    #print("~私钥")
-    #print(hex(prive_key))
+    # print("~私钥")
+    # print(hex(prive_key))
 
-    #print("!公钥")
+    # print("!公钥")
     a = get_a()
     b = get_b()
     point = (bytes_to_point(a, b, str_to_bytes(pub_key)))
     #print(hex(point.x), hex(point.y))
 
-    return fix_integer(prive_key), fix_integer(point.x)+fix_integer(point.y)
+    return fix_integer(prive_key), fix_integer(point.x) + fix_integer(point.y)

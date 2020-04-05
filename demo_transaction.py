@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -20,8 +20,8 @@ from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 from client.bcoserror import BcosException, BcosError
 from client_config import client_config
-
-
+import sys
+import traceback
 # 从文件加载abi定义
 if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
     Compiler.compile_file("contracts/HelloWorld.sol")
@@ -45,9 +45,8 @@ try:
     contract_name = os.path.splitext(os.path.basename(abi_file))[0]
     memo = "tx:" + result["transactionHash"]
     # 把部署结果存入文件备查
-    ContractNote.save_address(contract_name,
-                              result["contractAddress"],
-                              int(result["blockNumber"], 16), memo)
+    ContractNote.save_address_to_contract_note(contract_name,
+                                               result["contractAddress"])
     # 发送交易，调用一个改写数据的接口
     print("\n>>sendRawTransaction:----------------------------------------------------")
     to_address = result['contractAddress']  # use new deploy address
@@ -87,9 +86,16 @@ try:
     print("call getname:", res)
     res = client.call(to_address, contract_abi, "getall")
     print("call getall result:", res)
-    print("demo_tx,total req {}".format(client.request_counter))
-    client.finish()
+    print("done,demo_tx,total req {}".format(client.request_counter))
+
 except BcosException as e:
-    print("execute demo_transaction failed for: {}".format(e))
+    print("execute demo_transaction failed ,BcosException for: {}".format(e))
+    traceback.print_exc()
 except BcosError as e:
-    print("execute demo_transaction failed for: {}".format(e))
+    print("execute demo_transaction failed ,BcosError for: {}".format(e))
+    traceback.print_exc()
+except Exception as e:
+    client.finish()
+    traceback.print_exc()
+client.finish()
+sys.exit(0)

@@ -71,6 +71,7 @@ class ContextFramesBytesIO(io.BytesIO):
     sense out of object B's offset, it needs to be positioned in the context of
     its enclosing object's frame (object A).
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

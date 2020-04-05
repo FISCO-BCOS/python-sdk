@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/FISCO-BCOS)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0
+  (https://github.com/FISCO-BCOS/FISCO-BCOS)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it
   under the terms of the MIT License as published by the Free Software Foundation
   This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
   without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
@@ -14,10 +15,10 @@
 import os
 import sys
 import platform
-from client_config import  client_config
+from client_config import client_config
 platsys = platform.system()
 solc_bin = client_config.solc_path
-solc_option = "--abi --bin --overwrite"
+solc_option = "--abi --bin --bin-runtime --overwrite"
 solc_default_output = "./contracts"
 
 if platsys.lower().startswith("win"):
@@ -90,7 +91,8 @@ def print_solc_url():
         i += 1
         print("{} ): {}  :  {}".format(i, url[0], url[1]))
     print("\n>>>TIPS:")
-    print('''1. Download the solc binary according to your OS type (e.g. Linux/Windows) and solidity version.
+    print(
+        '''1. Download the solc binary according to your OS type (e.g. Linux/Windows) and solidity version.
 2. Copy the solc binary to {python-sdk}/bin/solc/.
 3. Make sure that the name of solc binary file is renamed to "solc",
 or update the solc binary path constant in python-sdk/solcpy.py.''')

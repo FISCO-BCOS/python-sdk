@@ -13,6 +13,8 @@ import random
 input: 底数 g , 指数 a 和模数 p
 output: (g**a)mod p
 '''
+
+
 def fast_pow(g, a, p):
     e = int(a % (p - 1))
     if e == 0:

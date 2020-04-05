@@ -32,6 +32,9 @@ cur_path=$(execute_cmd "pwd")
 # build blockchain
 function build_blockchain()
 {
+  if [ -f "nodes/127.0.0.1/stop_all.sh" ];then
+    execute_cmd "bash nodes/127.0.0.1/stop_all.sh"
+  fi
   execute_cmd "rm -rf nodes"
   # download build_chain.sh
   execute_cmd "curl -LO https://raw.githubusercontent.com/FISCO-BCOS/FISCO-BCOS/master/tools/build_chain.sh && chmod u+x build_chain.sh"
@@ -64,7 +67,7 @@ function stop_nodes()
 
 function getBlockNumber()
 {
-    execute_cmd "python console.py getBlockNumber | grep -v INFO | awk -F'>' '{print \$3}' | awk '\$1=\$1'"
+    execute_cmd "python console.py getBlockNumber | grep -v INFO | awk -F':' '{print \$2}' | awk '\$1=\$1'"
 }
 
 # test the common jsonRPC interface
@@ -308,7 +311,7 @@ function test_consensus_precompile()
 function get_config_by_key()
 {
     key="${1}"
-    value=$(execute_cmd "python console.py \"getSystemConfigByKey\" \${key} | grep -v INFO | awk -F'>' '{print \$3}' | awk '\$1=\$1'")
+    value=$(execute_cmd "python console.py \"getSystemConfigByKey\" \${key} | grep -v INFO | awk -F':' '{print \$2}' | awk '\$1=\$1'")
     echo "${value}"
 }
 

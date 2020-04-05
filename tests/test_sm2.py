@@ -9,8 +9,8 @@ if __name__ == '__main__':
     public_key = 'B9C9A6E04E9C91F7BA880429273747D7EF5DDEB0BB2FF6317EB00BEF331A83081A6994B8993F3F5D6EADDDB81872266C87C018FB4162F5AF347B483E24620207'
 
     kp = sm2_helper.sm2_key_pair_gen()
-    print( "key_pair_gen:",kp )
-    pub = sm2_helper.sm2_privkey_to_pub(private_key,True)
+    print("key_pair_gen:", kp)
+    pub = sm2_helper.sm2_privkey_to_pub(private_key, True)
     print("key gen by privatekey:")
     print(pub)
     print(public_key)
@@ -26,10 +26,10 @@ if __name__ == '__main__':
 
     print("-----------------test sign and verify---------------")
     #random_hex_str = func.random_hex(sm2_crypt.para_len)
-    (R,S) = sm2_crypt.sign(data)
-    print("signed r s = ",R,S)
-    sign = sm2_crypt.combine_signed_R_S(R,S)
-    print('sign:%s' %sign )
+    (R, S) = sm2_crypt.sign(data)
+    print("signed r s = ", R, S)
+    sign = sm2_crypt.combine_signed_R_S(R, S)
+    print('sign:%s' % sign)
     verify = sm2_crypt.verify(sign, data)
     print('verify:%s' % verify)
     assert verify

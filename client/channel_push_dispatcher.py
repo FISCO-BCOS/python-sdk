@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -28,7 +28,7 @@ class ChannelPushDispatcher (threading.Thread):
     dispatch_register = dict()
     keepWorking = False
     logger = clientlogger.logger
-    pushQueue = queue.Queue(1024*10)
+    pushQueue = queue.Queue(1024 * 10)
     lock = threading.RLock()
 
     def __init__(self):
@@ -96,8 +96,9 @@ class ChannelPushDispatcher (threading.Thread):
                     handler.on_push(packmsg)
         except Exception as e:
             print("{} push handler error {},{},{}".format(self.name, e, packmsg.type, packmsg.data))
-            self.logger.error("{} push handler error {},{},{}".format(
-                self.name, e, packmsg.type, packmsg.data))
+            self.logger.error(
+                "{} push handler error {},{},{}".format(
+                    self.name, e, packmsg.type, packmsg.data))
         finally:
             self.lock.release()
 
