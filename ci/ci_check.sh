@@ -174,28 +174,28 @@ function test_permission_precompile()
     # grantPermissionManager
     execute_cmd "python console.py grantPermissionManager ${account}"
     # listPermissionManager
-    execute_cmd "python console.py listPermissionManager | grep ${account}"
+    execute_cmd "python console.py listPermissionManager | grep -i ${account}"
     granted_account="0xcDF16CeF9004b1ECCf464Ae559996712E250D5A9"
      # grantNodeManager
     execute_cmd "python console.py grantNodeManager ${granted_account}"
     # listNodeManager
-    execute_cmd "python console.py listNodeManager | grep ${granted_account}"
+    execute_cmd "python console.py listNodeManager | grep -i ${granted_account}"
     # grantCNSManager
     execute_cmd "python console.py grantCNSManager ${granted_account}"
     # listCNSManager
-    execute_cmd "python console.py listCNSManager | grep ${granted_account}"
+    execute_cmd "python console.py listCNSManager | grep -i ${granted_account}"
     # grantSysConfigManager
     execute_cmd "python console.py grantSysConfigManager ${granted_account}"
     # listSysConfigManager
-    execute_cmd "python console.py listSysConfigManager | grep ${granted_account}"
+    execute_cmd "python console.py listSysConfigManager | grep -i ${granted_account}"
     # grantUserTableManager
     execute_cmd "python console.py grantUserTableManager ${table} ${granted_account}"
     # listUserTableManager
-    execute_cmd "python console.py listUserTableManager ${table} |grep ${granted_account}"
+    execute_cmd "python console.py listUserTableManager ${table} |grep -i ${granted_account}"
     # grantDeployAndCreateManager
     execute_cmd "python console.py grantDeployAndCreateManager ${granted_account}"
     # listDeployAndCreateManager
-    execute_cmd "python console.py listDeployAndCreateManager | grep ${granted_account}"
+    execute_cmd "python console.py listDeployAndCreateManager | grep -i ${granted_account}"
 
     # call revoke
     # revokeUserTableManager
@@ -212,10 +212,10 @@ function test_permission_precompile()
     execute_cmd "python console.py revokePermissionManager ${granted_account}"
 
     # call list again
-    python console.py listUserTableManager ${table}| grep ${granted_account}
+    python console.py listUserTableManager ${table}| grep -i ${granted_account}
     command_list="listDeployAndCreateManager listNodeManager listCNSManager listSysConfigManager listPermissionManager"
     for command in ${command_list};do
-        python console.py ${command} | grep ${granted_account}
+        python console.py ${command} | grep -i ${granted_account}
     done
 }
 
