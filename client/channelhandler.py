@@ -46,7 +46,6 @@ class ChannelHandler(threading.Thread):
     recvThread = None
     sendThread = None
     keepWorking = False
-    pushDispacher = ChannelPushDispatcher()
 
     def __init__(self, max_timeout=10, name="channelHandler"):
         self.timeout = max_timeout
@@ -141,6 +140,7 @@ class ChannelHandler(threading.Thread):
             self.recvThread.start()
             self.sendThread = ChannelSendThread(self)
             self.sendThread.start()
+            self.pushDispacher = ChannelPushDispatcher()
             self.pushDispacher.start()
             super().start()
         except Exception as e:
