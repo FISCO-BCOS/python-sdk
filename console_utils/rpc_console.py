@@ -184,8 +184,8 @@ class RPCConsole:
             hisdetail = ContractNote.get_address_history(result["to"])
             if hisdetail is not None:
                 contractname = hisdetail["name"]
-            print(
-                "transaction to contract : {} (deploy time: {})".format(
+                print(
+                    "transaction to contract : {} (deploy time: {})".format(
                     contractname,
                     hisdetail["timestr"]))
         if contractname is None:
