@@ -1,8 +1,6 @@
 FROM python:3.7-alpine
 
-MAINTAINER 99kies 1290017556@qq.com https://github.com/99kies
-
-USER root
+ENV USER root
 
 RUN mkdir /python-sdk
 
