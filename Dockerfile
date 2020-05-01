@@ -21,8 +21,7 @@ RUN cd /python-sdk && \
 
 COPY . /python-sdk
 
-RUN cd /python-sdk && \
-    bash init_env.sh -i && \
+RUN cd /python-sdk && bash init_env.sh -i && \
     cp /python-sdk/nodes/127.0.0.1/sdk/* bin/ && \
     ln -s /root/.local/bin/register-python-argcomplete /bin/register-python-argcomplete && \
     echo "eval \"\$(register-python-argcomplete ./console.py)\"" >> ~/.bashrc && \
