@@ -14,15 +14,16 @@ COPY requirements.txt /requirements.txt
 
 RUN pip install -r /requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir
 
-RUN bash && \
-    export PATH=/root/.local/bin/:$PATH && \
+RUN export PATH=/root/.local/bin/:$PATH && \
     cd /python-sdk && \
+    bash && \
     curl -LO https://github.com/FISCO-BCOS/FISCO-BCOS/releases/download/$(curl -s https://api.github.com/repos/FISCO-BCOS/FISCO-BCOS/releases | grep "\"v2\.[0-9]\.[0-9]\"" | sort -u | tail -n 1 | cut -d \" -f 4)/build_chain.sh && chmod u+x build_chain.sh && \
     bash build_chain.sh -l "127.0.0.1:4" -p 30300,20200,8545
 
 COPY . /python-sdk
 
-RUN bash init_env.sh -i && \
+RUN cd /python-sdk && \
+    bash init_env.sh -i && \
     cp /python-sdk/nodes/127.0.0.1/sdk/* bin/ && \
     ln -s /root/.local/bin/register-python-argcomplete /bin/register-python-argcomplete && \
     echo "eval \"\$(register-python-argcomplete ./console.py)\"" >> ~/.bashrc && \
