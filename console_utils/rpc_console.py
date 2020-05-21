@@ -250,6 +250,17 @@ class RPCConsole:
             json_str = int(json_str, 16)
         return json_str
 
+    def convertHexToDec(self, cmd, json_str):
+        if cmd == "getTotalTransactionCount":
+            json_str["blockNumber"] = int(json_str["blockNumber"], 16)
+            json_str["failedTxSum"] = int(json_str["failedTxSum"], 16)
+            json_str["txSum"] = int(json_str["txSum"], 16)
+        elif cmd == "getPendingTxSize" or cmd == "getPbftView":
+            if isinstance(json_str, int):
+                return json_str
+            json_str = int(json_str, 16)
+        return json_str
+
     def exec_command(self, cmd, params):
         """
         exec_command
