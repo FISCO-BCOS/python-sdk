@@ -2,6 +2,8 @@ FROM python:3.7-alpine
 
 ENV USER root
 
+ENV PATH /root/.local/bin/:$PATH 
+
 RUN mkdir /python-sdk
 
 WORKDIR /python-sdk
@@ -14,8 +16,7 @@ COPY requirements.txt /requirements.txt
 
 RUN pip install -r /requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir
 
-RUN export PATH=/root/.local/bin/:$PATH && \
-    curl -LO https://github.com/FISCO-BCOS/FISCO-BCOS/releases/download/$(curl -s https://api.github.com/repos/FISCO-BCOS/FISCO-BCOS/releases | grep "\"v2\.[0-9]\.[0-9]\"" | sort -u | tail -n 1 | cut -d \" -f 4)/build_chain.sh && chmod u+x build_chain.sh && \
+RUN curl -LO https://github.com/FISCO-BCOS/FISCO-BCOS/releases/download/$(curl -s https://api.github.com/repos/FISCO-BCOS/FISCO-BCOS/releases | grep "\"v2\.[0-9]\.[0-9]\"" | sort -u | tail -n 1 | cut -d \" -f 4)/build_chain.sh && chmod u+x build_chain.sh && \
     bash build_chain.sh -l "127.0.0.1:4" -p 30300,20200,8545
 
 COPY . /python-sdk
