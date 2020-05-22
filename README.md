@@ -197,16 +197,24 @@ solc_path = "bin/solc/solc-gm" #合约编译器配置，请确认文件存在，
 **Event事件回调**
  -  针对已经部署在链上某个地址的合约，先注册要监听的事件，当合约被交易调用，且生成事件时，节点可以向客户端推送相应的事件
  -  事件定义如有indexed类型的输入，可以指定监听某个特定值作为过滤，如事件定义为 on_set(string name,int indexed value),可以增加一个针对value的topic监听，只监听value=5的事件
- -  具体实现参考event_callback.py,使用的命令行为：
+ -  具体实现参考demo_event_callback.py,使用的命令行为：
 ```bash
-params: [contractname] [address(可以为last)] [event_name] [indexed value(根据event定义，可以为多个)]
+params: contractname address event_name indexed
+        1. contractname :       合约的文件名,不需要带sol后缀,默认在当前目录的contracts目录下
+        2. address :    十六进制的合约地址,或者可以为:last,表示采用bin/contract.ini里的记录
+        3. event_name : 可选,如不设置监听所有事件
+        4. indexed :    可选,根据event定义里的indexed字段,作为过滤条件)
 
         eg: for contract sample [contracts/HelloEvent.sol], use cmdline:
 
-        python event_callback HelloEvent last on_set
-        python event_callback HelloEvent last on_number 5
+        python demo_event_callback.py HelloEvent last
+        --listen all event at all indexed ：
 
-...(and other events)
+        python demo_event_callback.py HelloEvent last on_set
+        --listen event on_set(string newname) （no indexed）：
+
+        python demo_event_callback.py HelloEvent last on_number 5
+        --listen event on_number(string name,int indexed age), age ONLY  5 ：
 
 ```
 

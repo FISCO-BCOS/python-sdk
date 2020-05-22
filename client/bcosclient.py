@@ -170,9 +170,10 @@ class BcosClient:
             info = "rpc:{}\n".format(self.rpc)
         if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
             info = "channel {}:{}".format(self.channel_handler.host, self.channel_handler.port)
-        info += ",groupid :{}\n".format(self.groupid)
-        if self.ecdsa_account is not None:
-            info += "account address: {}\n".format(self.keypair.address)
+        info += ",groupid :{}".format(self.groupid)
+        #if self.ecdsa_account is not None:
+        if self.keypair is not None:
+            info += ",from address: {}".format(self.keypair.address)
         return info
 
     def is_error_response(self, response):

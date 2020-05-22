@@ -65,7 +65,7 @@ def fill_params(params, paramsname):
 
 
 def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
-    print("\nINFO >>  receipt logs : ")
+    print("INFO >>  receipt logs : ")
     # 解析receipt里的log
     if parser is None and len(contractname) > 0:
         parser = DatatypeParser(default_abi_file(contractname))
@@ -594,6 +594,7 @@ def main(argv):
             if cmd == "sendtx":
                 receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)[0]
                 data_parser = DatatypeParser(default_abi_file(contractname))
+                print("\n\nINFO >> from address:  {} ".format(tx_client.keypair.address))
                 # 解析receipt里的log 和 相关的tx ,output
                 print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         # --------------------------------------------------------------------------------------------

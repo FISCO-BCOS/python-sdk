@@ -99,6 +99,8 @@ class ChannelPushDispatcher (threading.Thread):
             self.logger.error(
                 "{} push handler error {},{},{}".format(
                     self.name, e, packmsg.type, packmsg.data))
+            #import traceback
+            #traceback.print_exc()
         finally:
             self.lock.release()
 
