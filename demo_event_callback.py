@@ -9,6 +9,7 @@ from client.event_callback import BcosEventCallback
 from client.event_callback import EventCallbackHandler
 from client_config import client_config
 
+
 def usage():
     usagetext = '\nUsage:\nparams: contractname address event_name indexed\n' \
                 '\t1. contractname :\t合约的文件名,不需要带sol后缀,默认在当前目录的contracts目录下\n' \
@@ -48,7 +49,7 @@ class EventCallbackImpl01(EventCallbackHandler):
         print("- FilterID >>> ", eventdata["filterID"])
         print(
             "--------------------EventCallbackImpl01--------------------\n",
-            json.dumps(loglist,indent=4))
+            json.dumps(loglist, indent=4))
 
 
 class EventCallbackImpl02(ChannelPushHandler):

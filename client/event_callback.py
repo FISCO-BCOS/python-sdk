@@ -27,19 +27,25 @@ from client_config import client_config
 使用者派生EventCallbackHandler,实现on_event，在监听指定事件时指定实例
 ** 注意查重
 '''
+
+
 class EventCallbackHandler:
-    def on_event(self,eventdata):
+    def on_event(self, eventdata):
         pass
+
 
 '''
 EventCallbackManager按filterid管理实例
 接受amop的push消息里类型为0x1002的EVENT_LOG_PUSH，并根据filterid分发
 '''
+
+
 class EventCallbackManager(ChannelPushHandler):
     abiparser: DatatypeParser = None
     callback_register = dict()
     lock = threading.RLock()
-    def set_callback(self,filterid,callback):
+
+    def set_callback(self, filterid, callback):
         try:
             self.lock.acquire()
             #print("set callbackup ",filterid,callback)
@@ -49,10 +55,10 @@ class EventCallbackManager(ChannelPushHandler):
         finally:
             self.lock.release()
 
-    def remove_callback(self,filterid,callback):
+    def remove_callback(self, filterid, callback):
         try:
             self.lock.acquire()
-            if not filterid in self.callback_register:
+            if filterid not in self.callback_register:
                 return
             else:
                 self.callback_register.pop(filterid)
@@ -61,21 +67,21 @@ class EventCallbackManager(ChannelPushHandler):
         finally:
             self.lock.release()
 
-    def get_callback(self,filterid):
+    def get_callback(self, filterid):
         cb = None
         try:
             self.lock.acquire()
             if filterid in self.callback_register:
-                cb= self.callback_register[filterid]
+                cb = self.callback_register[filterid]
         except Exception as e:
             self.logger.error("get_callback error", e)
         finally:
             self.lock.release()
             return cb
 
-    #on_push from channel_push_dispatcher
+    # on_push from channel_push_dispatcher
     def on_push(self, packmsg: ChannelPack):
-        #print("--------------------EventPushHandler: type {},result:{},len:{}".format(
+        # print("--------------------EventPushHandler: type {},result:{},len:{}".format(
         #    hex(packmsg.type), packmsg.result, packmsg.totallen))
         if packmsg.type != ChannelPack.EVENT_LOG_PUSH:
             print("WRONG TYPE:-EventPushHandler: type {},result:{},len:{}".format(
@@ -84,7 +90,7 @@ class EventCallbackManager(ChannelPushHandler):
         strmsg = packmsg.data.decode("utf-8")
         eventdata = json.loads(strmsg)
         filterid = eventdata["filterID"]
-        #find callback implement by filterid
+        # find callback implement by filterid
         eventcallback = self.get_callback(filterid)
         if eventcallback is None:
             return
@@ -103,9 +109,12 @@ class EventCallbackManager(ChannelPushHandler):
         result = bcos_event.register_eventlog_filter(
             eventcallback01, abiparser, [address], event_name, indexed_value)
 '''
+
+
 class BcosEventCallback:
     client: BcosClient = None
     ecb_manager = EventCallbackManager()
+
     def format_event_register_request(
             self,
             from_block,
@@ -137,8 +146,8 @@ class BcosEventCallback:
         requestJson = FriendlyJsonSerde().json_encode(request)
         return requestJson
 
-    #一定要这样调用，否则manager得另外注册一下
-    def setclient(self,client):
+    # 一定要这样调用，否则manager得另外注册一下
+    def setclient(self, client):
         self.client = client
         self.add_channel_push_handler(self.ecb_manager)
 
@@ -147,9 +156,16 @@ class BcosEventCallback:
             self.client.channel_handler.pushDispacher.add_handler(
                 ChannelPack.EVENT_LOG_PUSH, eventHandler)
 
-    #主要方法，注册事件
-    def register_eventlog_filter(self, eventcallback,abiparser ,addresses, event_name, indexed_value=None,
-                                fromblock="latest", to_block="latest"):
+    # 主要方法，注册事件
+    def register_eventlog_filter(
+            self,
+            eventcallback,
+            abiparser,
+            addresses,
+            event_name,
+            indexed_value=None,
+            fromblock="latest",
+            to_block="latest"):
         topics = []
         if event_name is not None:
             topic0 = abiparser.topic_from_event_name(event_name)
@@ -169,10 +185,11 @@ class BcosEventCallback:
                 if not (topic is None):
                     topics.append(topic)
                 i = i + 1
-        #create new filterid by uuid
+        # create new filterid by uuid
         seq = uuid.uuid1()
         filterid = seq.hex
-        requestJson = self.format_event_register_request(fromblock, to_block, addresses, topics,self.client.groupid,filterid)
+        requestJson = self.format_event_register_request(
+            fromblock, to_block, addresses, topics, self.client.groupid, filterid)
         requestbytes = ChannelPack.pack_amop_topic_message("", requestJson)
         response = self.client.channel_handler.make_channel_request(
             requestbytes, ChannelPack.CLIENT_REGISTER_EVENT_LOG, ChannelPack.CLIENT_REGISTER_EVENT_LOG)
@@ -180,5 +197,5 @@ class BcosEventCallback:
         dataobj = json.loads(result)
        # print(dataobj)
         if dataobj["result"] == 0:
-            self.ecb_manager.set_callback(filterid,eventcallback)
+            self.ecb_manager.set_callback(filterid, eventcallback)
         return dataobj
