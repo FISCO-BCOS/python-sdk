@@ -20,10 +20,21 @@ import threading
 from utils.encoding import FriendlyJsonSerde
 from client.channelpack import ChannelPack
 from client.channel_push_dispatcher import ChannelPushHandler
+
+
+'''
+事件回调接口,on_event传入的是已经解析成json的logs列表，但未按abi解析
+使用者派生EventCallbackHandler,实现on_event，在监听指定事件时指定实例
+** 注意查重
+'''
 class EventCallbackHandler:
     def on_event(self,eventdata):
         pass
 
+'''
+EventCallbackManager按filterid管理实例
+接受amop的push消息里类型为0x1002的EVENT_LOG_PUSH，并根据filterid分发
+'''
 class EventCallbackManager(ChannelPushHandler):
     abiparser: DatatypeParser = None
     callback_register = dict()
@@ -51,11 +62,18 @@ class EventCallbackManager(ChannelPushHandler):
             self.lock.release()
 
     def get_callback(self,filterid):
-        if filterid in self.callback_register:
-            return self.callback_register[filterid]
-        else:
-            return None
+        cb = None
+        try:
+            self.lock.acquire()
+            if filterid in self.callback_register:
+                cb= self.callback_register[filterid]
+        except Exception as e:
+            self.logger.error("get_callback error", e)
+        finally:
+            self.lock.release()
+            return cb
 
+    #on_push from channel_push_dispatcher
     def on_push(self, packmsg: ChannelPack):
         #print("--------------------EventPushHandler: type {},result:{},len:{}".format(
         #    hex(packmsg.type), packmsg.result, packmsg.totallen))
@@ -66,14 +84,25 @@ class EventCallbackManager(ChannelPushHandler):
         strmsg = packmsg.data.decode("utf-8")
         eventdata = json.loads(strmsg)
         filterid = eventdata["filterID"]
-
-        #print("filterid",filterid)
+        #find callback implement by filterid
         eventcallback = self.get_callback(filterid)
-        #print(eventcallback)
         if eventcallback is None:
             return
         eventcallback.on_event(eventdata)
 
+
+'''
+本文件主类，其实就是几个帮助方法,参考用法：
+        abifile = "contracts/" + contractname + ".abi"
+        abiparser = DatatypeParser(abifile)
+        eventcallback01 = EventCallbackImpl01()
+        eventcallback01.abiparser = abiparser
+        #---------
+        bcos_event = BcosEventCallback()
+        bcos_event.setclient(BcosClient())
+        result = bcos_event.register_eventlog_filter(
+            eventcallback01, abiparser, [address], event_name, indexed_value)
+'''
 class BcosEventCallback:
     client: BcosClient = None
     ecb_manager = EventCallbackManager()
@@ -108,7 +137,7 @@ class BcosEventCallback:
         requestJson = FriendlyJsonSerde().json_encode(request)
         return requestJson
 
-
+    #一定要这样调用，否则manager得另外注册一下
     def setclient(self,client):
         self.client = client
         self.add_channel_push_handler(self.ecb_manager)
@@ -117,6 +146,7 @@ class BcosEventCallback:
         self.client.channel_handler.pushDispacher.add_handler(
             ChannelPack.EVENT_LOG_PUSH, eventHandler)
 
+    #主要方法，注册事件
     def register_eventlog_filter(self, eventcallback,abiparser ,addresses, event_name, indexed_value=None,
                                 fromblock="latest", to_block="latest"):
         topics = []
