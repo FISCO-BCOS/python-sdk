@@ -20,22 +20,19 @@ import threading
 from utils.encoding import FriendlyJsonSerde
 from client.channelpack import ChannelPack
 from client.channel_push_dispatcher import ChannelPushHandler
-from client_config import client_config
 
-'''
-事件回调接口,on_event传入的是已经解析成json的logs列表，但未按abi解析
+'''事件回调接口,on_event传入的是已经解析成json的logs列表，但未按abi解析
 使用者派生EventCallbackHandler,实现on_event，在监听指定事件时指定实例
 ** 注意查重
 '''
-
+    
 
 class EventCallbackHandler:
     def on_event(self, eventdata):
         pass
 
 
-'''
-EventCallbackManager按filterid管理实例
+'''EventCallbackManager按filterid管理实例
 接受amop的push消息里类型为0x1002的EVENT_LOG_PUSH，并根据filterid分发
 '''
 
@@ -77,7 +74,7 @@ class EventCallbackManager(ChannelPushHandler):
             self.logger.error("get_callback error", e)
         finally:
             self.lock.release()
-            return cb
+        return cb
 
     # on_push from channel_push_dispatcher
     def on_push(self, packmsg: ChannelPack):
@@ -97,8 +94,7 @@ class EventCallbackManager(ChannelPushHandler):
         eventcallback.on_event(eventdata)
 
 
-'''
-本文件主类，其实就是几个帮助方法,参考用法：
+'''本文件主类，其实就是几个帮助方法,参考用法：
         abifile = "contracts/" + contractname + ".abi"
         abiparser = DatatypeParser(abifile)
         eventcallback01 = EventCallbackImpl01()
@@ -174,9 +170,9 @@ class BcosEventCallback:
         #print("event abi:", event_abi)
         if indexed_value is not None and len(indexed_value) > 0:
             indexedinput = []
-            for input in event_abi["inputs"]:
-                if input["indexed"] is True:
-                    indexedinput.append((input['name'], input['type']))
+            for event_input in event_abi["inputs"]:
+                if event_input["indexed"] is True:
+                    indexedinput.append((event_input['name'], event_input['type']))
             # print(indexedinput)
             i = 0
             for v in indexed_value:
