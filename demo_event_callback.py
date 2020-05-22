@@ -75,7 +75,7 @@ def main(argv):
     try:
         bcos_event = BcosEventCallback()
         if client_config.client_protocol is not client_config.PROTOCOL_CHANNEL:
-            print("** using event callback, client prototal MUST be client_config.PROTOCOL_CHANNEL!!")
+            print("** using event callback, client prototol MUST be client_config.PROTOCOL_CHANNEL!!")
             print("** please check the configure file")
             sys.exit(-1)
 
