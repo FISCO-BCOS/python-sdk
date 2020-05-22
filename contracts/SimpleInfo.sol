@@ -9,6 +9,7 @@ contract SimpleInfo{
 	event on_change(int retcode,string indexed name,uint256 balance,address indexed addr,string memo);
 	event on_sender(int retcode,string name,uint256 balance,address  addr,string memo);
     event on_reset(int retcode,string indexed name) anonymous;
+	event on_set_empty(string msg);
 	
 
     constructor() public
@@ -38,6 +39,10 @@ contract SimpleInfo{
     function setbalance(uint256 b) public {
         balance = b;
         emit on_set(0,name,balance,addr,"balance set");
+    }
+	
+	function setempty() public {
+        emit on_set_empty("empty set");
     }
 
     function set(string n,uint256 b,address a) public returns(int){
