@@ -21,23 +21,20 @@ from utils.encoding import FriendlyJsonSerde
 from client.channelpack import ChannelPack
 from client.channel_push_dispatcher import ChannelPushHandler
 
-"""事件回调接口,on_event传入的是已经解析成json的logs列表，但未按abi解析
-使用者派生EventCallbackHandler,实现on_event，在监听指定事件时指定实例
-** 注意查重
-"""
-
 
 class EventCallbackHandler:
+    """事件回调接口,on_event传入的是已经解析成json的logs列表，但未按abi解析
+    使用者派生EventCallbackHandler,实现on_event，在监听指定事件时指定实例
+    ** 注意查重
+    """
     def on_event(self, eventdata):
         pass
 
 
-"""EventCallbackManager按filterid管理实例
-接受amop的push消息里类型为0x1002的EVENT_LOG_PUSH，并根据filterid分发
-"""
-
-
 class EventCallbackManager(ChannelPushHandler):
+    """EventCallbackManager按filterid管理实例
+    接受amop的push消息里类型为0x1002的EVENT_LOG_PUSH，并根据filterid分发
+    """
     abiparser: DatatypeParser = None
     callback_register = dict()
     lock = threading.RLock()
@@ -92,20 +89,18 @@ class EventCallbackManager(ChannelPushHandler):
         eventcallback.on_event(eventdata)
 
 
-"""本文件主类，其实就是几个帮助方法,参考用法：
-        abifile = "contracts/" + contractname + ".abi"
-        abiparser = DatatypeParser(abifile)
-        eventcallback01 = EventCallbackImpl01()
-        eventcallback01.abiparser = abiparser
-        #---------
-        bcos_event = BcosEventCallback()
-        bcos_event.setclient(BcosClient())
-        result = bcos_event.register_eventlog_filter(
-            eventcallback01, abiparser, [address], event_name, indexed_value)
-"""
-
-
 class BcosEventCallback:
+    """本文件主类，其实就是几个帮助方法,参考用法：
+            abifile = "contracts/" + contractname + ".abi"
+            abiparser = DatatypeParser(abifile)
+            eventcallback01 = EventCallbackImpl01()
+            eventcallback01.abiparser = abiparser
+            #---------
+            bcos_event = BcosEventCallback()
+            bcos_event.setclient(BcosClient())
+            result = bcos_event.register_eventlog_filter(
+                eventcallback01, abiparser, [address], event_name, indexed_value)
+    """
     client: BcosClient = None
     ecb_manager = EventCallbackManager()
 
