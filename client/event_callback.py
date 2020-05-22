@@ -20,7 +20,7 @@ import threading
 from utils.encoding import FriendlyJsonSerde
 from client.channelpack import ChannelPack
 from client.channel_push_dispatcher import ChannelPushHandler
-
+from client_config import client_config
 
 '''
 事件回调接口,on_event传入的是已经解析成json的logs列表，但未按abi解析
@@ -143,8 +143,9 @@ class BcosEventCallback:
         self.add_channel_push_handler(self.ecb_manager)
 
     def add_channel_push_handler(self, eventHandler):
-        self.client.channel_handler.pushDispacher.add_handler(
-            ChannelPack.EVENT_LOG_PUSH, eventHandler)
+        if self.client.channel_handler is not None:
+            self.client.channel_handler.pushDispacher.add_handler(
+                ChannelPack.EVENT_LOG_PUSH, eventHandler)
 
     #主要方法，注册事件
     def register_eventlog_filter(self, eventcallback,abiparser ,addresses, event_name, indexed_value=None,
@@ -178,6 +179,6 @@ class BcosEventCallback:
         (topic, result) = ChannelPack.unpack_amop_topic_message(response)
         dataobj = json.loads(result)
        # print(dataobj)
-        if dataobj["result"] is 0:
+        if dataobj["result"] == 0:
             self.ecb_manager.set_callback(filterid,eventcallback)
         return dataobj

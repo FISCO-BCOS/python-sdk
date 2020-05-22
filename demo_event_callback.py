@@ -7,7 +7,7 @@ import time
 from client.channel_push_dispatcher import ChannelPushHandler
 from client.event_callback import BcosEventCallback
 from client.event_callback import EventCallbackHandler
-
+from client_config import client_config
 
 def usage():
     usagetext = '\nUsage:\nparams: contractname address event_name indexed\n' \
@@ -74,6 +74,11 @@ def main(argv):
         indexed_value = argv[3:]
     try:
         bcos_event = BcosEventCallback()
+        if client_config.client_protocol is not client_config.PROTOCOL_CHANNEL:
+            print("** using event callback, client prototal MUST be client_config.PROTOCOL_CHANNEL!!")
+            print("** please check the configure file")
+            sys.exit(-1)
+
         bcos_event.setclient(BcosClient())
         print(bcos_event.client.getinfo())
 
@@ -107,7 +112,8 @@ def main(argv):
         traceback.print_exc()
     finally:
         print("event callback finished!")
-        bcos_event.client.finish()
+        if bcos_event.client is not None:
+            bcos_event.client.finish()
     sys.exit(-1)
 
 
