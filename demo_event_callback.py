@@ -32,16 +32,14 @@ def usage():
     print(usagetext)
 
 
-'''sample event push handler for application level,
-user can make a class base on "ChannelPushHandler" ,implement the on_push interface
-handle the message from nodes,message in ChannelPack type #see client/channelpack.py
-EVENT_LOG_PUSH type is 0x1002
-message in pack.data decode by utf-8
-EVENT_LOG  format see https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/sdk/java_sdk.html#id19
-'''
-
-
 class EventCallbackImpl01(EventCallbackHandler):
+    """sample event push handler for application level,
+    user can make a class base on "ChannelPushHandler" ,implement the on_push interface
+    handle the message from nodes,message in ChannelPack type #see client/channelpack.py
+    EVENT_LOG_PUSH type is 0x1002
+    message in pack.data decode by utf-8
+    EVENT_LOG  format see https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/sdk/java_sdk.html#id19
+    """
     abiparser: DatatypeParser = None
 
     def on_event(self, eventdata):
