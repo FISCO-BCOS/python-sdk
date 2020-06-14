@@ -147,6 +147,13 @@ class TransactionCommon(bcosclient.BcosClient):
                         raise ArgumentsError(("ERROR >> covert {} to to_checksum_address failed,"
                                               " exception: {}").format(param, e))
                     continue
+                if "bytes" in input_item["type"]:
+                    try:
+                        paramformatted.append(bytes(param, "utf-8"))
+                    except Exception as e:
+                        raise ArgumentsError(
+                            "ERROR >> parse {} to bytes failed, error info: {}".format(param, e))
+                    continue
                 paramformatted.append(param)
             return paramformatted
         except Exception as e:
