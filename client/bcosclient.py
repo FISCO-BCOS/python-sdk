@@ -82,14 +82,14 @@ class BcosClient:
                     raise BcosException(("gm account keyfile file {} doesn't exist, "
                                          "please check client_config.py again "
                                          "and make sure this account exist")
-                                        .format(self.keystore_file))
+                                        .format(self.gm_account_file))
                 self.gm_account.load_from_file(
                     self.gm_account_file, client_config.gm_account_password)
                 self.keypair = self.gm_account.keypair
                 return
             except Exception as e:
                 raise BcosException("load gm account from {} failed, reason: {}"
-                                    .format(self.keystore_file, e))
+                                    .format(self.gm_account_file, e))
 
         # 默认的 ecdsa 账号
         try:
@@ -171,7 +171,7 @@ class BcosClient:
         if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
             info = "channel {}:{}".format(self.channel_handler.host, self.channel_handler.port)
         info += ",groupid :{}".format(self.groupid)
-        #if self.ecdsa_account is not None:
+        # if self.ecdsa_account is not None:
         if self.keypair is not None:
             info += ",from address: {}".format(self.keypair.address)
         return info
@@ -450,6 +450,11 @@ class BcosClient:
         params = [client_config.groupid, callmap]
         # 发送
         response = self.common_request(cmd, params)
+        # check status
+        if "status" in response.keys():
+            status = int(response["status"], 16)
+            if status != 0:
+                return response
         if "output" in response.keys():
             outputdata = response["output"]
             # 取得方法的abi，签名，参数 和返回类型，进行call返回值的解析

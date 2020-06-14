@@ -27,6 +27,7 @@ from eth_utils.crypto import *
 from gmssl.sm4 import CryptSM4, SM4_DECRYPT, SM4_ENCRYPT
 from client.bcoskeypair import BcosKeyPair
 import json
+import hmac
 
 
 class GM_Account(object):
@@ -73,24 +74,33 @@ class GM_Account(object):
             content["encrypt"] = True
         content["private_key"] = key
         content["type"] = "gm"
+        # set mac of the password
+        passwdBytes = bytes(decode_hex(password))
+        content["mac"] = sm3.sm3_hash(passwdBytes)
         with open(filename, "w") as dump_f:
             json.dump(content, dump_f, indent=4)
             dump_f.close()
 
     # 从文件加载，格式是json
     def load_from_file(self, filename, password=None):
+        if password is None or len(password) == 0:
+            return
         with open(filename, "r") as dump_f:
             content = json.load(dump_f)
             dump_f.close()
 
         if content["type"] != "gm":
             return
+        # get and compare mac
+        expected_mac = content["mac"]
+        password = self.pwd_ljust(password)
+        passwdBytes = bytes(decode_hex(password))
+        mac = sm3.sm3_hash(passwdBytes)
+        if not hmac.compare_digest(mac, expected_mac):
+            raise ValueError("MAC mismatch")
         key = content["private_key"]
-        if password is not None and len(password) > 0:
-            crypt_sm4 = CryptSM4()
-            password = self.pwd_ljust(password)
-            crypt_sm4.set_key(bytes(password, "utf-8"), SM4_DECRYPT)
-            key = base64.b64decode(bytes(key, "utf-8"))
-            key = str(crypt_sm4.crypt_cbc(self.cbc_iv, key), "utf-8")
-
+        crypt_sm4 = CryptSM4()
+        crypt_sm4.set_key(bytes(password, "utf-8"), SM4_DECRYPT)
+        key = base64.b64decode(bytes(key, "utf-8"))
+        key = str(crypt_sm4.crypt_cbc(self.cbc_iv, key), "utf-8")
         self.from_key(key)
