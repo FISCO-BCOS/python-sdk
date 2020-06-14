@@ -24,6 +24,13 @@ def encode_hex(value: AnyStr) -> str:
     return add_0x_prefix(binary_hex.decode("ascii"))
 
 
+def bytesToHex(bytesValue) -> str:
+    valueHex = ""
+    for i in range(len(bytesValue)):
+        valueHex += format(bytesValue[i] & 0xff, 'x')
+    return add_0x_prefix(valueHex)
+
+
 def is_0x_prefixed(value: Any) -> bool:
     if not is_text(value):
         raise TypeError(

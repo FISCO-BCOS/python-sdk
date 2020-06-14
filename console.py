@@ -20,6 +20,7 @@ from client.stattool import StatTool
 from client_config import client_config
 from eth_account.account import Account
 from eth_utils.hexadecimal import encode_hex
+from eth_utils.hexadecimal import bytesToHex
 from client.contractnote import ContractNote
 from eth_utils.crypto import CRYPTO_TYPE_GM
 import json
@@ -30,6 +31,8 @@ from console_utils.precompile import Precompile
 from console_utils.rpc_console import RPCConsole
 from client.common import transaction_common
 from client.common import common
+from eth_abi.exceptions import InsufficientDataBytes
+
 from client.bcoserror import (
     BcosError,
     CompileError,
@@ -80,20 +83,24 @@ def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
                     i, log["eventname"], log["eventdata"], log["topic"]
                 )
             )
-    txhash = receipt["transactionHash"]
-    txresponse = client.getTransactionByHash(txhash)
-    inputdetail = print_parse_transaction(txresponse, "", parser)
+    inputdetail = print_parse_transaction(receipt, "", parser)
     # 解析该交易在receipt里输出的output,即交易调用的方法的return值
-    outputresult = parser.parse_receipt_output(inputdetail["name"], receipt["output"])
-    print("receipt output :", outputresult)
+    outputresults = parser.parse_receipt_output(inputdetail["name"], receipt["output"])
+    for result in outputresults:
+        if type(result) is bytes:
+            print("{}, ".format(bytesToHex(result)))
+            continue
+        print("{}, ".format(result.decode()))
 
 
-def print_parse_transaction(tx, contractname, parser=None):
+def print_parse_transaction(txReceipt, contractname, parser=None):
+    if "input" not in txReceipt:
+        return
     if parser is None:
         parser = DatatypeParser(default_abi_file(contractname))
-    inputdata = tx["input"]
+    inputdata = txReceipt["input"]
     inputdetail = parser.parse_transaction_input(inputdata)
-    print("INFO >> transaction hash : ", tx["hash"])
+    print("INFO >> transaction hash : ", txReceipt["transactionHash"])
     print("tx input data detail:\n {}".format(inputdetail))
     return inputdetail
 
@@ -649,6 +656,10 @@ def main(argv):
     except ArgumentsError as e:
         common.print_error_msg(cmd, e)
     except BcosException as e:
+        common.print_error_msg(cmd, e)
+    except ValueError as e:
+        common.print_error_msg(cmd, e)
+    except InsufficientDataBytes as e:
         common.print_error_msg(cmd, e)
     except Exception as e:
         print("exception happened!")
