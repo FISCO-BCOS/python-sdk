@@ -418,7 +418,7 @@ def main(argv):
             common.check_param_num(inputparams, 2, True)
             name = inputparams[0]
             password = inputparams[1]
-            if client_config.crypto_type is CRYPTO_TYPE_GM:
+            if client_config.crypto_type == CRYPTO_TYPE_GM:
                 show_gm_account(name, password)
             else:
                 show_ecdsa_account(name, password)
@@ -500,8 +500,7 @@ def main(argv):
             if len(inputparams) == 3 and inputparams[2] == "save":
                 forcewrite = True
             print("starting : {} {}  , if save:{}".format(name, password, forcewrite))
-
-            if client_config.crypto_type is CRYPTO_TYPE_GM:
+            if client_config.crypto_type == CRYPTO_TYPE_GM:
                 create_gm_account(name, password, forcewrite)
             else:
                 create_ecdsa_account(name, password, forcewrite)

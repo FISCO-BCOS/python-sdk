@@ -17,6 +17,7 @@ class client_config:
     # ---------crypto_type config--------------
     # crypto_type : 大小写不敏感："GM" for 国密, "ECDSA" 或其他是椭圆曲线默认实现。
     crypto_type = "ECDSA"
+    crypto_type = crypto_type.upper()
     set_crypto_type(crypto_type)  # 使密码算法模式全局生效，切勿删除此行
 
     # --------------------------------------
@@ -47,7 +48,8 @@ class client_config:
 
     # ---------runtime related--------------
     # path of solc compiler
-    solc_path = os.environ["HOME"] + "/.py-solc/solc-v0.4.25/bin/solc"
+    solc_path = "./bin/solc/v0.4.25/solc"
+    #solc_path = "./bin/solc/v0.4.25/solc-gm"
     solcjs_path = "./solcjs"
 
     logdir = "bin/logs"  # 默认日志输出目录，该目录必须先建立

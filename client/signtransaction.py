@@ -79,7 +79,7 @@ class SignTx():
 
     def sign_transaction_hash(self, transaction_hash, chain_id):
         hashbyte = bytes(transaction_hash)
-        if self.crypto_type is CRYPTO_TYPE_GM:
+        if self.crypto_type == CRYPTO_TYPE_GM:
             # gm sign
             public_key = self.gm_account.keypair.public_key
             private_key = self.gm_account.keypair.private_key
@@ -90,7 +90,7 @@ class SignTx():
             (r, s) = sm2_crypt.sign(hashbyte)
             v_raw = public_key
             v = int(v_raw, 16)
-        elif self.crypto_type is CRYPTO_TYPE_ECDSA:
+        elif self.crypto_type == CRYPTO_TYPE_ECDSA:
             # ecdsa sign
             signature = self.ecdsa_account._key_obj.sign_msg_hash(transaction_hash)
             (v_raw, r, s) = signature.vrs

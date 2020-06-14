@@ -8,6 +8,12 @@ BASH="/bin/bash"
 ZSHRC="${HOME}/.zshrc"
 BASHRC="${HOME}/.bashrc"
 
+SOLC_LINUX_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-linux.tar.gz"
+SOLC_MAC_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-mac.tar.gz"
+SOLC_LINUX_GM_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-linux-gm.tar.gz"
+SOLC_MAC_GM_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-mac-gm.tar.gz"
+SOLC_DIR="bin/solc/v0.4.25"
+OS_TYPE="Linux"
 
 LOG_WARN()
 {
@@ -100,22 +106,41 @@ install_python3()
 	fi
 }
 
+install_linux_solc()
+{
+    curl -LO ${SOLC_LINUX_URL}
+    curl -LO ${SOLC_LINUX_GM_URL}
+    tar -xvf solc-linux.tar.gz
+    mkdir -p ${SOLC_DIR}
+    mv solc ${SOLC_DIR}
+    tar -xvf solc-linux-gm.tar.gz
+    mv solc ${SOLC_DIR}/solc-gm
+}
+
+install_mac_solc()
+{
+    curl -LO ${SOLC_MAC_URL}
+    curl -LO ${SOLC_MAC_GM_URL}
+    tar -xvf solc-mac.tar.gz
+    mkdir -p ${SOLC_DIR}
+    mv solc ${SOLC_DIR}
+    tar -xvf solc-mac-gm.tar.gz
+    mv solc ${SOLC_DIR}/solc-gm
+}
+
 init_config()
 {
 	if [ ! -f "client_config.py" ];then
         LOG_INFO "copy config file..."
         execute_cmd "cp client_config.py.template client_config.py"
 	fi
-    solc_path=".py-solc/solc-v0.4.25/bin/solc"
-    if [ ! -f "${solc_path}" ];then
+    solc_path="bin/solc/v0.4.25"
+    if [ ! -d "${solc_path}" ];then
         LOG_INFO "install solc v0.4.25..."
-        python -m solc.install v0.4.25
-        if [ $? -eq 1 ];then
-            if [ -d "${HOME}/.py-solc/solc-v0.4.25/" ];then
-                execute_cmd "rm -rf ~/.py-solc/solc-v0.4.25/"
-            fi
-            LOG_INFO "install solc v0.4.25 failed, try to install slocjs"
-            execute_cmd "npm install solc@0.4.25"
+        if [ "${OS_TYPE}" == "Linux" ];then
+            install_linux_solc
+        elif [ "${OS_TYPE}" == "Darwin" ];then
+            install_mac_solc
         fi
     fi
 }
@@ -166,6 +191,7 @@ EOF
 
 main()
 {
+    OS_TYPE=$(uname)
     while getopts "pih" option; do
         case ${option} in
         p) python_init
