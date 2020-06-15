@@ -13,6 +13,8 @@ SOLC_MAC_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/s
 SOLC_LINUX_GM_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-linux-gm.tar.gz"
 SOLC_MAC_GM_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-mac-gm.tar.gz"
 SOLC_DIR="bin/solc/v0.4.25"
+SOLC_PATH="${SOLC_DIR}/solc"
+SOLC_GM_PATH="${SOLC_DIR}/solc-gm"
 OS_TYPE="Linux"
 
 LOG_WARN()
@@ -108,24 +110,44 @@ install_python3()
 
 install_linux_solc()
 {
-    curl -LO ${SOLC_LINUX_URL}
-    curl -LO ${SOLC_LINUX_GM_URL}
-    tar -xvf solc-linux.tar.gz
     mkdir -p ${SOLC_DIR}
-    mv solc ${SOLC_DIR}
-    tar -xvf solc-linux-gm.tar.gz
-    mv solc ${SOLC_DIR}/solc-gm
+    if [ ! -f ${SOLC_PATH} ];then
+        LOG_INFO "Download and install solc into ${SOLC_PATH}..."
+        curl -LO ${SOLC_LINUX_URL}
+        tar -xvf solc-linux.tar.gz
+        mv solc ${SOLC_DIR}
+    else
+        LOG_INFO "solc is already installed into ${SOLC_PATH}"
+    fi
+    if [ ! -f ${SOLC_GM_PATH} ];then
+        LOG_INFO "Download and install solc-gm into ${SOLC_GM_PATH}..."
+        curl -LO ${SOLC_LINUX_GM_URL}
+        tar -xvf solc-linux-gm.tar.gz
+        mv solc ${SOLC_GM_PATH}
+    else
+        LOG_INFO "solc-gm is already installed into ${SOLC_GM_PATH}"
+    fi
 }
 
 install_mac_solc()
 {
-    curl -LO ${SOLC_MAC_URL}
-    curl -LO ${SOLC_MAC_GM_URL}
-    tar -xvf solc-mac.tar.gz
     mkdir -p ${SOLC_DIR}
-    mv solc ${SOLC_DIR}
-    tar -xvf solc-mac-gm.tar.gz
-    mv solc ${SOLC_DIR}/solc-gm
+    if [ ! -f ${SOLC_PATH} ];then
+        LOG_INFO "Download and install solc into ${SOLC_PATH}..."
+        curl -LO ${SOLC_MAC_URL}
+        tar -xvf solc-mac.tar.gz
+        mv solc ${SOLC_DIR}
+    else
+        LOG_INFO "solc is already installed into ${SOLC_PATH}"
+    fi
+    if [ ! -f ${SOLC_GM_PATH} ];then
+        LOG_INFO "Download and install solc-gm into ${SOLC_GM_PATH}..."
+        curl -LO ${SOLC_MAC_GM_URL}
+        tar -xvf solc-mac-gm.tar.gz
+        mv solc ${SOLC_GM_PATH}
+    else
+        LOG_INFO "solc-gm is already installed into ${SOLC_GM_PATH}"
+    fi
 }
 
 init_config()
@@ -135,13 +157,11 @@ init_config()
         execute_cmd "cp client_config.py.template client_config.py"
 	fi
     solc_path="bin/solc/v0.4.25"
-    if [ ! -d "${solc_path}" ];then
-        LOG_INFO "install solc v0.4.25..."
-        if [ "${OS_TYPE}" == "Linux" ];then
-            install_linux_solc
-        elif [ "${OS_TYPE}" == "Darwin" ];then
-            install_mac_solc
-        fi
+    LOG_INFO "install solc v0.4.25..."
+    if [ "${OS_TYPE}" == "Linux" ];then
+        install_linux_solc
+    elif [ "${OS_TYPE}" == "Darwin" ];then
+        install_mac_solc
     fi
 }
 
