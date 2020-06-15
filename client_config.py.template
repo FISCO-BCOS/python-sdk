@@ -49,7 +49,7 @@ class client_config:
     # ---------runtime related--------------
     # path of solc compiler
     solc_path = "./bin/solc/v0.4.25/solc"
-    #solc_path = "./bin/solc/v0.4.25/solc-gm"
+    gm_solc_path = "./bin/solc/v0.4.25/solc-gm"
     solcjs_path = "./solcjs"
 
     logdir = "bin/logs"  # 默认日志输出目录，该目录必须先建立

@@ -18,6 +18,7 @@ import subprocess
 from client.common import common
 from client_config import client_config
 from client.bcoserror import CompilerNotFound, CompileError
+from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
 
 
 class Compiler:
@@ -25,7 +26,13 @@ class Compiler:
     compile sol into bin and abi
     """
     _env_key_ = "SOLC_BINARY"
-    compiler_path = client_config.solc_path
+    if client_config.crypto_type == CRYPTO_TYPE_ECDSA:
+        compiler_path = client_config.solc_path
+    elif client_config.crypto_type == CRYPTO_TYPE_GM:
+        compiler_path = client_config.gm_solc_path
+    else:
+        raise CompileError("crypto_type: {} is not supported".format(client_config.crypto_type))
+
     js_compiler_path = client_config.solcjs_path
 
     @staticmethod

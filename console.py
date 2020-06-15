@@ -90,7 +90,7 @@ def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
         if type(result) is bytes:
             print("{}, ".format(bytesToHex(result)))
             continue
-        print("{}, ".format(result.decode()))
+        print("{}, ".format(result))
 
 
 def print_parse_transaction(txReceipt, contractname, parser=None):
