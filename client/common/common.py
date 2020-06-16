@@ -25,6 +25,7 @@ from utils.contracts import get_function_info
 from utils.abi import get_fn_abi_types_single
 from client.bcoserror import ArgumentsError, BcosException
 from eth_abi import decode_single
+from eth_utils.hexadecimal import bytesToHex
 
 
 def backup_file(file_name):
@@ -274,3 +275,14 @@ def parse_input(txinput, contract_name, contract_path):
     except Exception as e:
         raise BcosException("parse txinput failed for reason: {}"
                             .format(e))
+
+
+def print_tx_result(outputresults):
+    """
+    print result of call or sendtx
+    """
+    for result in outputresults:
+        if type(result) is bytes:
+            print("{}, ".format(bytesToHex(result)))
+            continue
+        print("{}, ".format(result))
