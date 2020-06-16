@@ -286,3 +286,12 @@ def print_tx_result(outputresults):
             print("{}, ".format(bytesToHex(result)))
             continue
         print("{}, ".format(result))
+
+
+def check_result(result):
+    if type(result) is dict and "status" in result.keys():
+        status = result["status"]
+        if int(status, 16) != 0:
+            print("{}".format(result))
+            return False
+    return True

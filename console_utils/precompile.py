@@ -214,7 +214,8 @@ class Precompile:
         """
         print cns information
         """
-        # common.print_result(cns_info)
+        if common.check_result(cns_info) is False:
+            return
         for cns_item in cns_info:
             cns_obj = json.loads(cns_item)
             i = 0
