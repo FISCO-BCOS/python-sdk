@@ -65,6 +65,8 @@ class PermissionService:
         i = 0
         if result is None:
             return
+        if common.check_result(result) is False:
+            return
         result_list = list(result)
         if result_list is None or len(result_list) < 1:
             return

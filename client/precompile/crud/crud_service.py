@@ -16,6 +16,7 @@ from client.common import transaction_common
 from client.precompile.crud.condition import Condition
 from client.precompile.common import PrecompileCommon
 from client.bcoserror import PrecompileError
+from client.common import common
 
 
 class Entry:
@@ -174,6 +175,8 @@ class CRUDService:
                       PrecompileCommon.USER_TABLE_PREFIX + table_name, "")
         condition = table.get_condition()
         user_table = self.select(table, condition)
+        if common.check_result(user_table) is False:
+            return
         if user_table is not None:
             user_table_list = list(user_table)
             if user_table_list is None:
