@@ -20,7 +20,6 @@ from client.stattool import StatTool
 from client_config import client_config
 from eth_account.account import Account
 from eth_utils.hexadecimal import encode_hex
-from eth_utils.hexadecimal import bytesToHex
 from client.contractnote import ContractNote
 from eth_utils.crypto import CRYPTO_TYPE_GM
 import json
@@ -86,11 +85,7 @@ def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
     inputdetail = print_parse_transaction(receipt, "", parser)
     # 解析该交易在receipt里输出的output,即交易调用的方法的return值
     outputresults = parser.parse_receipt_output(inputdetail["name"], receipt["output"])
-    for result in outputresults:
-        if type(result) is bytes:
-            print("{}, ".format(bytesToHex(result)))
-            continue
-        print("{}, ".format(result))
+    common.print_tx_result(outputresults)
 
 
 def print_parse_transaction(txReceipt, contractname, parser=None):
@@ -435,8 +430,7 @@ def main(argv):
             if not os.path.exists(keyfile):  # 如果默认文件不存在，直接写
                 forcewrite = True
             else:
-                if not common.backup_file(keyfile):  # 如果备份失败，不要覆盖写
-                    forcewrite = False
+                forcewrite = common.backup_file(keyfile)  # 如果备份失败，不要覆盖写
 
             account = GM_Account()
             account.create()
@@ -596,7 +590,8 @@ def main(argv):
             )
             if cmd == "call":
                 result = tx_client.call_and_decode(fn_name, fn_args)
-                print("INFO >> {} result: {}".format(cmd, result))
+                print("INFO >> {} result:".format(cmd))
+                common.print_tx_result(result)
             if cmd == "sendtx":
                 receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)[0]
                 data_parser = DatatypeParser(default_abi_file(contractname))

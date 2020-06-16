@@ -64,7 +64,7 @@ class GM_Account(object):
         key = self.keypair.private_key
         content["address"] = self.keypair.address
         content["encrypt"] = False
-        if password is not None and len(password) > 0:
+        if password is not None:
             crypt_sm4 = CryptSM4()
             password = self.pwd_ljust(password)
             crypt_sm4.set_key(bytes(password, "utf-8"), SM4_ENCRYPT)
@@ -83,7 +83,7 @@ class GM_Account(object):
 
     # 从文件加载，格式是json
     def load_from_file(self, filename, password=None):
-        if password is None or len(password) == 0:
+        if password is None:
             return
         with open(filename, "r") as dump_f:
             content = json.load(dump_f)

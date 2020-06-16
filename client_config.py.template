@@ -40,9 +40,8 @@ class client_config:
     account_keyfile_path = "bin/accounts"  # 保存keystore文件的路径，在此路径下,keystore文件以 [name].keystore命名
     account_keyfile = "pyaccount.keystore"
     account_password = "123456"  # 实际使用时建议改为复杂密码
-    gm_account_keyfile = "gm_account.json"  # 国密账号的存储文件，可以加密存储,如果留空则不加载
-    gm_account_password = "123456"  # 如果不设密码，置为None或""则不加密
-
+    gm_account_keyfile = "gm_account.json"  # 国密账号的存储文件，可以加密存储,如果留空则不加载gm_account_password = "123456"
+    gm_account_password = "123456"
     # ---------console mode, support user input--------------
     background = True
 
