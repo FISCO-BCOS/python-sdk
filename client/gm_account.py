@@ -75,7 +75,7 @@ class GM_Account(object):
         content["private_key"] = key
         content["type"] = "gm"
         # set mac of the password
-        passwdBytes = bytes(decode_hex(password))
+        passwdBytes = bytes(password, "utf-8")
         content["mac"] = sm3.sm3_hash(passwdBytes)
         with open(filename, "w") as dump_f:
             json.dump(content, dump_f, indent=4)
@@ -94,7 +94,7 @@ class GM_Account(object):
         # get and compare mac
         expected_mac = content["mac"]
         password = self.pwd_ljust(password)
-        passwdBytes = bytes(decode_hex(password))
+        passwdBytes = bytes(password, "utf-8")
         mac = sm3.sm3_hash(passwdBytes)
         if not hmac.compare_digest(mac, expected_mac):
             raise ValueError("MAC mismatch")
