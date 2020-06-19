@@ -375,7 +375,7 @@ function test_precompile()
 {
     test_consensus_precompile
     test_sys_config
-    test_permission_precompile
+    #test_permission_precompile
 }
 
 # test_rpc
