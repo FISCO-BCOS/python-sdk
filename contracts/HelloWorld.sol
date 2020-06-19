@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 contract HelloWorld{
     string name;
-
+    event onset(string newname);
     constructor() public{
        name = "Hello, World!";
     }
@@ -12,6 +12,7 @@ contract HelloWorld{
     }
 
     function set(string n) public{
+	emit onset(n);
     	name = n;
     }
 }

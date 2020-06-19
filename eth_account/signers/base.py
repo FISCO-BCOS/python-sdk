@@ -78,7 +78,7 @@ class BaseAccount(ABC):
         Two accounts are considered the same if they are exactly the same type,
         and can sign for the same address.
         """
-        return type(self) == type(other) and self.address == other.address
+        return isinstance(self, type(other)) and self.address == other.address
 
     def __hash__(self):
         return hash((type(self), self.address))

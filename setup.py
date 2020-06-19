@@ -65,9 +65,9 @@ extras_require['dev'] = merge_lists(
 )
 
 setup(
-    name='bcosliteclientpy',
+    name='fisco-bcos-python-sdk',
     version='0.6.0',
-    description="""bcosliteclientpy is python lite client for FISCO BCOS(https://github.com/FISCO-BCOS/)""",
+    description="""fisco bcos python-sdk is python lite client for FISCO BCOS(https://github.com/FISCO-BCOS/)""",
     long_description_markdown_filename='README.md',
     author='kentzhang',
     author_email='zkx@vip.qq.com',
@@ -79,12 +79,12 @@ setup(
     setup_requires=[''],  # setuptools-markdown
     python_requires='>=3.6, <4',
     extras_require=extras_require,
-    py_modules=['bcosliteclientpy'],
+    py_modules=['fisco-bcos-python-sdk'],
     license="MIT",
     zip_safe=False,
     keywords='fisco bcos',
     packages=find_packages(exclude=["tests", "tests.*"]),
-    package_data={'bcosliteclientpy': ['py.typed']},
+    package_data={'fisco-bcos-python-sdk': ['py.typed']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

@@ -32,6 +32,9 @@ cur_path=$(execute_cmd "pwd")
 # build blockchain
 function build_blockchain()
 {
+  if [ -f "nodes/127.0.0.1/stop_all.sh" ];then
+    execute_cmd "bash nodes/127.0.0.1/stop_all.sh"
+  fi
   execute_cmd "rm -rf nodes"
   # download build_chain.sh
   execute_cmd "curl -LO https://raw.githubusercontent.com/FISCO-BCOS/FISCO-BCOS/master/tools/build_chain.sh && chmod u+x build_chain.sh"
@@ -64,7 +67,7 @@ function stop_nodes()
 
 function getBlockNumber()
 {
-    execute_cmd "python console.py getBlockNumber | grep -v INFO | awk -F'>' '{print \$3}' | awk '\$1=\$1'"
+    execute_cmd "python console.py getBlockNumber | grep -v INFO | awk -F':' '{print \$2}' | awk '\$1=\$1'"
 }
 
 # test the common jsonRPC interface
@@ -87,7 +90,9 @@ function test_contract()
 {
     LOG_INFO "## test contract..."
     # deploy contract with params
-    local contract_addr=$(execute_cmd "python console.py deploy HelloWorldTest testCase | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    local contract_addr=$(execute_cmd "python console.py deploy HelloWorldTest testCase | grep "on.*block.*address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    echo "#### contract_addr is: ${contract_addr}"
+
     local ret=$(execute_cmd "python console.py call HelloWorldTest ${contract_addr} get |  grep testCase")
     if [ "$ret" == "" ];then
 	LOG_ERROR "deploy contract HelloWorldTest with params failed, ret: ${ret}"
@@ -95,7 +100,9 @@ function test_contract()
 
     init_blockNumber=$(getBlockNumber)
     # deploy and get contract address
-    contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "on.*block.*address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    echo "#### contract_addr is: ${contract_addr}"
+
     updated_blockNumber=$(getBlockNumber)
     if [ $(($init_blockNumber + 1)) -ne $((updated_blockNumber)) ];then
         LOG_ERROR "deploy contract failed for blockNumber hasn't increased"
@@ -174,28 +181,28 @@ function test_permission_precompile()
     # grantPermissionManager
     execute_cmd "python console.py grantPermissionManager ${account}"
     # listPermissionManager
-    execute_cmd "python console.py listPermissionManager | grep ${account}"
+    execute_cmd "python console.py listPermissionManager | grep -i ${account}"
     granted_account="0xcDF16CeF9004b1ECCf464Ae559996712E250D5A9"
      # grantNodeManager
     execute_cmd "python console.py grantNodeManager ${granted_account}"
     # listNodeManager
-    execute_cmd "python console.py listNodeManager | grep ${granted_account}"
+    execute_cmd "python console.py listNodeManager | grep -i ${granted_account}"
     # grantCNSManager
     execute_cmd "python console.py grantCNSManager ${granted_account}"
     # listCNSManager
-    execute_cmd "python console.py listCNSManager | grep ${granted_account}"
+    execute_cmd "python console.py listCNSManager | grep -i ${granted_account}"
     # grantSysConfigManager
     execute_cmd "python console.py grantSysConfigManager ${granted_account}"
     # listSysConfigManager
-    execute_cmd "python console.py listSysConfigManager | grep ${granted_account}"
+    execute_cmd "python console.py listSysConfigManager | grep -i ${granted_account}"
     # grantUserTableManager
     execute_cmd "python console.py grantUserTableManager ${table} ${granted_account}"
     # listUserTableManager
-    execute_cmd "python console.py listUserTableManager ${table} |grep ${granted_account}"
+    execute_cmd "python console.py listUserTableManager ${table} |grep -i ${granted_account}"
     # grantDeployAndCreateManager
     execute_cmd "python console.py grantDeployAndCreateManager ${granted_account}"
     # listDeployAndCreateManager
-    execute_cmd "python console.py listDeployAndCreateManager | grep ${granted_account}"
+    execute_cmd "python console.py listDeployAndCreateManager | grep -i ${granted_account}"
 
     # call revoke
     # revokeUserTableManager
@@ -212,10 +219,10 @@ function test_permission_precompile()
     execute_cmd "python console.py revokePermissionManager ${granted_account}"
 
     # call list again
-    python console.py listUserTableManager ${table}| grep ${granted_account}
+    python console.py listUserTableManager ${table}| grep -i ${granted_account}
     command_list="listDeployAndCreateManager listNodeManager listCNSManager listSysConfigManager listPermissionManager"
     for command in ${command_list};do
-        python console.py ${command} | grep ${granted_account}
+        python console.py ${command} | grep -i ${granted_account}
     done
 }
 
@@ -308,7 +315,7 @@ function test_consensus_precompile()
 function get_config_by_key()
 {
     key="${1}"
-    value=$(execute_cmd "python console.py \"getSystemConfigByKey\" \${key} | grep -v INFO | awk -F'>' '{print \$3}' | awk '\$1=\$1'")
+    value=$(execute_cmd "python console.py \"getSystemConfigByKey\" \${key} | grep -v INFO | awk -F':' '{print \$2}' | awk '\$1=\$1'")
     echo "${value}"
 }
 

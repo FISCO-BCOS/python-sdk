@@ -155,7 +155,6 @@ def abi_address_to_hex(type_str, data):
             return type_str, to_checksum_address(data)
 
 
-
 BASE_RETURN_NORMALIZERS = [
     addresses_checksummed,
 ]

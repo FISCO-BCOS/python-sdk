@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
+ is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
+ is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -144,6 +146,13 @@ class TransactionCommon(bcosclient.BcosClient):
                     except ArgumentsError as e:
                         raise ArgumentsError(("ERROR >> covert {} to to_checksum_address failed,"
                                               " exception: {}").format(param, e))
+                    continue
+                if "bytes" in input_item["type"]:
+                    try:
+                        paramformatted.append(bytes(param, "utf-8"))
+                    except Exception as e:
+                        raise ArgumentsError(
+                            "ERROR >> parse {} to bytes failed, error info: {}".format(param, e))
                     continue
                 paramformatted.append(param)
             return paramformatted

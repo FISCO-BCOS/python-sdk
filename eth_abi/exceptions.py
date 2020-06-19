@@ -71,6 +71,7 @@ class ParseError(parsimonious.ParseError):
     """
     Raised when an ABI type string cannot be parsed.
     """
+
     def __str__(self):
         return "Parse error at '{}' (column {}) in type string '{}'".format(
             self.text[self.pos:self.pos + 5],
