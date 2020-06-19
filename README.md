@@ -183,7 +183,7 @@ channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk�
 crypto_type = "GM" 	#密码算法选择: 大小写不敏感："GM" 标识国密, "ECDSA" 或其他是椭圆曲线默认实现。
 gm_account_keyfile = "gm_account.json"  #国密账号的存储文件，可以加密存储,如果留空则不加载
 gm_account_password = "123456" 		#如果不设密码，置为None或""则不加密
-solc_path = "bin/solc/solc-gm" #合约编译器配置，请确认文件存在，有可执行权限，且为国密版本的编译器，如需下载，参见bin/solc/README.md
+gm_solc_path = "./bin/solc/v0.4.25/solc-gm" #合约编译器配置，通过执行bash init_env.sh -i命令下载
 ```
 
 
