@@ -5,6 +5,7 @@ cytoolz
 lru-dict
 parsimonious
 pycryptodome
+cryptography
 requests
 toolz
 
