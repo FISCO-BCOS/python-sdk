@@ -283,9 +283,9 @@ def print_tx_result(outputresults):
     """
     for result in outputresults:
         if type(result) is bytes:
-            print("{}".format(bytesToHex(result)),end='\n')
+            print("{}".format(bytesToHex(result)), end='\n')
             continue
-        print("{}".format(result),end='\n')
+        print("{}".format(result), end='\n')
 
 
 def check_result(result):
