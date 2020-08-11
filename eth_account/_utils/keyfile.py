@@ -264,4 +264,5 @@ def get_default_work_factor_for_kdf(kdf):
         return 1000000
     elif kdf == 'scrypt':
         return 262144
-    raise ValueError("Unsupported key derivation function: {0}".format(kdf))
+    else:
+        raise ValueError("Unsupported key derivation function: {0}".format(kdf))
