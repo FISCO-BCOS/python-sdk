@@ -31,7 +31,9 @@ class RPCConsole:
         self.params = params
         self.contract_path = contract_path
         RPCConsole.define_commands()
-
+    @staticmethod
+    def usage():
+        RPCConsole.print_rpc_usage()
     @staticmethod
     def print_rpc_usage():
         """
@@ -285,3 +287,4 @@ class RPCConsole:
         self.exec_cmd_with_two_param(self.cmd, self.params)
         self.exec_cmd_with_str_param(self.cmd, self.params)
         self.exec_cmd_with_two_bool_param(self.cmd, self.params)
+
