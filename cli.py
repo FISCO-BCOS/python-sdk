@@ -12,41 +12,12 @@
   @author: kentzhang
   @date: 2019-06
 """
-import argparse
-import sys
-import glob
-import traceback
-from client.gm_account import GM_Account
-from client.stattool import StatTool
-from client_config import client_config
-from eth_account.account import Account
-from eth_utils.hexadecimal import encode_hex,decode_hex
-from client.contractnote import ContractNote
-from eth_utils.crypto import CRYPTO_TYPE_GM
-import json
-import os
-from client.datatype_parser import DatatypeParser
-from eth_utils import to_checksum_address
-from console_utils.precompile import Precompile
-from console_utils.rpc_console import RPCConsole
-from client.common import transaction_common
-from client.common import common
-from eth_abi.exceptions import InsufficientDataBytes
 from console_utils.cmd_account import CmdAccount
 from console_utils.cmd_encode import CmdEncode
 from console_utils.cmd_transaction import CmdTransaction
-from client.bcoserror import (
-    BcosError,
-    CompileError,
-    PrecompileError,
-    ArgumentsError,
-    BcosException,
-)
-from client.common.transaction_exception import TransactionException
-import argcomplete
-
-
 from console_utils.console_common import *
+from console_utils.precompile import Precompile
+from console_utils.rpc_console import RPCConsole
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -62,31 +33,32 @@ from console_utils.console_common import *
   @author: kentzhang
   @date: 2020-10
 '''
-cmd_mapping=dict()
-cmd_mapping["showaccount"] = ["cmd_account","CmdAccount"]
-cmd_mapping["listaccount"]=["cmd_account","CmdAccount"]
-cmd_mapping["newaccount"]=["cmd_account","CmdAccount"]
-cmd_mapping["hex"] = ["cmd_encode","CmdEncode"]
-cmd_mapping["decodehex"] = ["cmd_encode","CmdEncode"]
-cmd_mapping["checkaddr"] = ["cmd_encode","CmdEncode"]
-cmd_mapping["deploy"] = ["cmd_transaction","CmdTransaction"]
-cmd_mapping["call"] =  ["cmd_transaction","CmdTransaction"]
-cmd_mapping["sendtx"] =  ["cmd_transaction","CmdTransaction"]
-cmd_mapping["deploylast"] =  ["cmd_transaction","CmdTransaction"]
-cmd_mapping["deploylog"] =  ["cmd_transaction","CmdTransaction"]
+cmd_mapping = dict()
+cmd_mapping["showaccount"] = ["cmd_account", "CmdAccount"]
+cmd_mapping["listaccount"] = ["cmd_account", "CmdAccount"]
+cmd_mapping["newaccount"] = ["cmd_account", "CmdAccount"]
+cmd_mapping["hex"] = ["cmd_encode", "CmdEncode"]
+cmd_mapping["decodehex"] = ["cmd_encode", "CmdEncode"]
+cmd_mapping["checkaddr"] = ["cmd_encode", "CmdEncode"]
+cmd_mapping["deploy"] = ["cmd_transaction", "CmdTransaction"]
+cmd_mapping["call"] = ["cmd_transaction", "CmdTransaction"]
+cmd_mapping["sendtx"] = ["cmd_transaction", "CmdTransaction"]
+cmd_mapping["deploylast"] = ["cmd_transaction", "CmdTransaction"]
+cmd_mapping["deploylog"] = ["cmd_transaction", "CmdTransaction"]
 
-def usage(inputparams = []):
+
+def usage(inputparams=[]):
     """
     print usage
     """
-    usagemsg =[]
+    usagemsg = []
     print("FISCO BCOS 2.0 @python-SDK Usage:")
 
     if len(inputparams) == 0:
-        module ="all"
+        module = "all"
     else:
         module = inputparams[0]
-    if module =='all' or  module =='account':
+    if module == 'all' or module == 'account':
         CmdAccount.usage()
     if module == 'all' or module == 'transaction':
         CmdTransaction.usage()
@@ -100,6 +72,8 @@ def usage(inputparams = []):
     print('''------------------------
 输入 : 'usage [module]' 查看指定控制台模块的指令(更加简洁):
 [ account , rpc , transaction ,  precompile , encode ] ''')
+
+
 def check_cmd(cmd, validcmds):
     if cmd not in validcmds:
         common.print_error_msg(
@@ -107,6 +81,7 @@ def check_cmd(cmd, validcmds):
         )
         return False
     return True
+
 
 def get_validcmds():
     """
@@ -118,32 +93,23 @@ def get_validcmds():
     return cmds
 
 
-
-
 def parse_commands(argv):
-    """
-    parse the input command
-    """
-    # 首先创建一个ArgumentParser对象
-    parser = argparse.ArgumentParser(description="FISCO BCOS 2.0 lite client @python")
-    parsed_args = argparse.Namespace()
-    cmd = parser.add_argument("cmd", nargs="+", help="the command for console")  # 添加参数
-    cmd.completer = completion
-
-    argcomplete.autocomplete(parser)
-    args = parser.parse_args()
-
-    print("\nINFO >> user input : {}\n".format(args.cmd))
-    cmd = args.cmd[0]
-    inputparams = args.cmd[1:]
+    print("FISCO BCOS 2.0 lite client @python")
+    if len(argv) == 0:
+        cmd = "usage"
+        inputparams = []
+    else:
+        cmd = argv[0]
+        inputparams = argv[1:]
     return cmd, inputparams
+
 
 Precompile.define_functions()
 RPCConsole.define_commands()
-validcmds = get_validcmds() + RPCConsole.get_all_cmd() + Precompile.get_all_cmd()+["usage"]
+validcmds = get_validcmds() + RPCConsole.get_all_cmd() + Precompile.get_all_cmd() + ["usage"]
+
 
 def main(argv):
-    
     cmd, inputparams = parse_commands(argv)
     # check cmd
     valid = check_cmd(cmd, validcmds)
@@ -154,8 +120,8 @@ def main(argv):
         usage(inputparams)
         return
     if cmd in cmd_mapping:
-        (modulename,classname) = cmd_mapping[cmd]
-        console_run_byname(modulename,classname,cmd,inputparams)
+        (modulename, classname) = cmd_mapping[cmd]
+        console_run_byname(modulename, classname, cmd, inputparams)
         return
 
     precompile = Precompile(cmd, argv, contracts_dir + "/precompile")

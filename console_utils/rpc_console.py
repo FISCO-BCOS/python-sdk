@@ -31,9 +31,11 @@ class RPCConsole:
         self.params = params
         self.contract_path = contract_path
         RPCConsole.define_commands()
+
     @staticmethod
     def usage():
         RPCConsole.print_rpc_usage()
+
     @staticmethod
     def print_rpc_usage():
         """
@@ -188,8 +190,8 @@ class RPCConsole:
                 contractname = hisdetail["name"]
                 print(
                     "transaction to contract : {} (deploy time: {})".format(
-                    contractname,
-                    hisdetail["timestr"]))
+                        contractname,
+                        hisdetail["timestr"]))
         if contractname is None:
             return
         self.parse_output(cmd, contractname, result)
@@ -287,4 +289,3 @@ class RPCConsole:
         self.exec_cmd_with_two_param(self.cmd, self.params)
         self.exec_cmd_with_str_param(self.cmd, self.params)
         self.exec_cmd_with_two_bool_param(self.cmd, self.params)
-

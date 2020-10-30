@@ -31,7 +31,7 @@ from console_utils.rpc_console import RPCConsole
 from client.common import transaction_common
 from client.common import common
 from eth_abi.exceptions import InsufficientDataBytes
-from console_utils.console_common import  *
+from console_utils.console_common import *
 from client.bcoserror import (
     BcosError,
     CompileError,
@@ -42,12 +42,14 @@ from client.bcoserror import (
 from client.common.transaction_exception import TransactionException
 import argcomplete
 contracts_dir = "contracts"
+
+
 class CmdTransaction:
     @staticmethod
     def make_usage():
-        usagemsg=[]
+        usagemsg = []
         usagemsg.append(
-"""
+            """
 >> deploy [contract_name]:
 部署合约, 新地址会写入本地记录文件,
 
@@ -58,18 +60,19 @@ call合约的一个只读接口,解析返回值
 发送交易调用指定合约的接口，交易如成功，结果会写入区块和状态
 """)
         return usagemsg
+
     @staticmethod
     def usage():
         usagemsg = CmdTransaction.make_usage()
         for m in usagemsg:
             print(m)
 
-    def deploy(self , inputparams):
+    def deploy(self, inputparams):
         print(inputparams)
         if len(inputparams) == 0:
-            sols = list_files(contracts_dir+"/*.sol")
+            sols = list_files(contracts_dir + "/*.sol")
             for sol in sols:
-                print (sol+".sol")
+                print(sol + ".sol")
             return
         """deploy abi bin file"""
         # must be at least 2 params
@@ -111,11 +114,11 @@ call合约的一个只读接口,解析返回值
 
         pass
 
-    def call(self,inputparams):
+    def call(self, inputparams):
         if len(inputparams) == 0:
-            sols = list_files(contracts_dir+"/*.sol")
+            sols = list_files(contracts_dir + "/*.sol")
             for sol in sols:
-                print (sol+".sol")
+                print(sol + ".sol")
             return
         common.check_param_num(inputparams, 3)
         paramsname = ["contractname", "address", "func"]
@@ -137,7 +140,7 @@ call合约的一个只读接口,解析返回值
         print("INFO>> client info: {}".format(tx_client.getinfo()))
         print(
             "INFO >> call {} , address: {}, func: {}, args:{}".format(
-                 contractname, address, fn_name, fn_args
+                contractname, address, fn_name, fn_args
             )
         )
 
@@ -145,7 +148,7 @@ call合约的一个只读接口,解析返回值
         print("INFO >> call result:")
         common.print_tx_result(result)
 
-    def sendtx(self,inputparams):
+    def sendtx(self, inputparams):
         if len(inputparams) == 0:
             sols = list_files(contracts_dir + "/*.sol")
             for sol in sols:
@@ -171,7 +174,7 @@ call合约的一个只读接口,解析返回值
         print("INFO>> client info: {}".format(tx_client.getinfo()))
         print(
             "INFO >> sendtx {} , address: {}, func: {}, args:{}".format(
-                 contractname, address, fn_name, fn_args
+                contractname, address, fn_name, fn_args
             )
         )
         receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)[0]

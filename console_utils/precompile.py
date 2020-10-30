@@ -30,6 +30,7 @@ class Precompile:
     """
     """
     functions = {}
+
     def __init__(self, cmd, args, contract_path):
         self._cmd = cmd
         self._args = args
@@ -444,7 +445,7 @@ class Precompile:
 
     @staticmethod
     def usage():
-        precompile = Precompile("",[],"")
+        precompile = Precompile("", [], "")
         precompile.print_cns_usage(True)
         precompile.print_consensus_usage(True)
         precompile.print_sysconfig_usage(True)

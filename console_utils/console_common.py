@@ -12,6 +12,7 @@
   @author: kentzhang
   @date: 2020-10
 '''
+import importlib
 import argparse
 import sys
 import glob
@@ -31,18 +32,18 @@ import json
 import os
 
 
-
-
-
 def list_contracts():
     """
     list all contractname for call
     """
     return list_files(contracts_dir + "/*.sol")
 
+
 '''
 这些动态调用的方法仅供参考，用于通过模块名找方法，
 '''
+
+
 def getfunction(obj, funcname):
     func = None
     try:
@@ -51,15 +52,16 @@ def getfunction(obj, funcname):
         pass
     return func
 
-import importlib
-def getClassbyName(modulename,cname):
+
+def getClassbyName(modulename, cname):
     try:
-        m = importlib.import_module("."+modulename,"console_utils")
-        clazz = getattr(m,cname)
+        m = importlib.import_module("." + modulename, "console_utils")
+        clazz = getattr(m, cname)
         c = clazz()
         return c
-    except:
+    except BaseException:
         return None
+
 
 def list_files(file_pattern):
     """
@@ -71,11 +73,13 @@ def list_files(file_pattern):
         targets.append(os.path.basename(file).split(".")[0])
     return targets
 
-def console_run_byname(modulename,classname,cmd,inputparams):
-    obj = getClassbyName(modulename,classname)
-    if obj ==None:
+
+def console_run_byname(modulename, classname, cmd, inputparams):
+    obj = getClassbyName(modulename, classname)
+    if obj is None:
         return -1
-    return console_run(obj,cmd,inputparams)
+    return console_run(obj, cmd, inputparams)
+
 
 def try_usage(obj):
     if getfunction(obj, "usage") is not None:
@@ -85,8 +89,8 @@ def try_usage(obj):
 
 
 def console_run(obj, cmd, inputparams):
-    #到这里inputparams应该传给实际调用的方法,就是纯纯的参数了，没有类名和方法名
-    func_name = cmd #取方法名
+    # 到这里inputparams应该传给实际调用的方法,就是纯纯的参数了，没有类名和方法名
+    func_name = cmd  # 取方法名
 
     func = getfunction(obj, func_name)
     #print("func:{},{}".format(func_name,func) )
@@ -96,7 +100,10 @@ def console_run(obj, cmd, inputparams):
     else:
         return try_usage(obj)
 
+
 contracts_dir = "contracts"
+
+
 def default_abi_file(contractname):
     abi_file = contractname
     if not abi_file.endswith(
@@ -104,7 +111,6 @@ def default_abi_file(contractname):
     ):  # default from contracts/xxxx.abi,if only input a name
         abi_file = contracts_dir + "/" + contractname + ".abi"
     return abi_file
-
 
 
 def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
@@ -157,56 +163,3 @@ def fill_params(params, paramsname):
         result[name] = params[index]
         index += 1
     return result
-
-
-def completion(prefix, parsed_args, **kwargs):
-    """
-    complete the shell
-    """
-    if parsed_args.cmd is None:
-        return validcmds
-    # deploy contract
-    if parsed_args.cmd[0] == "deploy":
-        return list_contracts()
-
-    # call and sendtx
-    # warn(parsed_args)
-    if parsed_args.cmd[0] == "call" or parsed_args.cmd[0] == "sendtx":
-        # only list the contract name
-        if len(parsed_args.cmd) == 1:
-            return list_contracts()
-        # list the contract address
-        if len(parsed_args.cmd) == 2:
-            return list_address(parsed_args.cmd[1])
-        # list functions
-        if len(parsed_args.cmd) == 3:
-            return get_functions_by_contract(parsed_args.cmd[1])
-
-    # call showaccount
-    if parsed_args.cmd[0] == "showaccount":
-        return list_accounts()
-
-    # registerCNS [contract_name] [contract_address] [contract_version]
-    if parsed_args.cmd[0] == "registerCNS":
-        # list contract name
-        if len(parsed_args.cmd) == 1:
-            return list_contracts()
-        # list contract address
-        if len(parsed_args.cmd) == 2:
-            return list_address(parsed_args.cmd[1])
-    # queryCNSByName [contract_name]
-    if parsed_args.cmd[0] == "queryCNSByName":
-        # list contract name
-        if len(parsed_args.cmd) == 1:
-            return list_contracts()
-    # queryCNSByNameAndVersion [contract_name] [contract_version]
-    if parsed_args.cmd[0] == "queryCNSByNameAndVersion":
-        if len(parsed_args.cmd) == 1:
-            return list_contracts()
-    # sysconfig
-    if (
-        parsed_args.cmd[0] == "setSystemConfigByKey"
-        or parsed_args.cmd[0] == "getSystemConfigByKey"
-    ):
-        return ["tx_count_limit", "tx_gas_limit"]
-    return []

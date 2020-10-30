@@ -19,6 +19,7 @@ from client.datatype_parser import DatatypeParser
 from console_utils.console_common import *
 from eth_utils import to_checksum_address
 
+
 class CmdEncode:
     @staticmethod
     def make_usage():
@@ -27,12 +28,12 @@ class CmdEncode:
             """
 >> txinput [contractname] [inputdata(in hex string)]
 复制一段来自transaction的inputdata(十六进制字符串)，指定合约名，则可以自动解析（合约的abi文件应存在指定目录下）
-            
+
 >> checkaddr [address] 将普通地址转为自校验地址,自校验地址使用时不容易出错
- 
+
 >> hex [value]: 将10进制转为16进制
-            
->> decodehex [hexvalue] 将16进制转为10进制，可以有0x开头        
+
+>> decodehex [hexvalue] 将16进制转为10进制，可以有0x开头
 """)
 
         return usagemsg
