@@ -94,7 +94,6 @@ def get_validcmds():
 
 
 def parse_commands(argv):
-    print("FISCO BCOS 2.0 lite client @python")
     if len(argv) == 0:
         cmd = "usage"
         inputparams = []
