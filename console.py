@@ -11,28 +11,25 @@
   rlp, eth-rlp , hexbytes ... and relative projects
   @author: kentzhang
   @date: 2019-06
+
 """
+
+"""
+2020.10 重构，原来的实现很多塞在这文件里，有点乱，
+把命令分组为“账户account，交易transaction，内置合约precompile，读接口rpc，转码encode,
+每一组命令一个class，放到console_utils目录里
+把一些公共工具函数抽到console_common.py里
+在此文件主要是是解析输入，试图按配置和自动加载类结合的方式调取指定的命令实现.
+优化了下usage，可以指定分组的usage打印，如usage account,usage rpc,输出的信息比较少了，比较简洁易读
+"""
+
+
 from console_utils.cmd_account import CmdAccount
 from console_utils.cmd_encode import CmdEncode
 from console_utils.cmd_transaction import CmdTransaction
 from console_utils.console_common import *
 from console_utils.precompile import Precompile
 from console_utils.rpc_console import RPCConsole
-
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
-  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
-  terms of the MIT License as published by the Free Software Foundation. This project is
-  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
-  authors and contributors of eth-abi, eth-account, eth-hash，eth-keys, eth-typing, eth-utils,
-  rlp, eth-rlp , hexbytes ... and relative projects
-  @function:
-  @author: kentzhang
-  @date: 2020-10
-'''
 cmd_mapping = dict()
 cmd_mapping["showaccount"] = ["cmd_account", "CmdAccount"]
 cmd_mapping["listaccount"] = ["cmd_account", "CmdAccount"]
