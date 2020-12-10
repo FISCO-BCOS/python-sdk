@@ -132,7 +132,6 @@ def main(argv):
     # try to callback rpc functions
     rpcconsole = RPCConsole(cmd, inputparams, contracts_dir)
     rpcconsole.executeRpcCommand()
-    cmd_module = "cmd_" + argv[0]
 
 
 if __name__ == "__main__":

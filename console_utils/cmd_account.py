@@ -30,6 +30,7 @@ from console_utils.console_common import list_files
 
 class CmdAccount:
     client = None
+
     @staticmethod
     def make_usage():
         usagemsg = []
@@ -184,5 +185,3 @@ class CmdAccount:
             self.show_gm_account(name, password)
         else:
             self.show_ecdsa_account(name, password)
-
-

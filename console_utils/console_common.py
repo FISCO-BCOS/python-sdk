@@ -13,14 +13,10 @@
   @date: 2020-10
 '''
 import importlib
-import argparse
-import sys
 import glob
 
 from client.datatype_parser import DatatypeParser
 from client.common import common
-
-import json
 import os
 
 
