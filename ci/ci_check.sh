@@ -102,7 +102,7 @@ function test_contract()
 
     init_blockNumber=$(getBlockNumber)
     # deploy and get contract address
-    contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "on.*block.*address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    contract_addr=$(execute_cmd "python console.py deploy HelloWorld | grep "on.*block.*address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
     echo "#### contract_addr is: ${contract_addr}"
 
     updated_blockNumber=$(getBlockNumber)
