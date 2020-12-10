@@ -119,8 +119,8 @@ def main(argv):
         (modulename, classname) = cmd_mapping[cmd]
         console_run_byname(modulename, classname, cmd, inputparams)
         return
-
-    precompile = Precompile(cmd, argv, contracts_dir + "/precompile")
+    print("cmd=",cmd)
+    precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
     # try to callback cns precompile
     precompile.call_cns()
     # try to callback consensus precompile

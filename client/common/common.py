@@ -202,6 +202,7 @@ def check_param_num(args, expected, needEqual=False):
     """
     check param num
     """
+    import traceback
     if needEqual is False:
         if len(args) < expected:
             raise ArgumentsError(("invalid arguments, expected num >= {},"
