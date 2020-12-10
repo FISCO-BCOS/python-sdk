@@ -12,11 +12,20 @@
   @author: kentzhang
   @date: 2020-10
 '''
+import os
+import json
+import sys
 from client.bcoserror import (
     BcosException,
 )
 from client.common import common
-from console_utils.console_common import *
+from client.gm_account import GM_Account
+from client.stattool import StatTool
+from eth_account.account import Account
+from eth_utils.hexadecimal import encode_hex
+from eth_utils.crypto import CRYPTO_TYPE_GM
+from client_config import client_config
+from console_utils.console_common import list_files
 
 
 class CmdAccount:
@@ -177,16 +186,3 @@ class CmdAccount:
             self.show_ecdsa_account(name, password)
 
 
-if False:
-
-    cname = "cmd_account"
-    #obj = getClassbyName(cname)
-    #obj =globals()[cname]
-    #console_run(cname, ["create", "tester", "123456"])
-    #console_run(obj, ["list"])
-    #console_run(obj, ["usage"])
-    console_run_byname("cmd_account", "list")
-    #console_run(acc, ["show", "pyaccount", "123456"])
-    #(code, msg) = console_run(acc,["noway"])
-    # for m in msg:
-    #   print(m)

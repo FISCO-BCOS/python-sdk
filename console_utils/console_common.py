@@ -18,14 +18,6 @@ import sys
 import glob
 
 from client.datatype_parser import DatatypeParser
-from client.gm_account import GM_Account
-from client.stattool import StatTool
-from client_config import client_config
-from eth_account.account import Account
-from eth_utils.hexadecimal import encode_hex
-from client.contractnote import ContractNote
-from eth_utils.crypto import CRYPTO_TYPE_GM
-from client.common import transaction_common
 from client.common import common
 
 import json

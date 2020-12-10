@@ -13,7 +13,14 @@
   @date: 2019-06
 
 """
-
+import sys
+from console_utils.cmd_account import CmdAccount
+from console_utils.cmd_encode import CmdEncode
+from console_utils.cmd_transaction import CmdTransaction
+from console_utils.console_common import console_run_byname, contracts_dir
+from console_utils.precompile import Precompile
+from console_utils.rpc_console import RPCConsole
+from client.common import common
 """
 2020.10 重构，原来的实现很多塞在这文件里，有点乱，
 把命令分组为“账户account，交易transaction，内置合约precompile，读接口rpc，转码encode,
@@ -22,14 +29,6 @@
 在此文件主要是是解析输入，试图按配置和自动加载类结合的方式调取指定的命令实现.
 优化了下usage，可以指定分组的usage打印，如usage account,usage rpc,输出的信息比较少了，比较简洁易读
 """
-
-
-from console_utils.cmd_account import CmdAccount
-from console_utils.cmd_encode import CmdEncode
-from console_utils.cmd_transaction import CmdTransaction
-from console_utils.console_common import *
-from console_utils.precompile import Precompile
-from console_utils.rpc_console import RPCConsole
 cmd_mapping = dict()
 cmd_mapping["showaccount"] = ["cmd_account", "CmdAccount"]
 cmd_mapping["listaccount"] = ["cmd_account", "CmdAccount"]
@@ -48,7 +47,6 @@ def usage(inputparams=[]):
     """
     print usage
     """
-    usagemsg = []
     print("FISCO BCOS 2.0 @python-SDK Usage:")
 
     if len(inputparams) == 0:
@@ -119,7 +117,7 @@ def main(argv):
         (modulename, classname) = cmd_mapping[cmd]
         console_run_byname(modulename, classname, cmd, inputparams)
         return
-    print("cmd=",cmd)
+    print("cmd=", cmd)
     precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
     # try to callback cns precompile
     precompile.call_cns()
@@ -132,8 +130,8 @@ def main(argv):
     # try to callback crud precompile
     precompile.call_crud_precompile()
     # try to callback rpc functions
-    rpcConsole = RPCConsole(cmd, inputparams, contracts_dir)
-    rpcConsole.executeRpcCommand()
+    rpcconsole = RPCConsole(cmd, inputparams, contracts_dir)
+    rpcconsole.executeRpcCommand()
     cmd_module = "cmd_" + argv[0]
 
 

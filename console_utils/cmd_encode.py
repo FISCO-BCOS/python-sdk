@@ -12,11 +12,12 @@
   @author: kentzhang
   @date: 2020-10
 '''
+import os
 from client.bcoserror import (
     BcosException,
 )
 from client.datatype_parser import DatatypeParser
-from console_utils.console_common import *
+from console_utils.console_common import default_abi_file
 from eth_utils import to_checksum_address
 
 
@@ -55,9 +56,9 @@ class CmdEncode:
                 "execute {} failed for {} doesn't exist".format(abi_path)
             )
         try:
-            dataParser = DatatypeParser(abi_path)
+            dataparser = DatatypeParser(abi_path)
             # print(dataParser.func_abi_map_by_selector)
-            result = dataParser.parse_transaction_input(inputdata)
+            result = dataparser.parse_transaction_input(inputdata)
             print("\nabifile : ", default_abi_file(contractname))
             print("parse result: {}".format(result))
         except Exception as e:

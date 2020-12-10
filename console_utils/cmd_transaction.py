@@ -12,35 +12,18 @@
   @author: kentzhang
   @date: 2020-10
 '''
-import argparse
-import sys
-import glob
-from client.gm_account import GM_Account
-from client.stattool import StatTool
-from client_config import client_config
-from eth_account.account import Account
-from eth_utils.hexadecimal import encode_hex
-from client.contractnote import ContractNote
-from eth_utils.crypto import CRYPTO_TYPE_GM
 import json
-import os
-from client.datatype_parser import DatatypeParser
-from eth_utils import to_checksum_address
-from console_utils.precompile import Precompile
-from console_utils.rpc_console import RPCConsole
-from client.common import transaction_common
+import sys
+from console_utils.console_common import list_files
 from client.common import common
-from eth_abi.exceptions import InsufficientDataBytes
-from console_utils.console_common import *
-from client.bcoserror import (
-    BcosError,
-    CompileError,
-    PrecompileError,
-    ArgumentsError,
-    BcosException,
-)
-from client.common.transaction_exception import TransactionException
-import argcomplete
+from client.common import transaction_common
+from client.contractnote import ContractNote
+from client_config import client_config
+from console_utils.console_common import fill_params
+from client.datatype_parser import  DatatypeParser
+from console_utils.console_common import default_abi_file
+from console_utils.console_common import print_receipt_logs_and_txoutput
+
 contracts_dir = "contracts"
 
 
