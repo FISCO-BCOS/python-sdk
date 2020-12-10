@@ -53,7 +53,7 @@ class CmdEncode:
         abi_path = default_abi_file(contractname)
         if os.path.isfile(abi_path) is False:
             raise BcosException(
-                "execute {} failed for {} doesn't exist".format(contractname,abi_path)
+                "execute {} failed for {} doesn't exist".format(contractname, abi_path)
             )
         try:
             dataparser = DatatypeParser(abi_path)
@@ -62,7 +62,7 @@ class CmdEncode:
             print("\nabifile : ", default_abi_file(contractname))
             print("parse result: {}".format(result))
         except Exception as e:
-            raise BcosException("execute {} failed for reason: {}".format(contractname,e))
+            raise BcosException("execute {} failed for reason: {}".format(contractname, e))
 
     def checkaddr(self, inputparams):
         # [address]

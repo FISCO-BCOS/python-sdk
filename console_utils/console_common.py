@@ -81,10 +81,9 @@ def console_run(obj, cmd, inputparams):
     func_name = cmd  # 取方法名
 
     func = getfunction(obj, func_name)
-    #print("func:{},{}".format(func_name,func) )
     if func is not None and callable(func):
         func(inputparams)
-        return (0, "")
+        return 0, ''
     else:
         return try_usage(obj)
 
