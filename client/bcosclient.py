@@ -401,9 +401,9 @@ class BcosClient:
         # get blocklimit every 100sec
         if tickstamp > 100:
             blockNumber = self.getBlockNumber()
-            self.channel_handler.blockNumber=blockNumber
+            self.channel_handler.blockNumber = blockNumber
             self.channel_handler.setBlockNumber(blockNumber)
-            self.lastblocklimittime=tick
+            self.lastblocklimittime = tick
         return self.channel_handler.blockNumber + self.blockLimit
 
     def RPC_getBlocklimit(self):
