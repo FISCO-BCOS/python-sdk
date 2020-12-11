@@ -396,6 +396,13 @@ class BcosClient:
         """
         get blockNumber from _block_notify directly when use channelHandler
         """
+        tick = time.time()
+        tickstamp = tick - self.lastblocklimittime
+        if tickstamp > 100:  # get blocklimit every 100sec
+            blockNumber = self.getBlockNumber()
+            self.channel_handler.blockNumber=blockNumber
+            self.channel_handler.setBlockNumber(blockNumber)
+            self.lastblocklimittime=tick
         return self.channel_handler.blockNumber + self.blockLimit
 
     def RPC_getBlocklimit(self):
