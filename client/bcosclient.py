@@ -398,7 +398,8 @@ class BcosClient:
         """
         tick = time.time()
         tickstamp = tick - self.lastblocklimittime
-        if tickstamp > 100:  # get blocklimit every 100sec
+        # get blocklimit every 100sec
+        if tickstamp > 100:
             blockNumber = self.getBlockNumber()
             self.channel_handler.blockNumber=blockNumber
             self.channel_handler.setBlockNumber(blockNumber)
