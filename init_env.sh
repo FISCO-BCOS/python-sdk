@@ -87,11 +87,11 @@ install_pyenv()
         return
     fi
     # export env
-    execute_cmd "echo 'export PATH=~/.pyenv/bin:\$PATH' >> ${shell_rc}"
+    execute_cmd "echo 'export PATH=\"\$PATH:~/.pyenv/bin\"' >> ${shell_rc}"
     execute_cmd "echo 'export PYENV_ROOT=~/.pyenv' >> ${shell_rc}"
     execute_cmd "echo 'eval \"\$(pyenv init -)\"' >> ${shell_rc}"
-	source ${shell_rc}
-    execute_cmd "echo 'eval \"\$(pyenv virtualenv-init -)\"' >> ~/.bash_profile"
+    execute_cmd "echo 'eval \"\$(pyenv virtualenv-init -)\"' >> ${shell_rc}"
+	eval "$(cat ${shell_rc} | tail -n +10)"
     LOG_INFO "init pyenv succeed!"
 }
 
@@ -106,6 +106,7 @@ install_python3()
 	if [ -z "${python_versions}" ];then
 	    execute_cmd "pyenv virtualenv ${version} python-sdk"
 	fi
+	LOG_INFO "install python3 succeed!"
 }
 
 install_linux_solc()
@@ -190,7 +191,8 @@ python_init()
     fi
     
     install_pyenv
-    source ${shell_rc}
+	eval "$(cat ${shell_rc} | tail -n +10)"
+    LOG_INFO "begin install python ${version}..."
     install_python3
     LOG_INFO "install python ${version} success, please activate with command: pyenv activate python-sdk"
   else

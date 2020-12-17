@@ -1,0 +1,37 @@
+name: Python SDK GitHub Actions
+on:
+  push:
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "Changelog.md"
+      - "README.md"
+  release:
+    types: [published, created, edited]
+jobs:
+  build:
+    name: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-latest]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 5
+      - name: install macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install openssl@1.1 curl
+      - name: install Ubuntu dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt install -y git curl openssl
+      - name: install python
+        run: ./init_env.sh -p
+      - name: install solc
+        run: ./init_env.sh -i
+      - name: run integration for Linux
+        if: runner.os == 'Linux'
+        run: eval "$(cat ~/.bashrc | tail -n +10)" && echo ${PATH} && pyenv activate python-sdk && python --version && pip install --upgrade pip && pip install -r requirements.txt && bash -x ci/ci_check.sh
+      - name: run integration for macos
+        if: runner.os == 'macOS'
+        run: eval "$(cat ~/.bashrc | tail -n +10)" && echo ${PATH} && pyenv activate python-sdk && python --version && pip install --upgrade pip && pip install -r requirements.txt && bash -x ci/ci_check.sh
