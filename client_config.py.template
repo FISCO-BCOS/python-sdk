@@ -49,6 +49,5 @@ class client_config:
     # path of solc compiler
     solc_path = "./bin/solc/v0.4.25/solc"
     gm_solc_path = "./bin/solc/v0.4.25/solc-gm"
-    solcjs_path = "./solcjs"
 
     logdir = "bin/logs"  # 默认日志输出目录，该目录必须先建立
