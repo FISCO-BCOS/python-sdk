@@ -132,7 +132,7 @@ class CRUDService:
         """
         self.check_key_length(table.get_table_key())
         fn_name = "insert"
-        fn_args = [table.get_table_name(), table.get_table_key(), json.dump(entry.get_fields())]
+        fn_args = [table.get_table_name(), table.get_table_key(), json.dumps(entry.get_fields()), table.get_optional()]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
     def update(self, table, entry, condition):
@@ -143,7 +143,7 @@ class CRUDService:
         self.check_key_length(table.get_table_key())
         fn_name = "update"
         fn_args = [table.get_table_name(), table.get_table_key(),
-                   json.dump(entry.get_fields()), json.dumps(condition.get_conditions()),
+                   json.dumps(entry.get_fields()), json.dumps(condition.get_conditions()),
                    table.get_optional()]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 

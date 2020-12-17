@@ -464,9 +464,11 @@ class BcosClient:
             # print("fn_selector",fn_selector)
             # print("fn_arguments",fn_arguments)
             fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
-            # print("output types str:", fn_output_types)
-            decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
-            return decoderesult
+            try:
+                decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
+                return decoderesult
+            except:
+                return response
         return response
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions

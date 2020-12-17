@@ -17,13 +17,13 @@ class ConditionOp:
     """
     define operations for condition
     """
-    _EQ_ = 0
-    _NE_ = 1
-    _GT_ = 2
-    _GE_ = 3
-    _LT_ = 4
-    _LE_ = 5
-    _LIMIT_ = 6
+    _EQ_ = "eq"
+    _NE_ = "ne"
+    _GT_ = "gt"
+    _GE_ = "ge"
+    _LT_ = "lt"
+    _LE_ = "le"
+    _LIMIT_ = "limit"
 
 
 class Condition:
