@@ -106,7 +106,6 @@ class ChannelHandler(threading.Thread):
                     if responsepack is None and self.keepWorking:
                         time.sleep(0.001)
                         continue
-                    #print("response {} , {}, {}".format(hex(responsepack.type),responsepack.seq,responsepack.data) )
                     emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                                responsepack.seq, responsepack.type)
                     if emitter_str in self.requests:
@@ -230,7 +229,7 @@ class ChannelHandler(threading.Thread):
     def make_channel_rpc_request(self, method, params, packet_type=ChannelPack.TYPE_RPC,
                                  response_type=ChannelPack.TYPE_RPC):
         rpc_data = self.encode_rpc_request(method, params)
-        self.logger.debug("request rpc_data : {}".format(rpc_data))
+        #self.logger.debug("request rpc_data : {}".format(rpc_data))
         return self.make_channel_request(rpc_data, packet_type, response_type)
 
     def setBlockNumber(self, blockNumber):
@@ -270,7 +269,7 @@ class ChannelHandler(threading.Thread):
         # get onResponse emitter
         onresponse_emitter = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                           responsepack.seq, responsepack.type)
-        if onresponse_emitter in self.requests:
+        if onresponse_emitter in self.requests and responsepack.type != ChannelPack.TYPE_TX_BLOCKNUM:
             self.requests.remove(onresponse_emitter)
 
         emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
@@ -304,8 +303,8 @@ class ChannelHandler(threading.Thread):
             # block notify
             elif responsepack.type == ChannelPack.TYPE_TX_BLOCKNUM:
                 number = int(data.split(',')[1], 10)
-                self.logger.debug("receive block notify: seq: {} type:{}".
-                                  format(responsepack.seq, responsepack.type))
+                self.logger.debug("receive block notify: seq: {} type:{}, data:{}".
+                                  format(responsepack.seq, responsepack.type, data))
                 if self.blockNumber < number:
                     self.blockNumber = number
                 self.logger.debug("currentBlockNumber: {}".format(self.blockNumber))
