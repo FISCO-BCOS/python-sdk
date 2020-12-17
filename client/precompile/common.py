@@ -27,6 +27,9 @@ class PrecompileCommon:
     error_code = {}
     error_code["-50000"] = "PermissionPrecompiled: Permission Denied"
     error_code["-50001"] = "CRUD: Table Exist"
+    error_code["-51502"] = "CRUD: Undefined operator"
+    error_code["-51501"] = "CRUD: Parse condition error"
+    error_code["-51500"] = "CRUD: Parse Entry error"
     error_code["-51000"] = "PermissionPrecompiled: Already Granted"
     error_code["-51001"] = "PermissionPrecompiled: TableName And Account Not Exist"
     error_code["-51100"] = "Invalid NodeId"
