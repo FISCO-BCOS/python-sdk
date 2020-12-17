@@ -38,6 +38,12 @@ class Condition:
         """
         update condition with the given (op, key, value)
         """
+        if self.conditions.get(key) is not None:
+            if self.conditions.get(key).get(op) is not None:
+                self.conditions[key].get(op).put(value)
+            else:
+                self.conditions[key][op] = value
+            return
         op_dict = {}
         op_dict[op] = value
         self.conditions[key] = op_dict
