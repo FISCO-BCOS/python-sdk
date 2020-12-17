@@ -33,36 +33,6 @@ class Compiler:
     else:
         raise CompileError("crypto_type: {} is not supported".format(client_config.crypto_type))
 
-    js_compiler_path = client_config.solcjs_path
-
-    @staticmethod
-    def compile_with_js(sol_path, contract_name, output_path="contracts"):
-        """
-        compile with nodejs compiler
-        """
-        print("INFO >> compile with nodejs compiler")
-        command = "{} --bin --abi {} -o {}".format(Compiler.js_compiler_path, sol_path, output_path)
-        common.execute_cmd(command)
-        # get oupput_prefix
-        output_list = output_path.split('/')
-        output_prefix = ""
-        for field in output_list:
-            output_prefix = output_prefix + field + "_"
-        # get gen path
-        gen_path = "{}/{}{}_sol_{}".format(output_path, output_prefix, contract_name, contract_name)
-        target_path = "{}/{}".format(output_path, contract_name)
-        bin_file = gen_path + ".bin"
-        target_bin_file = target_path + ".bin"
-        if os.path.exists(bin_file):
-            command = "mv {} {}".format(bin_file, target_bin_file)
-            common.execute_cmd(command)
-
-        abi_file = gen_path + ".abi"
-        target_abi_file = target_path + ".abi"
-        if os.path.exists(abi_file):
-            command = "mv {} {}".format(abi_file, target_abi_file)
-            common.execute_cmd(command)
-
     @staticmethod
     def compile_with_solc(sol_file, contract_name, output_path):
         """
@@ -93,9 +63,6 @@ class Compiler:
             # compile with solc if solc compiler exists
             if os.path.isfile(Compiler.compiler_path) is True:
                 Compiler.compile_with_solc(sol_file, contract_name, output_path)
-            # compiler with js compiler if solc compiler doesn't exist
-            elif os.path.isfile(Compiler.js_compiler_path) is True:
-                Compiler.compile_with_js(sol_file, contract_name, output_path)
         except CompilerNotFound as e:
             abi_path = output_path + "/" + contract_name + ".abi"
             bin_path = output_path + "/" + contract_name + ".bin"
