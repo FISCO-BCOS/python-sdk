@@ -130,19 +130,54 @@ class CRUDService:
         insert(string tableName, string key, string entry,
                string optional)
         """
+        key_value = self.get_value_for_key(table, entry)
         self.check_key_length(table.get_table_key())
         fn_name = "insert"
-        fn_args = [table.get_table_name(), table.get_table_key(), json.dumps(entry.get_fields()), table.get_optional()]
+        fn_args = [table.get_table_name(), key_value, json.dumps(
+            entry.get_fields()), table.get_optional()]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
+
+    def get_key_value_from_condition(self, table, condition):
+        """
+        get key value from the condition
+        """
+        condition_map = condition.get_conditions().get(table.get_table_key())
+        if condition_map is None:
+            raise Exception('''Must set condition for the primary key {}'''.format(
+                table.get_table_key()))
+        key_value = ""
+        if len(condition_map.keys()) == 0:
+            raise Exception('''Must set one condition for the primary key {}'''.format(
+                table.get_table_key()))
+        if len(condition_map.keys()) > 1:
+            raise Exception('''Only support set one condition for the primary key {}'''.format(
+                table.get_table_key()))
+        for key, value in condition_map.items():
+            key_value = value
+            break
+        return key_value
+
+    def get_value_for_key(self, table, entry):
+        """
+        get value for the key
+        """
+        if table.get_table_key() is None:
+            raise Exception('''Must provide the table key''')
+        key = entry.get(table.get_table_key())
+        if key is None:
+            raise Exception('''Must provide value for the table key {}'''.format(
+                table.get_table_key()))
+        return key
 
     def update(self, table, entry, condition):
         """
         function update(string tableName, string key, string entry,
                 string condition, string optional) public returns(int);
         """
-        self.check_key_length(table.get_table_key())
+        key_value = self.get_key_value_from_condition(table, condition)
+        self.check_key_length(key_value)
         fn_name = "update"
-        fn_args = [table.get_table_name(), table.get_table_key(),
+        fn_args = [table.get_table_name(), key_value,
                    json.dumps(entry.get_fields()), json.dumps(condition.get_conditions()),
                    table.get_optional()]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
@@ -152,9 +187,10 @@ class CRUDService:
         function remove(string tableName, string key,
                     string condition, string optional) public returns(int);
         """
-        self.check_key_length(table.get_table_key())
+        key_value = self.get_key_value_from_condition(table, condition)
+        self.check_key_length(key_value)
         fn_name = "remove"
-        fn_args = [table.get_table_name(), table.get_table_key(),
+        fn_args = [table.get_table_name(), key_value,
                    json.dumps(condition.get_conditions()), table.get_optional()]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
@@ -163,9 +199,11 @@ class CRUDService:
         function select(string tableName, string key, string condition,
                  string optional) public constant returns(string)
         """
-        self.check_key_length(table.get_table_key())
+        key_value = self.get_key_value_from_condition(table, condition)
+
+        self.check_key_length(key_value)
         fn_name = "select"
-        fn_args = [table.get_table_name(), table.get_table_key(), json.dumps(
+        fn_args = [table.get_table_name(), key_value, json.dumps(
             condition.get_conditions()), table.get_optional()]
         return self.client.call_and_decode(fn_name, fn_args)
 
