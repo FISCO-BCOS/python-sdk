@@ -33,6 +33,10 @@ class RPCConsole:
         RPCConsole.define_commands()
 
     @staticmethod
+    def usage():
+        RPCConsole.print_rpc_usage()
+
+    @staticmethod
     def print_rpc_usage():
         """
         print rpc usage information
@@ -186,8 +190,8 @@ class RPCConsole:
                 contractname = hisdetail["name"]
                 print(
                     "transaction to contract : {} (deploy time: {})".format(
-                    contractname,
-                    hisdetail["timestr"]))
+                        contractname,
+                        hisdetail["timestr"]))
         if contractname is None:
             return
         self.parse_output(cmd, contractname, result)
