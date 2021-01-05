@@ -442,3 +442,11 @@ class Precompile:
         except ArgumentsError as e:
             common.print_error_msg(self._cmd, e)
             self.print_crud_usage()
+
+    @staticmethod
+    def usage():
+        precompile = Precompile("", [], "")
+        precompile.print_cns_usage(True)
+        precompile.print_consensus_usage(True)
+        precompile.print_sysconfig_usage(True)
+        precompile.print_all_permission_usage()

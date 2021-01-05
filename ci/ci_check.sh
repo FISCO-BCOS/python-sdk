@@ -37,7 +37,9 @@ function build_blockchain()
   fi
   execute_cmd "rm -rf nodes"
   # download build_chain.sh
-  execute_cmd "curl -LO https://raw.githubusercontent.com/FISCO-BCOS/FISCO-BCOS/master/tools/build_chain.sh && chmod u+x build_chain.sh"
+  tag=$(curl -sS "https://gitee.com/api/v5/repos/FISCO-BCOS/FISCO-BCOS/tags" | grep -oe "\"name\":\"v[2-9]*\.[0-9]*\.[0-9]*\"" | cut -d \" -f 4 | sort -V | tail -n 1)
+  LOG_INFO "--- current tag: $tag"
+  curl -LO "https://github.com/FISCO-BCOS/FISCO-BCOS/releases/download/${tag}/build_chain.sh" && chmod u+x build_chain.sh
   # get_buildchain.sh may fail due to access github api failed
   #bash <(curl -s https://raw.githubusercontent.com/FISCO-BCOS/FISCO-BCOS/dev/tools/get_buildchain.sh)
   
@@ -100,7 +102,7 @@ function test_contract()
 
     init_blockNumber=$(getBlockNumber)
     # deploy and get contract address
-    contract_addr=$(execute_cmd "python console.py deploy HelloWorld save | grep "on.*block.*address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
+    contract_addr=$(execute_cmd "python console.py deploy HelloWorld | grep "on.*block.*address:" | awk -F':' '{print \$3}' | awk '\$1=\$1'")
     echo "#### contract_addr is: ${contract_addr}"
 
     updated_blockNumber=$(getBlockNumber)
