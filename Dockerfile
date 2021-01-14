@@ -10,7 +10,7 @@ WORKDIR /python-sdk
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     apk update && \
-    apk add --no-cache gcc g++ python python-dev py-pip openssl bash linux-headers libffi-dev openssl-dev curl wget
+    apk add --no-cache gcc g++ python3 python3-dev py3-pip openssl bash linux-headers libffi-dev openssl-dev curl wget
 
 COPY requirements.txt /requirements.txt
 
