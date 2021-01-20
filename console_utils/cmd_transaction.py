@@ -71,7 +71,6 @@ call合约的一个只读接口,解析返回值
             "", contracts_dir, contractname
         )
 
-
         try:
             result = tx_client.send_transaction_getReceipt(
                 None, fn_args, deploy=True
@@ -101,8 +100,6 @@ call合约的一个只读接口,解析返回值
             traceback.print_exc()
             print("deploy exception! ")
             tx_client.finish()
-
-
 
     def call(self, inputparams):
         if len(inputparams) == 0:
@@ -173,7 +170,7 @@ call合约的一个只读接口,解析返回值
             )
         )
         try:
-            (receipt,output) = tx_client.send_transaction_getReceipt(fn_name, fn_args)
+            (receipt, output) = tx_client.send_transaction_getReceipt(fn_name, fn_args)
             data_parser = DatatypeParser(default_abi_file(contractname))
             print("\n\nINFO >> from address:  {} ".format(tx_client.keypair.address))
             # 解析receipt里的log 和 相关的tx ,output

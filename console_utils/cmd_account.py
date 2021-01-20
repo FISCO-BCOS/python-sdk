@@ -51,7 +51,7 @@ def load_from_keystore(filename, password):
 
 def load_from_keyfile(filename, password=""):
     extname = os.path.splitext(filename)[1]
-    #print("*******{},{}".format(filename,extname))
+    # print("*******{},{}".format(filename,extname))
     if extname.endswith(".pem"):
         return load_from_pem(filename)
     if extname.endswith(".keystore"):
@@ -81,9 +81,8 @@ class CmdAccount:
 *国密版本仅支持json格式的导入导出。
 """)
         return usagemsg
+
     @staticmethod
-
-
     def create_gm_account(self, name, password):
         keyfile = "{}/{}.json".format(client_config.account_keyfile_path, name)
         if not os.path.exists(keyfile):  # 如果默认文件不存在，直接写
@@ -180,18 +179,20 @@ class CmdAccount:
         # the keystore doesn't exists,try pem
         if os.path.exists(keyfile) is False:
             keyfile = "{}/{}.pem".format(client_config.account_keyfile_path, name)
-        print("keyfile",keyfile)
+        print("keyfile", keyfile)
         if os.path.exists(keyfile) is False:
-            raise BcosException("account {} doesn't exists in path:{}".format(name,client_config.account_keyfile_path))
-        #go to load from file
+            raise BcosException(
+                "account {} doesn't exists in path:{}".format(
+                    name, client_config.account_keyfile_path))
+        # go to load from file
         print(
             "show account : {}, keyname:{} ,password {}  ".format(
-                name,keyfile,  password
+                name, keyfile, password
             )
         )
         try:
             stat = StatTool.begin()
-            ac = load_from_keyfile(keyfile,password)
+            ac = load_from_keyfile(keyfile, password)
             stat.done()
             print("decrypt use time : %.3f s" % (stat.time_used))
             print("address:\t", ac.address)

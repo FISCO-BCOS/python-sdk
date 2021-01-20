@@ -27,7 +27,6 @@ from client.channelhandler import ChannelHandler
 from client_config import client_config
 from utils.contracts import encode_transaction_data
 from client.stattool import StatTool
-from client.bcoserror import BcosError, ArgumentsError, BcosException
 from client import clientlogger
 from utils.contracts import get_function_info
 from utils.abi import itertools, get_fn_abi_types_single
@@ -37,8 +36,8 @@ from client.gm_account import GM_Account
 from eth_utils.crypto import CRYPTO_TYPE_GM
 from client.signtransaction import SignTx
 from client.bcoskeypair import BcosKeyPair
-from client.bcoserror import BcosError, CompileError, ArgumentsError, BcosException
-from client.common.transaction_exception import TransactionException
+from client.bcoserror import BcosError, ArgumentsError, BcosException
+
 
 class BcosClient:
     ecdsa_account = None
@@ -89,7 +88,7 @@ class BcosClient:
                 self.keypair = self.gm_account.keypair
                 return True
             except Exception as e:
-                raise  BcosException("load gm account from {} failed, reason: {}"
+                raise BcosException("load gm account from {} failed, reason: {}"
                                     .format(self.gm_account_file, e))
 
         # 默认的 ecdsa 账号
@@ -98,20 +97,19 @@ class BcosClient:
             return  # 不需要重复加载
         # check account keyfile
         self.key_file = "{}/{}".format(client_config.account_keyfile_path,
-                                            client_config.account_keyfile)
+                                       client_config.account_keyfile)
         if os.path.exists(self.key_file) is False:
             raise BcosException(("key file {} doesn't exist, "
                                  "please check client_config.py again "
                                  "and make sure this account exist")
                                 .format(self.key_file))
         from console_utils.cmd_account import load_from_keyfile
-        self.ecdsa_account = load_from_keyfile(self.key_file,client_config.account_password)
+        self.ecdsa_account = load_from_keyfile(self.key_file, client_config.account_password)
         keypair = BcosKeyPair()
         keypair.private_key = self.ecdsa_account.privateKey
         keypair.public_key = self.ecdsa_account.publickey
         keypair.address = self.ecdsa_account.address
         self.keypair = keypair
-
 
     def init(self):
         try:
@@ -576,18 +574,21 @@ class BcosClient:
         blocknum = result['blockNumber']
     '''
 
-
-    def deploy(self, contract_bin,contract_abi=None,fn_args=None):
+    def deploy(self, contract_bin, contract_abi=None, fn_args=None):
         result = self.sendRawTransactionGetReceipt(
-            to_address="", contract_abi=contract_abi, fn_name=None,args=fn_args ,bin_data=contract_bin)
+            to_address="",
+            contract_abi=contract_abi,
+            fn_name=None,
+            args=fn_args,
+            bin_data=contract_bin)
         # newaddr = result['contractAddress']
         # blocknum = result['blockNumber']
         # print("onblock : %d newaddr : %s "%(int(blocknum,16),newaddr))
         return result
 
-    def deployFromFile(self, contractbinfile, contract_abi=None,fn_args=None):
+    def deployFromFile(self, contractbinfile, contract_abi=None, fn_args=None):
         with open(contractbinfile, "r") as f:
             contractbin = f.read()
             f.close()
-        result = self.deploy(contractbin,contract_abi,fn_args)
+        result = self.deploy(contractbin, contract_abi, fn_args)
         return result
