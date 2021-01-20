@@ -211,14 +211,14 @@ def check_param_num(args, expected, needEqual=False):
             raise ArgumentsError(("invalid arguments, expected num {},"
                                   "real num: {}").format(expected, len(args)))
 
-
+'''
 def parse_output(output, fn_name, contract_abi, args):
     fn_abi, fn_selector, fn_arguments = fn_abi, fn_selector, fn_arguments = get_function_info(
         fn_name, contract_abi, None, args, None)
     fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
     decoderesult = decode_single(fn_output_types, decode_hex(output))
     return decoderesult
-
+'''
 
 def print_receipt_logs(logs):
     print("\nlogs : >> ")
@@ -285,7 +285,7 @@ def print_tx_result(outputresults):
         if type(result) is bytes:
             print("{}, ".format(bytesToHex(result)))
             continue
-        print("{}, ".format(result))
+        print("tx reuslt: {}, ".format(result))
 
 
 def check_result(result):

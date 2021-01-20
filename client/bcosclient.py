@@ -37,11 +37,12 @@ from client.gm_account import GM_Account
 from eth_utils.crypto import CRYPTO_TYPE_GM
 from client.signtransaction import SignTx
 from client.bcoskeypair import BcosKeyPair
-
+from client.bcoserror import BcosError, CompileError, ArgumentsError, BcosException
+from client.common.transaction_exception import TransactionException
 
 class BcosClient:
     ecdsa_account = None
-    keystore_file = ""
+    key_file = ""
     gm_account = None
     gm_account_file = ""
     keypair = None
@@ -86,35 +87,31 @@ class BcosClient:
                 self.gm_account.load_from_file(
                     self.gm_account_file, client_config.gm_account_password)
                 self.keypair = self.gm_account.keypair
-                return
+                return True
             except Exception as e:
-                raise BcosException("load gm account from {} failed, reason: {}"
+                raise  BcosException("load gm account from {} failed, reason: {}"
                                     .format(self.gm_account_file, e))
 
         # 默认的 ecdsa 账号
-        try:
-            if self.ecdsa_account is not None:
-                return  # 不需要重复加载
-            # check account keyfile
-            self.keystore_file = "{}/{}".format(client_config.account_keyfile_path,
-                                                client_config.account_keyfile)
-            if os.path.exists(self.keystore_file) is False:
-                raise BcosException(("keystore file {} doesn't exist, "
-                                     "please check client_config.py again "
-                                     "and make sure this account exist")
-                                    .format(self.keystore_file))
-            with open(self.keystore_file, "r") as dump_f:
-                keytext = json.load(dump_f)
-                privkey = Account.decrypt(keytext, client_config.account_password)
-                self.ecdsa_account = Account.from_key(privkey)
-                keypair = BcosKeyPair()
-                keypair.private_key = self.ecdsa_account.privateKey
-                keypair.public_key = self.ecdsa_account.publickey
-                keypair.address = self.ecdsa_account.address
-                self.keypair = keypair
-        except Exception as e:
-            raise BcosException("load account from {} failed, reason: {}"
-                                .format(self.keystore_file, e))
+
+        if self.ecdsa_account is not None:
+            return  # 不需要重复加载
+        # check account keyfile
+        self.key_file = "{}/{}".format(client_config.account_keyfile_path,
+                                            client_config.account_keyfile)
+        if os.path.exists(self.key_file) is False:
+            raise BcosException(("key file {} doesn't exist, "
+                                 "please check client_config.py again "
+                                 "and make sure this account exist")
+                                .format(self.key_file))
+        from console_utils.cmd_account import load_from_keyfile
+        self.ecdsa_account = load_from_keyfile(self.key_file,client_config.account_password)
+        keypair = BcosKeyPair()
+        keypair.private_key = self.ecdsa_account.privateKey
+        keypair.public_key = self.ecdsa_account.publickey
+        keypair.address = self.ecdsa_account.address
+        self.keypair = keypair
+
 
     def init(self):
         try:
@@ -143,6 +140,7 @@ class BcosClient:
                     raise BcosException("{} not found!".format(client_config.channel_node_key))
 
                 self.channel_handler = ChannelHandler()
+                self.channel_handler.setDaemon(True)
                 self.channel_handler.logger = self.logger
                 self.channel_handler.initTLSContext(client_config.channel_ca,
                                                     client_config.channel_node_cert,
@@ -489,6 +487,7 @@ class BcosClient:
             functiondata = bin_data
         # deploy with params
         else:
+            print(contract_abi)
             fn_data = get_aligned_function_data(contract_abi, None, args)
             functiondata = bin_data + fn_data[2:]
 
@@ -499,13 +498,14 @@ class BcosClient:
         # load default account if not set .notice: account only use for
         # sign transaction for sendRawTransa# if self.client_account is None:
         self.load_default_account()
+
         # 填写一个bcos transaction 的 mapping
         import random
         txmap = dict()
-        txmap["randomid"] = random.randint(0, 1000000000)  # 测试用 todo:改为随机数
+        txmap["randomid"] = random.randint(0, 1000000000)
         txmap["gasPrice"] = gasPrice
         txmap["gasLimit"] = gasPrice
-        txmap["blockLimit"] = self.getBlockLimit()  # 501  # 测试用，todo：从链上查一下
+        txmap["blockLimit"] = self.getBlockLimit()
 
         txmap["to"] = to_address
         txmap["value"] = 0
@@ -576,16 +576,18 @@ class BcosClient:
         blocknum = result['blockNumber']
     '''
 
-    def deploy(self, contract_bin):
+
+    def deploy(self, contract_bin,contract_abi=None,fn_args=None):
         result = self.sendRawTransactionGetReceipt(
-            to_address="", contract_abi=None, fn_name=None, bin_data=contract_bin)
+            to_address="", contract_abi=contract_abi, fn_name=None,args=fn_args ,bin_data=contract_bin)
         # newaddr = result['contractAddress']
         # blocknum = result['blockNumber']
         # print("onblock : %d newaddr : %s "%(int(blocknum,16),newaddr))
         return result
 
-    def deployFromFile(self, contractbinfile):
+    def deployFromFile(self, contractbinfile, contract_abi=None,fn_args=None):
         with open(contractbinfile, "r") as f:
             contractbin = f.read()
-        result = self.deploy(contractbin)
+            f.close()
+        result = self.deploy(contractbin,contract_abi,fn_args)
         return result

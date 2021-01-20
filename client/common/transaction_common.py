@@ -42,11 +42,15 @@ class TransactionCommon(bcosclient.BcosClient):
         self.contract_abi_path = contract_path + "/" + contract_name + ".abi"
         self.contract_bin_path = contract_path + "/" + contract_name + ".bin"
         self.sol_path = contract_path + "/" + contract_name + ".sol"
+        self.dataparser = None
+
         if os.path.exists(self.sol_path) is False:
             raise BcosException(("contract {} not exists,"
                                  " please put {}.sol into {}").
                                 format(contract_name,
                                        contract_name, contract_path))
+        if os.path.exists(self.contract_bin_path):
+            self.dataparser = DatatypeParser(self.contract_abi_path)
 
     def __del__(self):
         super().finish()
@@ -70,6 +74,7 @@ class TransactionCommon(bcosclient.BcosClient):
                 return
         Compiler.compile_file(self.sol_path, self.contract_path)
 
+
     def send_transaction_getReceipt(self, fn_name, fn_args, gasPrice=30000000, deploy=False):
         """
         send transactions to CNS contract with the givn function name and args
@@ -80,10 +85,13 @@ class TransactionCommon(bcosclient.BcosClient):
             if deploy is True and os.path.exists(self.contract_bin_path) is True:
                 with open(self.contract_bin_path) as f:
                     contract_bin = f.read()
+                    f.close()
                 if contract_bin is not None and len(contract_bin) > 0x40000:
                     raise BcosException(("contract bin size overflow,"
                                          " limit: 0x40000(256K), size: {})")
                                         .format(len(contract_bin), 16))
+            #print(args)
+            #print(contract_abi)
             receipt = super().sendRawTransactionGetReceipt(self.contract_addr,
                                                            contract_abi, fn_name,
                                                            args, contract_bin, gasPrice)
@@ -102,8 +110,9 @@ class TransactionCommon(bcosclient.BcosClient):
                                                      " (non-exist contract address?)").
                                            format(status,
                                                   receipt["gasUsed"]))
-            if fn_name is not None and fn_args is not None:
-                output = common.parse_output(receipt["output"], fn_name, contract_abi, args)
+            if fn_name is not None and fn_args is not None and self.dataparser is not None:
+                #output = common.parse_output(receipt["output"], fn_name, contract_abi, args)
+                output = self.dataparser.parse_receipt_output(fn_name,receipt["output"])
             else:
                 output = None
             return (receipt, output)
@@ -167,6 +176,7 @@ class TransactionCommon(bcosclient.BcosClient):
         self.gen_contract_abi(needCover)
         data_parser = DatatypeParser(self.contract_abi_path)
         contract_abi = data_parser.contract_abi
+        self.dataparser = data_parser
         args = None
         if fn_args is None:
             return (contract_abi, fn_args)
