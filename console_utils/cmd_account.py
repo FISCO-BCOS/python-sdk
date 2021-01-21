@@ -45,13 +45,12 @@ def load_from_keystore(filename, password):
         keytext = json.load(f)
         privkey = Account.decrypt(keytext, password)
         ac = Account.from_key(privkey)
-        f.close
+        f.close()
         return ac
 
 
 def load_from_keyfile(filename, password=""):
     extname = os.path.splitext(filename)[1]
-    # print("*******{},{}".format(filename,extname))
     if extname.endswith(".pem"):
         return load_from_pem(filename)
     if extname.endswith(".keystore"):
@@ -220,10 +219,10 @@ class CmdAccount:
 
     def showaccount(self, inputparams):
         name = inputparams[0]
-        password = ""
+        in_pwd = None
         if len(inputparams) > 1:
-            password = inputparams[1]
+            in_pwd = inputparams[1]
         if client_config.crypto_type == CRYPTO_TYPE_GM:
-            self.show_gm_account(name, password)
+            self.show_gm_account(name, in_pwd)
         else:
-            self.show_ecdsa_account(name, password)
+            self.show_ecdsa_account(name, in_pwd)

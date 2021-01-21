@@ -8,7 +8,6 @@ from eth_keys.backends.native.ecdsa import ecdsa_raw_sign, ecdsa_raw_verify, ecd
 from eth_utils.crypto import keccak
 import json
 
-from eth_utils.hexadecimal import decode_hex, encode_hex
 from ecdsa import SigningKey
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import pkcs12
