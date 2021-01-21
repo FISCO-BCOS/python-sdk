@@ -93,8 +93,8 @@ def test_p12():
 
 def test_sign():
     print("sign test")
-    #ac = Account.create("123456")
-    #print("account priv key: ", ac.privateKey)
+    # ac = Account.create("123456")
+    # print("account priv key: ", ac.privateKey)
     privkey = "52413c714e418cc6fb06afb1bc3f6c54449c89a82a17c9a117a5aa0bad56a9cd"
     binprivkey = codecs.decode(privkey, "hex")
     pubkey = private_key_to_public_key(binprivkey)

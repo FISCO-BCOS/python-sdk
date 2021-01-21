@@ -137,7 +137,7 @@ call合约的一个只读接口,解析返回值
 
         except Exception as e:
             traceback.print_exc()
-            print("call exception! ")
+            print("call exception! ", e)
             tx_client.finish()
 
     def sendtx(self, inputparams):
@@ -176,7 +176,7 @@ call合约的一个只读接口,解析返回值
             # 解析receipt里的log 和 相关的tx ,output
             print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         except Exception as e:
-            print("send tx exception! ",e)
+            print("send tx exception! ", e)
             traceback.print_exc()
             tx_client.finish()
 

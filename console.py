@@ -137,7 +137,7 @@ def main(argv):
         rpcconsole = RPCConsole(cmd, inputparams, contracts_dir)
         rpcconsole.executeRpcCommand()
     except Exception as e:
-        print("console exception !",e)
+        print("console exception !", e)
         traceback.print_stack()
         exit(-1)
 
