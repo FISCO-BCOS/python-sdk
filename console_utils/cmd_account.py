@@ -49,12 +49,12 @@ def load_from_keystore(filename, password):
         return ac
 
 
-def load_from_keyfile(filename, password=""):
+def load_from_keyfile(filename, keyfilepwd=None):
     extname = os.path.splitext(filename)[1]
     if extname.endswith(".pem"):
         return load_from_pem(filename)
     if extname.endswith(".keystore"):
-        return load_from_keystore(filename, password)
+        return load_from_keystore(filename, keyfilepwd)
 
 
 class CmdAccount:
