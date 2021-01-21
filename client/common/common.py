@@ -282,14 +282,14 @@ def print_tx_result(outputresults):
     print result of call or sendtx
     """
     for result in outputresults:
-        if type(result) is bytes:
+        if isinstance(result, bytes):
             print("{}, ".format(bytesToHex(result)))
             continue
-        print("{}, ".format(result))
+        print("tx reuslt: {}, ".format(result))
 
 
 def check_result(result):
-    if type(result) is dict and "status" in result.keys():
+    if isinstance(result, dict) and "status" in result.keys():
         status = result["status"]
         if int(status, 16) != 0:
             print("{}".format(result))

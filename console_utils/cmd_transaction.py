@@ -23,7 +23,7 @@ from console_utils.console_common import fill_params
 from client.datatype_parser import DatatypeParser
 from console_utils.console_common import default_abi_file
 from console_utils.console_common import print_receipt_logs_and_txoutput
-
+import traceback
 contracts_dir = "contracts"
 
 
@@ -61,41 +61,45 @@ call合约的一个只读接口,解析返回值
         # must be at least 2 params
         common.check_param_num(inputparams, 1)
         contractname = inputparams[0].strip()
-        gasPrice = 30000000
         # need save address whether or not
         needSaveAddress = True
         args_len = len(inputparams)
         # get the args
         fn_args = inputparams[1:args_len]
+
         tx_client = transaction_common.TransactionCommon(
             "", contracts_dir, contractname
         )
-        result = tx_client.send_transaction_getReceipt(
-            None, fn_args, gasPrice, True
-        )[0]
-        print("INFO >> client info: {}".format(tx_client.getinfo()))
-        print(
-            "deploy result  for [{}] is:\n {}".format(
-                contractname, json.dumps(result, indent=4)
-            )
-        )
-        name = contractname
-        address = result["contractAddress"]
-        blocknum = int(result["blockNumber"], 16)
-        txhash = result["transactionHash"]
-        ContractNote.save_contract_address(name, address)
-        print("on block : {},address: {} ".format(blocknum, address))
-        if needSaveAddress is True:
-            ContractNote.save_address_to_contract_note(name, address)
-            print("address save to file: ", client_config.contract_info_file)
-        else:
-            print(
-                """\nNOTE : if want to save new address as last
-                address for (call/sendtx)\nadd 'save' to cmdline and run again"""
-            )
-        ContractNote.save_history(name, address, blocknum, txhash)
 
-        pass
+        try:
+            result = tx_client.send_transaction_getReceipt(
+                None, fn_args, deploy=True
+            )[0]
+            print("INFO >> client info: {}".format(tx_client.getinfo()))
+            print(
+                "deploy result  for [{}] is:\n {}".format(
+                    contractname, json.dumps(result, indent=4)
+                )
+            )
+            name = contractname
+            address = result["contractAddress"]
+            blocknum = int(result["blockNumber"], 16)
+            txhash = result["transactionHash"]
+            ContractNote.save_contract_address(name, address)
+            print("on block : {},address: {} ".format(blocknum, address))
+            if needSaveAddress is True:
+                ContractNote.save_address_to_contract_note(name, address)
+                print("address save to file: ", client_config.contract_info_file)
+            else:
+                print(
+                    """\nNOTE : if want to save new address as last
+                    address for (call/sendtx)\nadd 'save' to cmdline and run again"""
+                )
+            ContractNote.save_history(name, address, blocknum, txhash)
+        except Exception as e:
+            print("deploy exception! ", e)
+            traceback.print_exc()
+            tx_client.finish()
 
     def call(self, inputparams):
         if len(inputparams) == 0:
@@ -126,10 +130,15 @@ call合约的一个只读接口,解析返回值
                 contractname, address, fn_name, fn_args
             )
         )
+        try:
+            result = tx_client.call_and_decode(fn_name, fn_args)
+            print("INFO >> send from {}, result:".format(tx_client.keypair.address))
+            common.print_tx_result(result)
 
-        result = tx_client.call_and_decode(fn_name, fn_args)
-        print("INFO >> call result:")
-        common.print_tx_result(result)
+        except Exception as e:
+            traceback.print_exc()
+            print("call exception! ")
+            tx_client.finish()
 
     def sendtx(self, inputparams):
         if len(inputparams) == 0:
@@ -160,12 +169,16 @@ call合约的一个只读接口,解析返回值
                 contractname, address, fn_name, fn_args
             )
         )
-        receipt = tx_client.send_transaction_getReceipt(fn_name, fn_args)[0]
-        data_parser = DatatypeParser(default_abi_file(contractname))
-        print("\n\nINFO >> from address:  {} ".format(tx_client.keypair.address))
-        # 解析receipt里的log 和 相关的tx ,output
-        print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
-        pass
+        try:
+            (receipt, output) = tx_client.send_transaction_getReceipt(fn_name, fn_args)
+            data_parser = DatatypeParser(default_abi_file(contractname))
+            print("\n\nINFO >> from address:  {} ".format(tx_client.keypair.address))
+            # 解析receipt里的log 和 相关的tx ,output
+            print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
+        except Exception as e:
+            print("send tx exception! ",e)
+            traceback.print_exc()
+            tx_client.finish()
 
     def deploylast(self):
         contracts = ContractNote.get_last_contracts()
