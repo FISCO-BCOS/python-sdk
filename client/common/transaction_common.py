@@ -74,7 +74,6 @@ class TransactionCommon(bcosclient.BcosClient):
                 return
         Compiler.compile_file(self.sol_path, self.contract_path)
 
-
     def send_transaction_getReceipt(self, fn_name, fn_args, gasPrice=30000000, deploy=False):
         """
         send transactions to CNS contract with the givn function name and args
@@ -90,8 +89,6 @@ class TransactionCommon(bcosclient.BcosClient):
                     raise BcosException(("contract bin size overflow,"
                                          " limit: 0x40000(256K), size: {})")
                                         .format(len(contract_bin), 16))
-            #print(args)
-            #print(contract_abi)
             receipt = super().sendRawTransactionGetReceipt(self.contract_addr,
                                                            contract_abi, fn_name,
                                                            args, contract_bin, gasPrice)
@@ -111,8 +108,7 @@ class TransactionCommon(bcosclient.BcosClient):
                                            format(status,
                                                   receipt["gasUsed"]))
             if fn_name is not None and fn_args is not None and self.dataparser is not None:
-                #output = common.parse_output(receipt["output"], fn_name, contract_abi, args)
-                output = self.dataparser.parse_receipt_output(fn_name,receipt["output"])
+                output = self.dataparser.parse_receipt_output(fn_name, receipt["output"])
             else:
                 output = None
             return (receipt, output)

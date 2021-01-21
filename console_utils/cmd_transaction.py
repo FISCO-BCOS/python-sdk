@@ -97,8 +97,8 @@ call合约的一个只读接口,解析返回值
                 )
             ContractNote.save_history(name, address, blocknum, txhash)
         except Exception as e:
+            print("deploy exception! ", e)
             traceback.print_exc()
-            print("deploy exception! ")
             tx_client.finish()
 
     def call(self, inputparams):
@@ -176,8 +176,8 @@ call合约的一个只读接口,解析返回值
             # 解析receipt里的log 和 相关的tx ,output
             print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         except Exception as e:
+            print("send tx exception! ",e)
             traceback.print_exc()
-            print("send tx exception! ")
             tx_client.finish()
 
     def deploylast(self):

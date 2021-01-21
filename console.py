@@ -22,7 +22,7 @@ from console_utils.precompile import Precompile
 from console_utils.rpc_console import RPCConsole
 from client.common import common
 import traceback
-from  py_vesion_checker import check_py_version_with_exception
+from py_vesion_checker import check_py_version_with_exception
 check_py_version_with_exception()
 """
 2020.10 重构，原来的实现很多塞在这文件里，有点乱，
@@ -137,7 +137,7 @@ def main(argv):
         rpcconsole = RPCConsole(cmd, inputparams, contracts_dir)
         rpcconsole.executeRpcCommand()
     except Exception as e:
-        print("console exception !")
+        print("console exception !",e)
         traceback.print_stack()
         exit(-1)
 
