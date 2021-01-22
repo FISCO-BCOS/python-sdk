@@ -58,7 +58,7 @@ def list_files(file_pattern):
     file_list = [f for f in glob.glob(file_pattern)]
     targets = []
     for file in file_list:
-        targets.append(os.path.basename(file).split(".")[0])
+        targets.append(os.path.basename(file))
     return targets
 
 
