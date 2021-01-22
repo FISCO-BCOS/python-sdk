@@ -21,6 +21,9 @@ from console_utils.console_common import console_run_byname, contracts_dir
 from console_utils.precompile import Precompile
 from console_utils.rpc_console import RPCConsole
 from client.common import common
+import traceback
+from py_vesion_checker import check_py_version_with_exception
+check_py_version_with_exception()
 """
 2020.10 重构，原来的实现很多塞在这文件里，有点乱，
 把命令分组为“账户account，交易transaction，内置合约precompile，读接口rpc，转码encode,
@@ -117,21 +120,26 @@ def main(argv):
         (modulename, classname) = cmd_mapping[cmd]
         console_run_byname(modulename, classname, cmd, inputparams)
         return
-    print("cmd=", cmd)
-    precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
-    # try to callback cns precompile
-    precompile.call_cns()
-    # try to callback consensus precompile
-    precompile.call_consensus()
-    # try to callback config precompile
-    precompile.call_sysconfig_precompile()
-    # try to callback permission precompile
-    precompile.call_permission_precompile()
-    # try to callback crud precompile
-    precompile.call_crud_precompile()
-    # try to callback rpc functions
-    rpcconsole = RPCConsole(cmd, inputparams, contracts_dir)
-    rpcconsole.executeRpcCommand()
+    try:
+        print("cmd=", cmd)
+        precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
+        # try to callback cns precompile
+        precompile.call_cns()
+        # try to callback consensus precompile
+        precompile.call_consensus()
+        # try to callback config precompile
+        precompile.call_sysconfig_precompile()
+        # try to callback permission precompile
+        precompile.call_permission_precompile()
+        # try to callback crud precompile
+        precompile.call_crud_precompile()
+        # try to callback rpc functions
+        rpcconsole = RPCConsole(cmd, inputparams, contracts_dir)
+        rpcconsole.executeRpcCommand()
+    except Exception as e:
+        print("console exception !", e)
+        traceback.print_stack()
+        exit(-1)
 
 
 if __name__ == "__main__":
