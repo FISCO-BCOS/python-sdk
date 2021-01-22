@@ -81,8 +81,8 @@ class CmdAccount:
 """)
         return usagemsg
 
-    @staticmethod
-    def create_gm_account(self, name, password):
+
+    def create_gm_account(self,name, password):
         keyfile = "{}/{}.json".format(client_config.account_keyfile_path, name)
         if not os.path.exists(keyfile):  # 如果默认文件不存在，直接写
             forcewrite = True

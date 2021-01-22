@@ -16,7 +16,6 @@
   hex(num)  : int -> hex
 '''
 from eth_utils.hexadecimal import decode_hex, encode_hex
-from eth_account.account import Account
 import time
 import os
 import json
