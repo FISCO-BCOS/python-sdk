@@ -26,6 +26,35 @@ from eth_utils.hexadecimal import encode_hex
 from eth_utils.crypto import CRYPTO_TYPE_GM
 from client_config import client_config
 from console_utils.console_common import list_files
+from ecdsa import SigningKey
+
+
+def load_from_pem(filename):
+    with open(filename) as f:
+        p = f.read()
+        # print("pem file:", p)
+        key = SigningKey.from_pem(p)
+        # print("privkey : ", encode_hex(key.to_string()))
+        ac = Account.from_key(encode_hex(key.to_string()))
+        f.close()
+        return ac
+
+
+def load_from_keystore(filename, password):
+    with open(filename, "r") as f:
+        keytext = json.load(f)
+        privkey = Account.decrypt(keytext, password)
+        ac = Account.from_key(privkey)
+        f.close()
+        return ac
+
+
+def load_from_keyfile(filename, keyfilepwd=None):
+    extname = os.path.splitext(filename)[1]
+    if extname.endswith(".pem"):
+        return load_from_pem(filename)
+    if extname.endswith(".keystore"):
+        return load_from_keystore(filename, keyfilepwd)
 
 
 class CmdAccount:
@@ -46,6 +75,9 @@ class CmdAccount:
 >> listaccount
 列出已经配置的目录下有多少个账户文件。后缀名为'.keystore'为ECDSA密钥，后缀名'.json'为国密文件
 【后续再支持更多文件格式如pem,p12等】
+
+*当前版本非国密的账户支持输出为keystore,且支持从keystore,pem文件导入
+*国密版本仅支持json格式的导入导出。
 """)
         return usagemsg
 
@@ -142,27 +174,30 @@ class CmdAccount:
     def show_ecdsa_account(self, name, password):
 
         keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
-        # the account doesn't exists
+        # the keystore doesn't exists,try pem
         if os.path.exists(keyfile) is False:
-            raise BcosException("account {} doesn't exists".format(name))
+            keyfile = "{}/{}.pem".format(client_config.account_keyfile_path, name)
+        print("keyfile", keyfile)
+        if os.path.exists(keyfile) is False:
+            raise BcosException(
+                "account {} doesn't exists in path:{}".format(
+                    name, client_config.account_keyfile_path))
+        # go to load from file
         print(
-            "show account : {}, keyfile:{} ,password {}  ".format(
+            "show account : {}, keyname:{} ,password {}  ".format(
                 name, keyfile, password
             )
         )
         try:
-            with open(keyfile, "r") as dump_f:
-                keytext = json.load(dump_f)
-                stat = StatTool.begin()
-                privkey = Account.decrypt(keytext, password)
-                stat.done()
-                print("decrypt use time : %.3f s" % (stat.time_used))
-                ac2 = Account.from_key(privkey)
-                print("address:\t", ac2.address)
-                print("privkey:\t", encode_hex(ac2.key))
-                print("pubkey :\t", ac2.publickey)
-                print("\naccount store in file: [{}]".format(keyfile))
-                print("\n**** please remember your password !!! *****")
+            stat = StatTool.begin()
+            ac = load_from_keyfile(keyfile, password)
+            stat.done()
+            print("decrypt use time : %.3f s" % (stat.time_used))
+            print("address:\t", ac.address)
+            print("privkey:\t", encode_hex(ac.key))
+            print("pubkey :\t", ac.publickey)
+            print("\naccount store in file: [{}]".format(keyfile))
+            print("\n**** please remember your password !!! *****")
         except Exception as e:
             raise BcosException(
                 ("load account info for [{}] failed," " error info: {}!").format(
@@ -174,14 +209,19 @@ class CmdAccount:
         accountlist = list_files("bin/accounts/*.keystore")
         for name in accountlist:
             print(name)
+        accountlist = list_files("bin/accounts/*.pem")
+        for name in accountlist:
+            print(name)
         accountlist = list_files("bin/accounts/*.json")
         for name in accountlist:
             print(name)
 
     def showaccount(self, inputparams):
         name = inputparams[0]
-        password = inputparams[1]
+        in_pwd = None
+        if len(inputparams) > 1:
+            in_pwd = inputparams[1]
         if client_config.crypto_type == CRYPTO_TYPE_GM:
-            self.show_gm_account(name, password)
+            self.show_gm_account(name, in_pwd)
         else:
-            self.show_ecdsa_account(name, password)
+            self.show_ecdsa_account(name, in_pwd)

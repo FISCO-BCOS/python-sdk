@@ -165,10 +165,13 @@ class ChannelHandler(threading.Thread):
             self.port = port
             self.start_connect()
             self.recvThread = ChannelRecvThread(self)
+            self.recvThread.setDaemon(True)
             self.recvThread.start()
             self.sendThread = ChannelSendThread(self)
+            self.sendThread.setDaemon(True)
             self.sendThread.start()
             self.pushDispacher = ChannelPushDispatcher()
+            self.pushDispacher.setDaemon(True)
             self.pushDispacher.start()
             super().start()
         except Exception as e:
