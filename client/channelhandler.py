@@ -46,6 +46,8 @@ class ChannelHandler(threading.Thread):
     recvThread = None
     sendThread = None
     keepWorking = False
+    socketClosed = False
+    pushDispacher = None
 
     def __init__(self, max_timeout=10, name="channelHandler"):
         self.timeout = max_timeout
@@ -79,11 +81,33 @@ class ChannelHandler(threading.Thread):
     def __del__(self):
         self.finish()
 
-    def finish(self):
-        if self.ssock is not None:
+    def disconnect(self):
+        self.lock.acquire()
+        if self.ssock is not None and self.socketClosed is False:
+
+            self.socketClosed = True
             self.ssock.shutdown(socket.SHUT_RDWR)
             self.ssock.close()
-            self.ssock = None
+            self.logger.info(
+                "disconnect for read/write error, host: {}, port: {}".format(self.host, self.port))
+        self.lock.release()
+
+    def reconnect(self):
+        if self.socketClosed is True:
+            self.lock.acquire()
+            self.logger.info("reconnect, host: {}, port: {}".format(self.host, self.port))
+            try:
+                self.start_connect()
+                self.socketClosed = False
+                self.logger.info(
+                    "reconnect success, host: {}, port: {}".format(self.host, self.port))
+            except Exception as e:
+                self.logger.error("reconnect failed, error: {}".format(e))
+            self.lock.release()
+
+    def finish(self):
+        self.disconnect()
+        self.ssock = None
         if self.keepWorking is True:
             self.keepWorking = False
             self.join(timeout=1)
@@ -102,6 +126,8 @@ class ChannelHandler(threading.Thread):
             self.logger.debug(self.name + ":start thread-->")
             while self.keepWorking:
                 try:
+                    # try to reconnect
+                    self.reconnect()
                     responsepack = self.recvThread.recvQueue.get_nowait()  # pop msg from queue
                     if responsepack is None and self.keepWorking:
                         time.sleep(0.001)
@@ -125,16 +151,19 @@ class ChannelHandler(threading.Thread):
             self.logger.debug("{}:thread finished ,keepWorking = {}".format(
                 self.name, self.keepWorking))
 
+    def start_connect(self):
+        sock = socket.create_connection((self.host, self.port))
+        self.logger.debug("connect {}:{},as socket {}".format(self.host, self.port, sock))
+        # 将socket打包成SSL socket
+        self.ssock = self.context.wrap_socket(sock)
+
     def start_channel(self, host, port):
         try:
+            self.socketClosed = False
             self.keepWorking = False
             self.host = host
             self.port = port
-            sock = socket.create_connection((host, port))
-            self.logger.debug("connect {}:{},as socket {}".format(host, port, sock))
-            # 将socket打包成SSL socket
-            ssock = self.context.wrap_socket(sock)
-            self.ssock = ssock
+            self.start_connect()
             self.recvThread = ChannelRecvThread(self)
             self.recvThread.start()
             self.sendThread = ChannelSendThread(self)
@@ -405,15 +434,19 @@ class ChannelRecvThread(threading.Thread):
             self.keepWorking = True
             self.logger.debug(self.name + ":start thread-->")
             while self.keepWorking:
+                if self.channelHandler.socketClosed is True or self.channelHandler.ssock is None:
+                    time.sleep(0.001)
                 bytesread = self.read_channel()
                 if self.keepWorking is False:
                     break
                 if bytesread == 0:  # if async read, maybe return 0
-                    time.sleep(0.1)
-                if bytesread < 0:  # error accord when read
-                    time.sleep(1)
+                    time.sleep(0.01)
+                if bytesread < 0 and self.keepWorking is True:  # error accord when read
+                    self.channelHandler.disconnect()
         except Exception as e:
             self.logger.error("{} recv error {}".format(self.name, e))
+            if self.keepWorking is True:
+                self.channelHandler.disconnect()
 
         finally:
             self.logger.debug("{}:thread finished ,keepWorking = {}".format(
@@ -470,6 +503,8 @@ class ChannelSendThread(threading.Thread):
             self.keepWorking = True
             self.logger.debug(self.name + ":start thread-->")
             while self.keepWorking:
+                if self.channelHandler.socketClosed is True or self.channelHandler.ssock is None:
+                    time.sleep(0.001)
                 try:
                     pack = self.packQueue.get(block=True, timeout=0.2)
                 except Empty:
@@ -481,10 +516,14 @@ class ChannelSendThread(threading.Thread):
                 buffer = pack.pack()
                 try:
                     res = self.channelHandler.ssock.send(buffer)
-                    if res < 0:
-                        self.logger.error("{}:ssock send error {}".format(self.name, res))
+                    if res < 0 and self.keepWorking is True:
+                        self.logger.error(
+                            "{}:ssock send error {}, disconnect".format(self.name, res))
+                        self.channelHandler.disconnect()
                 except Exception as e:
                     self.logger.error("{}:ssock send error {}".format(self.name, e))
+                    if self.keepWorking is True:
+                        self.channelHandler.disconnect()
 
         except Exception as e:
             self.logger.error("{}:ssock send error {}".format(self.name, e))
