@@ -139,19 +139,32 @@ if __name__ == '__main__':
         size = os.path.getsize(outputbin)
         fmtime = os.path.getmtime(outputbin)
 
-        print("bin : [ {} ] file size: {} , updatetime: {}".format(outputbin, size , time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(fmtime))))
+        print(
+            "bin : [ {} ] file size: {} , updatetime: {}".format(
+                outputbin,
+                size,
+                time.strftime(
+                    "%Y-%m-%d %H:%M:%S",
+                    time.localtime(fmtime))))
         difftick = (int)(nowtick - fmtime)
         if difftick > 2:
-            #maybe old file,when solc compile sol error ,but old file exist before, will cause WRONG version
+            # maybe old file,when solc compile sol error ,but old file exist before,
+            # will cause WRONG version
             print("\n*** !!WARNING : OLD FILE, updated [ {} ] seconds ago !!***\n".format(difftick))
     else:
         print("not exist ", outputbin)
     if os.path.exists(outputabi):
         size = os.path.getsize(outputabi)
-        fmtime =  os.path.getmtime(outputabi)
-        print("abi : [ {} ] file size: {} , updatetime: {} ".format(outputabi, size , time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(fmtime))))
+        fmtime = os.path.getmtime(outputabi)
+        print(
+            "abi : [ {} ] file size: {} , updatetime: {} ".format(
+                outputabi,
+                size,
+                time.strftime(
+                    "%Y-%m-%d %H:%M:%S",
+                    time.localtime(fmtime))))
         if difftick > 2:
-            #maybe old file
+            # maybe old file
             print("\n*** !!WARNING : OLD FILE, updated [ {} ] seconds ago !!***\n".format(difftick))
     else:
         print("not exist ", outputabi)
