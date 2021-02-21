@@ -26,7 +26,7 @@ if platsys.lower().startswith("win"):
     solc_bin = solc_bin.replace("/", "\\")
 
 
-# sample: bin/solc/solc.exe --abi --bin --allow-paths=./contracts contracts/Test.sol -o ./tmp
+# sample: bin/solc/solc.exe --abi --bin contracts/Test.sol -o ./tmp
 def sol_cmdline(solfile, outputpath, option=solc_option):
     orgsolfile = solfile
     if not solfile.endswith(".sol"):
@@ -37,11 +37,6 @@ def sol_cmdline(solfile, outputpath, option=solc_option):
     if not os.path.exists(solfile):
         print("sol file [{}] not found ,even in {}".format(orgsolfile, solfile))
         return None
-    solpath = os.path.dirname(solfile)
-    allowpath = ""
-    if solpath != "":
-        allowpath = "--allow-paths=" + solpath
-    #cmdline = "{} {} {} -o {} {}".format(solc_bin, option, allowpath, outputpath, solfile)
     cmdline = "{} {}  -o {} {}".format(solc_bin, option, outputpath, solfile)
     return cmdline
 
@@ -147,10 +142,13 @@ if __name__ == '__main__':
                     "%Y-%m-%d %H:%M:%S",
                     time.localtime(fmtime))))
         difftick = (int)(nowtick - fmtime)
-        if difftick > 2:
+        if difftick > 1:
             # maybe old file,when solc compile sol error ,but old file exist before,
             # will cause WRONG version
-            print("\n*** !!WARNING : OLD FILE, updated [ {} ] seconds ago !!***\n".format(difftick))
+            print(
+                "\n××× !!WARNING : OLD FILE, updated [ {} ] seconds ago , should be compile FAILED!!×××\n".format(difftick))
+        else:
+            print("Seems compile & generate a new GOOD file √")
     else:
         print("not exist ", outputbin)
     if os.path.exists(outputabi):
@@ -163,8 +161,11 @@ if __name__ == '__main__':
                 time.strftime(
                     "%Y-%m-%d %H:%M:%S",
                     time.localtime(fmtime))))
-        if difftick > 2:
+        if difftick > 1:
             # maybe old file
-            print("\n*** !!WARNING : OLD FILE, updated [ {} ] seconds ago !!***\n".format(difftick))
+            print(
+                "\n××× !!WARNING : OLD FILE, updated [ {} ] seconds ago , should be compile FAILED!!×××\n".format(difftick))
+        else:
+            print("Seems compile & generate a new GOOD file √")
     else:
         print("not exist ", outputabi)
