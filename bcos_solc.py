@@ -146,7 +146,7 @@ if __name__ == '__main__':
             # maybe old file,when solc compile sol error ,but old file exist before,
             # will cause WRONG version
             print(
-                "\n××× !!WARNING : OLD FILE, updated [ {} ] seconds ago , should be compile FAILED!!×××\n"
+                "\n× WARNING : OLD FILE, updated [ {} ] seconds ago , maybe compile FAILED ×\n"
                 .format(difftick))
         else:
             print("Seems compile & generate a new GOOD file √")
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         if difftick > 1:
             # maybe old file
             print(
-                "\n××× !!WARNING : OLD FILE, updated [ {} ] seconds ago , should be compile FAILED!!×××\n"
+                "\n× WARNING : OLD FILE, updated [ {} ] seconds ago , maybe compile FAILED ×\n"
                 .format(difftick))
         else:
             print("Seems compile & generate a new GOOD file √")
