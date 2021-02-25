@@ -545,9 +545,9 @@ class BcosClient:
             if from_account is None:
                 from_account = self.ecdsa_account
             signtx.signer = Signer_ECDSA(from_account)
-        #print(signtx.signer)
+        # print(signtx.signer)
         signed_result = signtx.sign_transaction(txmap)
-        #print("@@@@@rawTransaction : ",encode_hex(signedTxResult.rawTransaction))
+        # print("@@@@@rawTransaction : ",encode_hex(signedTxResult.rawTransaction))
         # signedTxResult.rawTransaction是二进制的，要放到rpc接口里要encode下
         params = [self.groupid, encode_hex(signed_result.rawTransaction)]
         result = self.common_request(cmd, params, packet_type)
