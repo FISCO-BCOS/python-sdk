@@ -74,19 +74,19 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         )
 
         try:
-            result = tx_client.send_transaction_getReceipt(
+            receipt  = tx_client.send_transaction_getReceipt(
                 None, fn_args, deploy=True
             )[0]
             print("INFO >> client info: {}".format(tx_client.getinfo()))
             print(
                 "deploy result  for [{}] is:\n {}".format(
-                    contractname, json.dumps(result, indent=4)
+                    contractname, json.dumps(receipt, indent=4)
                 )
             )
             name = contractname
-            address = result["contractAddress"]
-            blocknum = int(result["blockNumber"], 16)
-            txhash = result["transactionHash"]
+            address = receipt["contractAddress"]
+            blocknum = int(receipt["blockNumber"], 16)
+            txhash = receipt["transactionHash"]
             ContractNote.save_contract_address(name, address)
             print("on block : {},address: {} ".format(blocknum, address))
             if needSaveAddress is True:
@@ -98,6 +98,9 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
                     address for (call/sendtx)\nadd 'save' to cmdline and run again"""
                 )
             ContractNote.save_history(name, address, blocknum, txhash)
+            data_parser = DatatypeParser(default_abi_file(contractname))
+            # 解析receipt里的log 和 相关的tx ,output
+            print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         except Exception as e:
             print("deploy exception! ", e)
             traceback.print_exc()
