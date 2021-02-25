@@ -9,7 +9,8 @@ from eth_abi import encode_single, decode_single
 
 
 # print (encode_single('uint256', 12345) )
-from eth_utils import function_signature_to_4byte_selector, event_abi_to_log_topic, encode_hex, decode_hex
+from eth_utils import function_signature_to_4byte_selector, \
+    event_abi_to_log_topic, encode_hex, decode_hex
 
 abitext = '(uint256,uint256)'
 data = encode_single(abitext, [8899, 765])
@@ -22,7 +23,7 @@ def testjson():
     with open("AddrTableWorker.abi", 'r') as load_f:
         load_dict = json.load(load_f)
         for item in load_dict:
-            if item["type"] is not "constructor":
+            if item["type"] != "constructor":
                 print(item["name"], " is a ", item["type"])
                 hash4 = function_signature_to_4byte_selector(item["name"] + '()')
                 print("function hash4:", encode_hex(hash4))
