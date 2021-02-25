@@ -74,7 +74,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         )
 
         try:
-            receipt  = tx_client.send_transaction_getReceipt(
+            receipt = tx_client.send_transaction_getReceipt(
                 None, fn_args, deploy=True
             )[0]
             print("INFO >> client info: {}".format(tx_client.getinfo()))
