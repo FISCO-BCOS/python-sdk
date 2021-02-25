@@ -20,10 +20,11 @@ from client.common import common
 from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 import client.bcosclient as bcosclient
-from client.bcoserror import BcosError, CompileError,  BcosException
+from client.bcoserror import BcosError, CompileError, BcosException
 from client.common.transaction_exception import TransactionException
 from utils.abi import get_constructor_abi
 from client.format_param_by_abi import format_args_by_function_abi
+
 
 class TransactionCommon(bcosclient.BcosClient):
     """
@@ -72,7 +73,13 @@ class TransactionCommon(bcosclient.BcosClient):
                 return
         Compiler.compile_file(self.sol_path, self.contract_path)
 
-    def send_transaction_getReceipt(self, fn_name, fn_args, gasPrice=30000000, deploy=False ,from_account = None):
+    def send_transaction_getReceipt(
+            self,
+            fn_name,
+            fn_args,
+            gasPrice=30000000,
+            deploy=False,
+            from_account=None):
         """
         send transactions to CNS contract with the givn function name and args
         """
@@ -121,7 +128,6 @@ class TransactionCommon(bcosclient.BcosClient):
                                "contract_path {}, error_info:{}").
                               format(self.sol_path, e))
             raise e
-
 
     def format_args(self, fn_name, fn_args, needCover=False):
         """

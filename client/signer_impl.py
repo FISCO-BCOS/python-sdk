@@ -7,10 +7,13 @@ from gmssl.sm2 import CryptSM2
 class Signer_Impl:
     def sign(self, data_in_byte, chain_id=None):
         pass
+
     def get_address(self):
         pass
 
-#国密的签名实现
+# 国密的签名实现
+
+
 class Signer_GM(Signer_Impl):
     gm_account: GM_Account
     sm2_crypt: CryptSM2
@@ -32,9 +35,7 @@ class Signer_GM(Signer_Impl):
         return (v, r, s)
 
 
-
-
-#ecdsa的签名实现
+# ecdsa的签名实现
 class Signer_ECDSA(Signer_Impl):
     CHAIN_ID_OFFSET = 35
     V_OFFSET = 27
@@ -59,7 +60,7 @@ class Signer_ECDSA(Signer_Impl):
         return self.ecdsa_account.address
 
     def sign(self, data_in_byte, chain_id=None):
-        #print("ecdsa_account:",self.ecdsa_account)
+        # print("ecdsa_account:",self.ecdsa_account)
         signature = self.ecdsa_account._key_obj.sign_msg_hash(data_in_byte)
         (v_raw, r, s) = signature.vrs
         v = self.to_eth_v(v_raw, chain_id)

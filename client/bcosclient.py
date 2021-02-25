@@ -89,8 +89,6 @@ class BcosClient:
     def load_gm_account(the_key_file, password):
         try:
             gm_account = GM_Account()
-            gm_account_file = "{}/{}".format(client_config.account_keyfile_path,
-                                             client_config.gm_account_keyfile)
             if os.path.exists(the_key_file) is False:
                 raise BcosException(("gm account keyfile file {} doesn't exist, "
                                      "please check client_config.py again "
@@ -487,7 +485,8 @@ class BcosClient:
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions
     '''
         可用于所有已知abi的合约，传入abi定义，方法名，正确的参数列表，即可发送交易。交易由BcosClient里加载的账号进行签名。
-        如果显式传入from_accont,要注意根据国密(GM_Account : CRYPTO_TYPE_GM)或非国密选择类型(LocalAccount: CRYPTO_TYPE_ECDSA)
+        如果显式传入from_accont,要注意根据国密(GM_Account : CRYPTO_TYPE_GM)
+        或非国密选择类型(LocalAccount: CRYPTO_TYPE_ECDSA)
     '''
 
     def sendRawTransaction(self, to_address, contract_abi, fn_name, args=None,
