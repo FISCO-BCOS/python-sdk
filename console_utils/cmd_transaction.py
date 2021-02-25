@@ -14,6 +14,8 @@
 '''
 import json
 import sys
+
+
 from console_utils.console_common import list_files
 from client.common import common
 from client.common import transaction_common
@@ -37,10 +39,10 @@ class CmdTransaction:
 部署合约, 新地址会写入本地记录文件,
 
 >> call [contractname] [address] [func]  [args...]
-call合约的一个只读接口,解析返回值
+call合约的一个只读接口,解析返回值,address可以是last或latest,表示调用最近部署的该合约实例
 
 >> sendtx [contractname]  [address] [func] [args...]
-发送交易调用指定合约的接口，交易如成功，结果会写入区块和状态
+发送交易调用指定合约的接口，交易如成功，结果会写入区块和状态，address可以是last或latest,表示调用最近部署的该合约实例
 """)
         return usagemsg
 
@@ -112,7 +114,7 @@ call合约的一个只读接口,解析返回值
         params = fill_params(inputparams, paramsname)
         contractname = params["contractname"]
         address = params["address"]
-        if address == "last":
+        if address == "last" or address == "latest":
             address = ContractNote.get_last(contractname)
             if address is None:
                 sys.exit(
@@ -140,6 +142,9 @@ call合约的一个只读接口,解析返回值
             print("call exception! ", e)
             tx_client.finish()
 
+    # 2021.02版本已经支持创建不同的账户来发送交易，考虑到python命令行控制台的输入繁琐（也不像java控制台这样是预加载账户
+    # 所以暂时未支持在控制台命令行传入账户名，如需用不同账户发送交易，可以切换到不同的目录或配置文件
+    # 如果自己写代码调用，则可以指定不同的账户了
     def sendtx(self, inputparams):
         if len(inputparams) == 0:
             sols = list_files(contracts_dir + "/*.sol")
@@ -151,7 +156,7 @@ call合约的一个只读接口,解析返回值
         params = fill_params(inputparams, paramsname)
         contractname = params["contractname"]
         address = params["address"]
-        if address == "last":
+        if address == "last" or address == "latest":
             address = ContractNote.get_last(contractname)
             if address is None:
                 sys.exit(
@@ -170,9 +175,15 @@ call合约的一个只读接口,解析返回值
             )
         )
         try:
-            (receipt, output) = tx_client.send_transaction_getReceipt(fn_name, fn_args)
+            account = None
+            #from client.bcosclient import BcosClient
+            #(account,keypair) = BcosClient.load_ecdsa_account("bin/accounts/tester.keystore","123456")
+            # print(keypair.address)
+            # 不指定from账户，如需指定，参考上面的加载，或者创建一个新的account，
+            # 参见国密（client.GM_Account）和非国密的account管理类LocalAccount
+            (receipt, output) = tx_client.send_transaction_getReceipt(
+                fn_name, fn_args, from_account=account)
             data_parser = DatatypeParser(default_abi_file(contractname))
-            print("\n\nINFO >> from address:  {} ".format(tx_client.keypair.address))
             # 解析receipt里的log 和 相关的tx ,output
             print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         except Exception as e:
