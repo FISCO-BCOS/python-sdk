@@ -25,7 +25,7 @@ class Signer_Impl:
 class Signer_GM(Signer_Impl):
     gm_account: GM_Account
     keypair: BcosKeyPair
-    sm2_crypt: CryptSM2
+    sm2_crypt: CryptSM2 = None
 
     def __init_(self):
         pass
@@ -37,8 +37,8 @@ class Signer_GM(Signer_Impl):
         self.gm_account = account
         self.keypair = account.keypair
 
-    def get_address(self):
-        return self.gm_account.keypair.address
+    def get_keypair(self) -> BcosKeyPair:
+        return self.gm_account.keypair
 
     def sign(self, data_in_byte, chain_id=None):
         if self.sm2_crypt is None:
@@ -46,7 +46,7 @@ class Signer_GM(Signer_Impl):
                 public_key=self.gm_account.keypair.public_key,
                 private_key=self.gm_account.keypair.private_key)
         (r, s) = self.sm2_crypt.sign(data_in_byte)
-        v_raw = self.publickey
+        v_raw = self.keypair.public_key
         v = int(v_raw, 16)
         return (v, r, s)
 

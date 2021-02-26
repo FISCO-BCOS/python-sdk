@@ -178,8 +178,8 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         )
         try:
             from_account_signer = None
-            from_account_signer = Signer_ECDSA.from_key_file(
-                "bin/accounts/tester.keystore", "123456")
+            # from_account_signer = Signer_ECDSA.from_key_file(
+            #    "bin/accounts/tester.keystore", "123456")
             # print(keypair.address)
             # 不指定from账户，如需指定，参考上面的加载，或者创建一个新的account，
             # 参见国密（client.GM_Account）和非国密的account管理类LocalAccount
