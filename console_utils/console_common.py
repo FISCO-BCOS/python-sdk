@@ -101,7 +101,7 @@ def default_abi_file(contractname):
 
 
 def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
-    print("INFO >>  transaction from :", receipt["from"])
+    print("INFO >>  transaction from account :", receipt["from"])
     print("INFO >>  receipt logs : ")
     # 解析receipt里的log
     if parser is None and len(contractname) > 0:

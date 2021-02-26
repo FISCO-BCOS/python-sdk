@@ -20,6 +20,7 @@ from client.bcoserror import (
 )
 from client.common import common
 from client.gm_account import GM_Account
+from client.signer_impl import Signer_ECDSA
 from client.stattool import StatTool
 from eth_account.account import Account
 from eth_utils.hexadecimal import encode_hex
@@ -28,33 +29,6 @@ from client_config import client_config
 from console_utils.console_common import list_files
 from ecdsa import SigningKey
 
-
-def load_from_pem(filename):
-    with open(filename) as f:
-        p = f.read()
-        # print("pem file:", p)
-        key = SigningKey.from_pem(p)
-        # print("privkey : ", encode_hex(key.to_string()))
-        ac = Account.from_key(encode_hex(key.to_string()))
-        f.close()
-        return ac
-
-
-def load_from_keystore(filename, password):
-    with open(filename, "r") as f:
-        keytext = json.load(f)
-        privkey = Account.decrypt(keytext, password)
-        ac = Account.from_key(privkey)
-        f.close()
-        return ac
-
-
-def load_from_keyfile(filename, keyfilepwd=None):
-    extname = os.path.splitext(filename)[1]
-    if extname.endswith(".pem"):
-        return load_from_pem(filename)
-    if extname.endswith(".keystore"):
-        return load_from_keystore(filename, keyfilepwd)
 
 
 class CmdAccount:
@@ -74,9 +48,9 @@ class CmdAccount:
 
 >> listaccount
 列出已经配置的目录下有多少个账户文件。后缀名为'.keystore'为ECDSA密钥，后缀名'.json'为国密文件
-【后续再支持更多文件格式如pem,p12等】
+支持更多文件格式如pem,p12等
 
-*当前版本非国密的账户支持输出为keystore,且支持从keystore,pem文件导入
+*当前版本，非国密的账户支持输出为keystore,且支持从keystore,pem文件导入
 *国密版本仅支持json格式的导入导出。
 """)
         return usagemsg
@@ -190,7 +164,7 @@ class CmdAccount:
         )
         try:
             stat = StatTool.begin()
-            ac = load_from_keyfile(keyfile, password)
+            ac = Signer_ECDSA.load_from_keyfile(keyfile, password)
             stat.done()
             print("decrypt use time : %.3f s" % (stat.time_used))
             print("address:\t", ac.address)

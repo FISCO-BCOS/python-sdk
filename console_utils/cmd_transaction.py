@@ -15,7 +15,7 @@
 import json
 import sys
 
-
+from client.signer_impl import Signer_ECDSA
 from console_utils.console_common import list_files
 from client.common import common
 from client.common import transaction_common
@@ -137,7 +137,6 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         )
         try:
             result = tx_client.call_and_decode(fn_name, fn_args)
-            print("INFO >> send from {}, result:".format(tx_client.keypair.address))
             common.print_tx_result(result)
 
         except Exception as e:
@@ -178,15 +177,13 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             )
         )
         try:
-            account = None
-            # from client.bcosclient import BcosClient
-            # (account,keypair) =
-            # BcosClient.load_ecdsa_account("bin/accounts/tester.keystore","123456")
+            from_account_signer = None
+            from_account_signer = Signer_ECDSA.from_key_file("bin/accounts/tester.keystore","123456")
             # print(keypair.address)
             # 不指定from账户，如需指定，参考上面的加载，或者创建一个新的account，
             # 参见国密（client.GM_Account）和非国密的account管理类LocalAccount
             (receipt, output) = tx_client.send_transaction_getReceipt(
-                fn_name, fn_args, from_account=account)
+                fn_name, fn_args, from_account_signer=from_account_signer)
             data_parser = DatatypeParser(default_abi_file(contractname))
             # 解析receipt里的log 和 相关的tx ,output
             print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)

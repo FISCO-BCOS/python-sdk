@@ -79,7 +79,7 @@ class TransactionCommon(bcosclient.BcosClient):
             fn_args,
             gasPrice=30000000,
             deploy=False,
-            from_account=None):
+            from_account_signer=None):
         """
         send transactions to CNS contract with the givn function name and args
         """
@@ -97,7 +97,7 @@ class TransactionCommon(bcosclient.BcosClient):
             receipt = super().sendRawTransactionGetReceipt(self.contract_addr,
                                                            contract_abi, fn_name,
                                                            args, contract_bin, gasPrice,
-                                                           from_account=from_account
+                                                           from_account_signer=from_account_signer
                                                            )
             # check status
             if "status" not in receipt.keys() or \

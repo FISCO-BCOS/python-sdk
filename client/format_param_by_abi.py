@@ -61,18 +61,15 @@ def format_single_param(param, abitype):
             raise ArgumentsError(
                 "ERROR >> parse {} to bytes failed, error info: {}".format(param, e))
     if "bool" in abitype:
-        try:
-            # 有可能是string或已经是bool类型了，判断下
-            if isinstance(param, str):
-                if "TRUE" == param.upper():
-                    fmt_res = True
-                else:
-                    fmt_res = False
+        # 有可能是string或已经是bool类型了，判断下
+        if isinstance(param, str):
+            if "TRUE" == param.upper():
+                fmt_res = True
+            elif "FALSE" == param.upper():
+                fmt_res = False
             else:
-                fmt_res = param
-        except Exception as e:
-            raise ArgumentsError(
-                "ERROR >> parse {} to bytes failed, error info: {}".format(param, e))
+                raise ArgumentsError(
+                    "ERROR >> format bool type failed, WRONG param: {}".format(param))
     return fmt_res
 
 

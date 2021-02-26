@@ -15,7 +15,7 @@
   int(num,16)  hex -> int
   hex(num)  : int -> hex
 '''
-from client.signer_impl import Signer_GM, Signer_ECDSA
+from client.signer_impl import Signer_GM, Signer_ECDSA, Signer_Impl
 from eth_account.signers.local import LocalAccount
 from eth_utils.hexadecimal import decode_hex, encode_hex
 import time
@@ -34,19 +34,15 @@ from utils.abi import itertools, get_fn_abi_types_single
 from eth_abi import decode_single
 from utils.contracts import get_aligned_function_data
 from client.gm_account import GM_Account
-from eth_utils.crypto import CRYPTO_TYPE_GM
+from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
 from client.signtransaction import SignTx
 from client.bcoskeypair import BcosKeyPair
 from client.bcoserror import BcosError, ArgumentsError, BcosException
-from console_utils.cmd_account import load_from_keyfile
 
 
 class BcosClient:
-    ecdsa_account: LocalAccount = None
-    key_file = ""
-    gm_account: GM_Account = None
-    gm_account_file = ""
-    keypair = None
+
+    default_from_account_signer: Signer_Impl = None
 
     rpc = None
     channel_handler = None
@@ -70,61 +66,27 @@ class BcosClient:
         """
         self.finish()
 
-    @staticmethod
-    def load_ecdsa_account(the_key_file, password):
-        if os.path.exists(the_key_file) is False:
-            raise BcosException(("key file {} doesn't exist, "
-                                 "please check client_config.py again "
-                                 "and make sure this account exist")
-                                .format(the_key_file))
-
-        account = load_from_keyfile(the_key_file, password)
-        keypair = BcosKeyPair()
-        keypair.private_key = account.privateKey
-        keypair.public_key = account.publickey
-        keypair.address = account.address
-        return (account, keypair)
-
-    @staticmethod
-    def load_gm_account(the_key_file, password):
-        try:
-            gm_account = GM_Account()
-            if os.path.exists(the_key_file) is False:
-                raise BcosException(("gm account keyfile file {} doesn't exist, "
-                                     "please check client_config.py again "
-                                     "and make sure this account exist")
-                                    .format(the_key_file))
-            gm_account.load_from_file(
-                the_key_file, password)
-            keypair = gm_account.keypair
-            return (gm_account, keypair)
-        except Exception as e:
-            raise BcosException("load gm account from {} failed, reason: {}"
-                                .format(the_key_file, e))
-
     # load the account from keyfile
+
     def load_default_account(self):
+        if self.default_from_account_signer is not None:
+            return  # 不需要重复加载
+
         if client_config.crypto_type == CRYPTO_TYPE_GM:
             # 加载默认国密账号
-            if self.gm_account is not None:
-                return  # 不需要重复加载
             self.gm_account_file = "{}/{}".format(client_config.account_keyfile_path,
                                                   client_config.gm_account_keyfile)
-            (account, keypair) = BcosClient.load_gm_account(
+            self.default_from_account_signer = Signer_GM.from_key_file(
                 self.gm_account_file, client_config.gm_account_password)
-            self.gm_account = account
-            self.keypair = keypair
+            return
 
         # 默认的 ecdsa 账号
-        if self.ecdsa_account is not None:
-            return  # 不需要重复加载
         # check account keyfile
-        self.key_file = "{}/{}".format(client_config.account_keyfile_path,
-                                       client_config.account_keyfile)
-        (account, keypair) = BcosClient.load_ecdsa_account(
-            self.key_file, client_config.account_password)
-        self.ecdsa_account = account
-        self.keypair = keypair
+        if client_config.crypto_type == CRYPTO_TYPE_ECDSA:
+            self.key_file = "{}/{}".format(client_config.account_keyfile_path,
+                                           client_config.account_keyfile)
+            self.default_from_account_signer = Signer_ECDSA.from_key_file(
+                self.key_file, client_config.account_password)
 
     def init(self):
         try:
@@ -182,9 +144,6 @@ class BcosClient:
         if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
             info = "channel {}:{}".format(self.channel_handler.host, self.channel_handler.port)
         info += ",groupid :{}".format(self.groupid)
-        # if self.ecdsa_account is not None:
-        if self.keypair is not None:
-            info += ",from address: {}".format(self.keypair.address)
         return info
 
     def is_error_response(self, response):
@@ -453,7 +412,7 @@ class BcosClient:
         functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
         callmap = dict()
         callmap["data"] = functiondata
-        callmap["from"] = self.keypair.address
+        callmap["from"] = self.default_from_account_signer.get_keypair().address
         callmap["to"] = to_address
         callmap["value"] = 0
 
@@ -478,21 +437,21 @@ class BcosClient:
             try:
                 decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
                 return decoderesult
-            except:
+            except BaseException:
                 return response
         return response
 
     # https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/api.html#getpendingtransactions
     '''
         可用于所有已知abi的合约，传入abi定义，方法名，正确的参数列表，即可发送交易。交易由BcosClient里加载的账号进行签名。
-        如果显式传入from_accont,要注意根据国密(GM_Account : CRYPTO_TYPE_GM)
-        或非国密选择类型(LocalAccount: CRYPTO_TYPE_ECDSA)
+        如果显式传入from_accont,要注意根据国密( CRYPTO_TYPE_GM)
+        或非国密选择类型(CRYPTO_TYPE_ECDSA),构建对应的signer
     '''
 
     def sendRawTransaction(self, to_address, contract_abi, fn_name, args=None,
                            bin_data=None, gasPrice=30000000,
                            packet_type=ChannelPack.TYPE_RPC,
-                           from_account=None):
+                           from_account_signer=None):
         cmd = "sendRawTransaction"
         if to_address != "":
             common.check_and_format_address(to_address)
@@ -512,8 +471,6 @@ class BcosClient:
         if to_address is not None and len(to_address) > 0:
             from eth_utils import to_checksum_address
             to_address = to_checksum_address(to_address)
-
-
 
         # 填写一个bcos transaction 的 mapping
         import random
@@ -535,17 +492,11 @@ class BcosClient:
         #  如果本方法未传入 from_account, 则用默认的账户代替，要区分国密或非国密
         # load default account if not set .notice: account only use for
         # sign transaction for sendRawTransa# if self.client_account is None:
-        if from_account is None:
+        if from_account_signer is None:
             self.load_default_account()
-        if client_config.crypto_type == CRYPTO_TYPE_GM:
-            if from_account is None:
-                from_account = self.gm_account
-            signtx.signer = Signer_GM(from_account)
-        else:
-            if from_account is None:
-                from_account = self.ecdsa_account
-            signtx.signer = Signer_ECDSA(from_account)
-        # print(signtx.signer)
+            from_account_signer = self.default_from_account_signer
+         # print(signtx.signer)
+        signtx.signer = from_account_signer
         signed_result = signtx.sign_transaction(txmap)
         # print("@@@@@rawTransaction : ",encode_hex(signedTxResult.rawTransaction))
         # signedTxResult.rawTransaction是二进制的，要放到rpc接口里要encode下
@@ -556,20 +507,27 @@ class BcosClient:
     # 发送交易后等待共识完成，检索receipt
     def channel_sendRawTransactionGetReceipt(self, to_address, contract_abi,
                                              fn_name, args=None, bin_data=None, gasPrice=30000000,
-                                             from_account=None
+                                             from_account_signer=None
                                              ):
-        return self.sendRawTransaction(to_address, contract_abi, fn_name, args, bin_data, gasPrice,
-                                       ChannelPack.TYPE_TX_COMMITTED, from_account=from_account)
+        return self.sendRawTransaction(
+            to_address,
+            contract_abi,
+            fn_name,
+            args,
+            bin_data,
+            gasPrice,
+            ChannelPack.TYPE_TX_COMMITTED,
+            from_account_signer=from_account_signer)
 
     def rpc_sendRawTransactionGetReceipt(self, to_address, contract_abi,
                                          fn_name, args=None, bin_data=None, gasPrice=30000000,
                                          timeout=15,
-                                         from_account=None
+                                         from_account_signer=None
                                          ):
         # print("sendRawTransactionGetReceipt",args)
         stat = StatTool.begin()
         txid = self.sendRawTransaction(to_address, contract_abi, fn_name, args, bin_data, gasPrice,
-                                       from_account=from_account)
+                                       from_account_signer=from_account_signer)
         result = None
         for i in range(0, timeout):
             result = self.getTransactionReceipt(txid)
@@ -593,40 +551,56 @@ class BcosClient:
     def sendRawTransactionGetReceipt(self, to_address, contract_abi,
                                      fn_name, args=None, bin_data=None, gasPrice=30000000,
                                      timeout=15,
-                                     from_account=None
+                                     from_account_signer=None
                                      ):
         if self.channel_handler is not None:
-            return self.channel_sendRawTransactionGetReceipt(to_address, contract_abi,
-                                                             fn_name, args, bin_data,
-                                                             gasPrice,
-                                                             from_account=from_account)
+            return self.channel_sendRawTransactionGetReceipt(
+                to_address,
+                contract_abi,
+                fn_name,
+                args,
+                bin_data,
+                gasPrice,
+                from_account_signer=from_account_signer)
 
-        return self.rpc_sendRawTransactionGetReceipt(to_address, contract_abi,
-                                                     fn_name, args, bin_data,
-                                                     gasPrice, timeout, from_account=from_account)
+        return self.rpc_sendRawTransactionGetReceipt(
+            to_address,
+            contract_abi,
+            fn_name,
+            args,
+            bin_data,
+            gasPrice,
+            timeout,
+            from_account_signer=from_account_signer)
 
     '''
         newaddr = result['contractAddress']
         blocknum = result['blockNumber']
     '''
 
-    def deploy(self, contract_bin, contract_abi=None, fn_args=None, from_account=None):
+    def deploy(self, contract_bin, contract_abi=None, fn_args=None, from_account_signer=None):
         result = self.sendRawTransactionGetReceipt(
             to_address="",
             contract_abi=contract_abi,
             fn_name=None,
             args=fn_args,
             bin_data=contract_bin,
-            from_account=from_account
+            from_account_signer=from_account_signer
         )
         # newaddr = result['contractAddress']
         # blocknum = result['blockNumber']
         # print("onblock : %d newaddr : %s "%(int(blocknum,16),newaddr))
         return result
 
-    def deployFromFile(self, contractbinfile, contract_abi=None, fn_args=None, from_account=None):
+    def deployFromFile(
+            self,
+            contractbinfile,
+            contract_abi=None,
+            fn_args=None,
+            from_account_signer=None):
         with open(contractbinfile, "r") as f:
             contractbin = f.read()
             f.close()
-        result = self.deploy(contractbin, contract_abi, fn_args, from_account=from_account)
+        result = self.deploy(contractbin, contract_abi, fn_args,
+                             from_account_signer=from_account_signer)
         return result

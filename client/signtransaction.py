@@ -20,6 +20,7 @@ from cytoolz import (
     dissoc,
 )
 
+from client.bcoserror import BcosException
 from client.bcostransactions import (
     BcosUnsignedTransaction,
     encode_transaction,
@@ -47,6 +48,9 @@ class SignTx():
     signer: Signer_Impl
 
     def sign_transaction_hash(self, transaction_hash, chain_id):
+
+        if not isinstance(self.signer, Signer_Impl):
+            raise BcosException("Transaction Signer must by Signer_Imple(GM/ECDSA)type")
 
         (v, r, s) = self.signer.sign(transaction_hash, chain_id)
         return (v, r, s)
@@ -123,11 +127,11 @@ class SignTx():
 
         # allow from field, *only* if it matches the private key
         if 'from' in transaction_dict:
-            if transaction_dict['from'] == self.signer.get_address():
+            if transaction_dict['from'] == self.signer.get_keypair().address:
                 sanitized_transaction = dissoc(transaction_dict, 'from')
             else:
                 raise TypeError("from field must match key's %s, but it was %s" % (
-                    self.KeyPair.address,
+                    self.signer.get_keypair().address,
                     transaction_dict['from'],
                 ))
         else:
