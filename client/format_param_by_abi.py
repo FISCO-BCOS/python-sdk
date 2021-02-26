@@ -134,26 +134,24 @@ def format_args_by_function_abi(inputparams, inputabi):
         paramformatted.append(param)
     return paramformatted
 
-doTestregex =False
+
+doTestregex = False
 if doTestregex:
     abi = "address[3]"
     res = is_array_param(abi)
-    print("abi : {}, res : {} ".format(abi,res))
+    print("abi : {}, res : {} ".format(abi, res))
     abi = "address[]"
     res = is_array_param(abi)
-    print("abi : {}, res : {} ".format(abi,res))
+    print("abi : {}, res : {} ".format(abi, res))
     abi = "address[ ]"
     res = is_array_param(abi)
-    print("abi : {}, res : {} ".format(abi,res))
-
+    print("abi : {}, res : {} ".format(abi, res))
     abi = "address[ 10 ]"
     res = is_array_param(abi)
-    print("abi : {}, res : {} ".format(abi,res))
-
-
+    print("abi : {}, res : {} ".format(abi, res))
     abi = "address[ x ]"
     res = is_array_param(abi)
-    print("abi : {}, res : {} ".format(abi,res))
+    print("abi : {}, res : {} ".format(abi, res))
 
 doTest = False
 if doTest:
@@ -162,8 +160,6 @@ if doTest:
     print(res)
     res = re.findall(matchpattern, "address[3]")
     print(res)
-
-
     # 数组参数需要加上中括号，比如[1, 2, 3]，数组中是字符串或字节类型，加双引号，例如[“alice”, ”bob”]，注意数组参数中不要有空格；布尔类型为true或者false。
     strarrayparam = "[\"aaa\",\"bbb\",\"ccc\"]"
     intarrayparam = "[1,2,3]"

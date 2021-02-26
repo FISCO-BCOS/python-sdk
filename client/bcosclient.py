@@ -493,7 +493,7 @@ class BcosClient:
         if from_account_signer is None:
             self.load_default_account()
             from_account_signer = self.default_from_account_signer
-         # print(signtx.signer)
+        # print(signtx.signer)
         signtx.signer = from_account_signer
         signed_result = signtx.sign_transaction(txmap)
         # print("@@@@@rawTransaction : ",encode_hex(signedTxResult.rawTransaction))
