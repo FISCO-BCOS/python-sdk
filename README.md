@@ -18,8 +18,8 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 可基于[Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/protocol_description.html#channelmessage)与FISCO BCOS进行通信，保证节点与SDK安全加密通信的同时，可接收节点推送的消息。
 - 支持交易解析功能：包括交易输入、交易输出、Event Log等ABI数据的拼装和解析。
 - 支持合约编译，将`sol`合约编译成`abi`和`bin`文件。
-- 支持基于keystore的账户管理。
-- 支持合约历史查询。
+- 支持基于keystore的账户管理。支持从pem文件加载ECDSA算法的私钥，以便和其他私钥管理模块互通。
+- 支持本地的合约部署历史查询 (不支持链上所有部署的合约查询)。
 - 支持国密(SM2,SM3,SM4)
 - 支持event回调监听
 ## 部署Python SDK
@@ -108,7 +108,7 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
 ```bash
 # 该脚本执行操作如下：
-# 1. 拷贝client_config.py.template->client_config.py
+# 1. 拷贝client_config.py.template -> client_config.py
 # 2. 安装solc编译器
 bash init_env.sh -i
 ```
@@ -235,9 +235,9 @@ params: contractname address event_name indexed
 
 **部署HelloWorld合约**
 ```bash
-$ ./console.py deploy HelloWorld save 
+$ ./console.py deploy HelloWorld  
 
-INFO >> user input : ['deploy', 'HelloWorld', 'save']
+INFO >> user input : ['deploy', 'HelloWorld']
 
 backup [contracts/HelloWorld.abi] to [contracts/HelloWorld.abi.20190807102912]
 backup [contracts/HelloWorld.bin] to [contracts/HelloWorld.bin.20190807102912]
