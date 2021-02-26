@@ -15,29 +15,27 @@
   int(num,16)  hex -> int
   hex(num)  : int -> hex
 '''
-from client.signer_impl import Signer_GM, Signer_ECDSA, Signer_Impl
-from eth_account.signers.local import LocalAccount
-from eth_utils.hexadecimal import decode_hex, encode_hex
-import time
-import os
 import json
+import os
+import time
+
 import utils.rpc
-from client.common import common
-from client.channelpack import ChannelPack
-from client.channelhandler import ChannelHandler
-from client_config import client_config
-from utils.contracts import encode_transaction_data
-from client.stattool import StatTool
 from client import clientlogger
-from utils.contracts import get_function_info
-from utils.abi import itertools, get_fn_abi_types_single
-from eth_abi import decode_single
-from utils.contracts import get_aligned_function_data
-from client.gm_account import GM_Account
-from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
-from client.signtransaction import SignTx
-from client.bcoskeypair import BcosKeyPair
 from client.bcoserror import BcosError, ArgumentsError, BcosException
+from client.channelhandler import ChannelHandler
+from client.channelpack import ChannelPack
+from client.common import common
+from client.signer_impl import Signer_GM, Signer_ECDSA, Signer_Impl
+from client.signtransaction import SignTx
+from client.stattool import StatTool
+from client_config import client_config
+from eth_abi import decode_single
+from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
+from eth_utils.hexadecimal import decode_hex, encode_hex
+from utils.abi import itertools, get_fn_abi_types_single
+from utils.contracts import encode_transaction_data
+from utils.contracts import get_aligned_function_data
+from utils.contracts import get_function_info
 
 
 class BcosClient:
