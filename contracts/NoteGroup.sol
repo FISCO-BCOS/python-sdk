@@ -69,6 +69,30 @@ contract NoteGroup{
 		
 		return inlist.length;
    }  
+   
+      function set_int_3(uint256[3] inlist,string memo) public returns (uint256)
+   {
+   		
+		uint256 num = 0;
+        for(uint i = 0; i < inlist.length; i++) {
+            num = num + inlist[i];
+        }
+		emit on_total(num,memo);
+		emit on_setarray(inlist.length,memo);
+		return inlist.length;
+   }
+   
+         function set_int_n(uint256[  ] inlist,string memo) public returns (uint256)
+   {
+   		
+		uint256 num = 0;
+        for(uint i = 0; i < inlist.length; i++) {
+            num = num + inlist[i];
+        }
+		emit on_total(num,memo);
+		emit on_setarray(inlist.length,memo);
+		return inlist.length;
+   }
 }
 
 

@@ -16,6 +16,7 @@ from collections import Iterable
 
 from client.bcoserror import ArgumentsError
 from eth_utils import to_checksum_address
+import re
 
 
 def remove_pre_su_fix(item: str):
@@ -73,11 +74,13 @@ def format_single_param(param, abitype):
     return fmt_res
 
 
-def format_array_args_by_abi(input_param, abitype):
+def format_array_args_by_abi(input_param, abitype, arraylen):
     # abi类型类似address[],string[],int256[]
     # 参数类似['0x111','0x2222'],[1,2,3],['aaa','bbb','ccc']
-
     paramarray = parse_input_array_str(input_param)
+    if arraylen > 0 and len(paramarray) != arraylen:
+        raise ArgumentsError("ERROR >> not match abi array size {}, params: {}"
+                             .format(abitype, paramarray))
     resarray = []
     # print(paramarray)
     for param in paramarray:
@@ -86,10 +89,19 @@ def format_array_args_by_abi(input_param, abitype):
     return resarray
 
 
-def is_array_param(abittype):
-    if abittype.endswith("[]"):
-        return True
-    return False
+def is_array_param(abitype):
+    matchpattern = r"\[(.*?)\]"
+    findres = re.findall(matchpattern, abitype)
+    if len(findres) == 0:
+        return (False, 0)
+
+    if len(findres[0]) == 0:
+        # means address[]
+        arraylen = 0
+    else:
+        # means address[3]
+        arraylen = int(findres[0], 10)
+    return (True, arraylen)
 
 
 def format_args_by_function_abi(inputparams, inputabi):
@@ -110,9 +122,10 @@ def format_args_by_function_abi(inputparams, inputabi):
             paramformatted.append(param)
             continue
         abitype = abi_item["type"]
-        if is_array_param(abitype):
+        (isarray, arraylen) = is_array_param(abitype)
+        if isarray:
             # print("is Array")
-            param = format_array_args_by_abi(param, abitype)
+            param = format_array_args_by_abi(param, abitype, arraylen)
             paramformatted.append(param)
             continue
         if '\'' in param:
@@ -124,6 +137,10 @@ def format_args_by_function_abi(inputparams, inputabi):
 
 doTest = False
 if doTest:
+    matchpattern = r"\[(.*?)\]"
+    res = re.findall(matchpattern, "address[]")
+    print(res)
+
     # 数组参数需要加上中括号，比如[1, 2, 3]，数组中是字符串或字节类型，加双引号，例如[“alice”, ”bob”]，注意数组参数中不要有空格；布尔类型为true或者false。
     strarrayparam = "[\"aaa\",\"bbb\",\"ccc\"]"
     intarrayparam = "[1,2,3]"
