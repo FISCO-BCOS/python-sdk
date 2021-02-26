@@ -94,13 +94,13 @@ def is_array_param(abitype):
     findres = re.findall(matchpattern, abitype)
     if len(findres) == 0:
         return (False, 0)
-
-    if len(findres[0]) == 0:
+    lendef = findres[0].strip()
+    if len(lendef) == 0:
         # means address[]
         arraylen = 0
     else:
         # means address[3]
-        arraylen = int(findres[0], 10)
+        arraylen = int(lendef, 10)
     return (True, arraylen)
 
 
@@ -134,12 +134,35 @@ def format_args_by_function_abi(inputparams, inputabi):
         paramformatted.append(param)
     return paramformatted
 
+doTestregex =False
+if doTestregex:
+    abi = "address[3]"
+    res = is_array_param(abi)
+    print("abi : {}, res : {} ".format(abi,res))
+    abi = "address[]"
+    res = is_array_param(abi)
+    print("abi : {}, res : {} ".format(abi,res))
+    abi = "address[ ]"
+    res = is_array_param(abi)
+    print("abi : {}, res : {} ".format(abi,res))
+
+    abi = "address[ 10 ]"
+    res = is_array_param(abi)
+    print("abi : {}, res : {} ".format(abi,res))
+
+
+    abi = "address[ x ]"
+    res = is_array_param(abi)
+    print("abi : {}, res : {} ".format(abi,res))
 
 doTest = False
 if doTest:
     matchpattern = r"\[(.*?)\]"
     res = re.findall(matchpattern, "address[]")
     print(res)
+    res = re.findall(matchpattern, "address[3]")
+    print(res)
+
 
     # 数组参数需要加上中括号，比如[1, 2, 3]，数组中是字符串或字节类型，加双引号，例如[“alice”, ”bob”]，注意数组参数中不要有空格；布尔类型为true或者false。
     strarrayparam = "[\"aaa\",\"bbb\",\"ccc\"]"
