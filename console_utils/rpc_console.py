@@ -185,36 +185,45 @@ class RPCConsole:
         # decode output
         contractname = None
         # print(params)
-        addr = result["to"]
+        to_addr = result["to"]
+        deploy_addr = None
         is_deploy = False
-        if addr is None or addr == "0x0000000000000000000000000000000000000000":
+        if to_addr is None or to_addr == "0x0000000000000000000000000000000000000000":
             is_deploy = True
+
+            if "contractAddress" in result:
+                # transaction 结构体并没有contractAddress字段
+                deploy_addr = result["contractAddress"]
+
         if len(params) >= 2:
             contractname = params[-1]
             # 試一下是否存在這個合約
             abi_path = os.path.join(self.contract_path, contractname + ".abi")
             if not os.path.exists(abi_path):
                 contractname = None
+
         # 从参数获取不到，则从地址去检索历史记录，尝试获取
+
+
         if contractname is None:
             # 如果是部署合约，则to是空的，要获取address
-            addr = None
-            if is_deploy:
-                addr = result["contractAddress"]
+            to_addr = result["to"]
+            if is_deploy and deploy_addr is not None:
+                abi_contract_addr = deploy_addr
             else:
-                addr = result["to"]
-            hisdetail = ContractNote.get_address_history(addr)
+                abi_contract_addr = to_addr
+            hisdetail = ContractNote.get_address_history(abi_contract_addr)
             if hisdetail is not None:
                 contractname = hisdetail["name"]
                 print(
                     "histroy transaction to contract : {} [{}] (deploy time: {})".format(
                         contractname,
-                        addr,
+                        abi_contract_addr,
                         hisdetail["timestr"]))
 
-        if is_deploy:
+        if is_deploy and deploy_addr is not None:
             print("\nis [DEPLOY] transaction,result address : {}\n"
-                  .format(result["contractAddress"]))
+                  .format(deploy_addr))
         if contractname is None:
             return
         self.parse_output(cmd, contractname, result)
