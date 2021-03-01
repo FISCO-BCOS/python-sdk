@@ -185,12 +185,13 @@ class RPCConsole:
         # decode output
         contractname = None
         # print(params)
-        to_addr = result["to"]
+        to_addr = None
+        if "to" in result:
+            to_addr = result["to"]
         deploy_addr = None
         is_deploy = False
         if to_addr is None or to_addr == "0x0000000000000000000000000000000000000000":
             is_deploy = True
-
             if "contractAddress" in result:
                 # transaction 结构体并没有contractAddress字段
                 deploy_addr = result["contractAddress"]
@@ -203,7 +204,6 @@ class RPCConsole:
                 contractname = None
 
         # 从参数获取不到，则从地址去检索历史记录，尝试获取
-
 
         if contractname is None:
             # 如果是部署合约，则to是空的，要获取address
