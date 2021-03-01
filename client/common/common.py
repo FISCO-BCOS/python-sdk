@@ -138,10 +138,10 @@ def check_int_range(number_str, limit=max_block_number):
         if number > limit or number < 0:
             raise ArgumentsError(("invalid input: {},"
                                   " must between 0 and {}").
-                                 format(number, limit))
+                                 format(number_str, limit))
         return number
     except Exception as e:
-        raise ArgumentsError("invalid input:{}, error info: {}".format(number, e))
+        raise ArgumentsError("invalid input:{}, error info: {}".format(number_str, e))
 
 
 def check_and_trans_to_bool(param):
@@ -241,17 +241,15 @@ def print_output_and_input(logs, output, txinput, contract_name, contract_path):
         dataParser = DatatypeParser(abi_path)
         # parse txinput
         input_result = dataParser.parse_transaction_input(txinput)
-        if input_result is None:
-            print_info("WARN", "parsed txinput is None")
-            return
-        print_info("txinput result", input_result)
-        # get function name
-        fn_name = input_result["name"]
-        output_result = dataParser.parse_receipt_output(fn_name, output)
-        if output_result is None:
-            print_info("INFO", "empty return, output: {}".format(output))
-            return
-        print_info("output result", output_result)
+        if input_result is not None:
+            print_info("txinput result", input_result)
+            # get function name
+            fn_name = input_result["name"]
+            output_result = dataParser.parse_receipt_output(fn_name, output)
+            if output_result is None:
+                print_info("INFO", "empty return, output: {}".format(output))
+                return
+            print_info("output result", output_result)
         log_result = dataParser.parse_event_logs(logs)
         print_receipt_logs(log_result)
         # print_info("log result", log_result)
