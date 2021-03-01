@@ -101,6 +101,7 @@ def default_abi_file(contractname):
 
 
 def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
+    print("INFO >>  transaction from account :", receipt["from"])
     print("INFO >>  receipt logs : ")
     # 解析receipt里的log
     if parser is None and len(contractname) > 0:
@@ -118,19 +119,21 @@ def print_receipt_logs_and_txoutput(client, receipt, contractname, parser=None):
             )
     inputdetail = print_parse_transaction(receipt, "", parser)
     # 解析该交易在receipt里输出的output,即交易调用的方法的return值
-    outputresults = parser.parse_receipt_output(inputdetail["name"], receipt["output"])
-    common.print_tx_result(outputresults)
+    if inputdetail is not None and "output" in receipt:
+        outputresults = parser.parse_receipt_output(inputdetail["name"], receipt["output"])
+        common.print_tx_result(outputresults)
 
 
 def print_parse_transaction(txReceipt, contractname, parser=None):
     if "input" not in txReceipt:
-        return
+        return None
     if parser is None:
         parser = DatatypeParser(default_abi_file(contractname))
     inputdata = txReceipt["input"]
     inputdetail = parser.parse_transaction_input(inputdata)
     print("INFO >> transaction hash : ", txReceipt["transactionHash"])
-    print("tx input data detail:\n {}".format(inputdetail))
+    if inputdetail is not None:
+        print("tx input data detail:\n {}".format(inputdetail))
     return inputdetail
 
 

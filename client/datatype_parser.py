@@ -131,6 +131,24 @@ class DatatypeParser:
         result = decode_single(output_args, decode_hex(outputdata))
         return result
 
+    def get_function_abi(self, fn_name):
+        if fn_name not in self.func_abi_map_by_name:
+            return fn_name
+        fn_abi = self.func_abi_map_by_name[fn_name]
+        return fn_abi
+
+    def get_function_inputs_abi(self, fn_name):
+        fn_abi = self.get_function_abi(fn_name)
+        if fn_abi is not None:
+            return fn_abi["inputs"]
+        return None
+
+    def get_function_outputs_abi(self, fn_name):
+        fn_abi = self.get_function_abi(fn_name)
+        if fn_abi is not None:
+            return fn_name["outputs"]
+        return None
+
     def get_func_signature(self, name):
         if(name not in self.func_abi_map_by_name):
             return None
