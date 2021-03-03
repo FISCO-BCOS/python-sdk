@@ -25,6 +25,14 @@ from console_utils.command_parser import CommandParser
 from console_utils.rpc_console import RPCConsole
 from client.common import common
 import traceback
+from client.bcoserror import (
+    BcosError,
+    CompileError,
+    PrecompileError,
+    ArgumentsError,
+    BcosException,
+)
+from client.common.transaction_exception import TransactionException
 from py_vesion_checker import check_py_version_with_exception
 check_py_version_with_exception()
 """
@@ -42,6 +50,7 @@ cmd_mapping["newaccount"] = ["cmd_account", "CmdAccount"]
 cmd_mapping["hex"] = ["cmd_encode", "CmdEncode"]
 cmd_mapping["decodehex"] = ["cmd_encode", "CmdEncode"]
 cmd_mapping["checkaddr"] = ["cmd_encode", "CmdEncode"]
+cmd_mapping["txinput"] = ["cmd_encode", "CmdEncode"]
 cmd_mapping["deploy"] = ["cmd_transaction", "CmdTransaction"]
 cmd_mapping["call"] = ["cmd_transaction", "CmdTransaction"]
 cmd_mapping["sendtx"] = ["cmd_transaction", "CmdTransaction"]
@@ -100,20 +109,20 @@ validcmds = get_validcmds() + RPCConsole.get_all_cmd() + Precompile.get_all_cmd(
 
 
 def main(argv):
-    cmd, inputparams = CommandParser.parse_commands(argv)
-    # check cmd
-    valid = check_cmd(cmd, validcmds)
-    if valid is False:
-        usage()
-        return
-    if cmd == "usage":
-        usage(inputparams)
-        return
-    if cmd in cmd_mapping:
-        (modulename, classname) = cmd_mapping[cmd]
-        console_run_byname(modulename, classname, cmd, inputparams)
-        return
     try:
+        cmd, inputparams = CommandParser.parse_commands(argv)
+        # check cmd
+        valid = check_cmd(cmd, validcmds)
+        if valid is False:
+            usage()
+            return
+        if cmd == "usage":
+            usage(inputparams)
+            return
+        if cmd in cmd_mapping:
+            (modulename, classname) = cmd_mapping[cmd]
+            console_run_byname(modulename, classname, cmd, inputparams)
+            return
         print("cmd=", cmd)
         precompile = Precompile(cmd, inputparams, contracts_dir + "/precompile")
         # try to callback cns precompile
@@ -129,9 +138,27 @@ def main(argv):
         # try to callback rpc functions
         rpcconsole = RPCConsole(cmd, inputparams, contracts_dir)
         rpcconsole.executeRpcCommand()
+    except TransactionException as e:
+        common.print_error_msg(cmd, e)
+    except PrecompileError as e:
+        common.print_error_msg(cmd, e)
+    except BcosError as e:
+        common.print_error_msg(cmd, e)
+    except CompileError as e:
+        common.print_error_msg(cmd, e)
+    except ArgumentsError as e:
+        common.print_error_msg(cmd, e)
+    except BcosException as e:
+        common.print_error_msg(cmd, e)
+    except ValueError as e:
+        common.print_error_msg(cmd, e)
+    except InsufficientDataBytes as e:
+        common.print_error_msg(cmd, e)
     except Exception as e:
-        print("console exception !", e)
-        traceback.print_stack()
+        print("exception happened!")
+        import traceback
+
+        print(traceback.format_exc())
         exit(-1)
 
 
