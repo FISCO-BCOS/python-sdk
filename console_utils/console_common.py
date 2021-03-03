@@ -89,6 +89,7 @@ def console_run(obj, cmd, inputparams):
 
 
 contracts_dir = "contracts"
+accounts_dir = "bin/accounts"
 
 
 def default_abi_file(contractname):

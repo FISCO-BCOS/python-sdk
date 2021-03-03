@@ -13,12 +13,15 @@
   @date: 2019-06
 
 """
+
 import sys
+
 from console_utils.cmd_account import CmdAccount
 from console_utils.cmd_encode import CmdEncode
 from console_utils.cmd_transaction import CmdTransaction
 from console_utils.console_common import console_run_byname, contracts_dir
 from console_utils.precompile import Precompile
+from console_utils.command_parser import CommandParser
 from console_utils.rpc_console import RPCConsole
 from client.common import common
 import traceback
@@ -91,23 +94,13 @@ def get_validcmds():
     return cmds
 
 
-def parse_commands(argv):
-    if len(argv) == 0:
-        cmd = "usage"
-        inputparams = []
-    else:
-        cmd = argv[0]
-        inputparams = argv[1:]
-    return cmd, inputparams
-
-
 Precompile.define_functions()
 RPCConsole.define_commands()
 validcmds = get_validcmds() + RPCConsole.get_all_cmd() + Precompile.get_all_cmd() + ["usage"]
 
 
 def main(argv):
-    cmd, inputparams = parse_commands(argv)
+    cmd, inputparams = CommandParser.parse_commands(argv)
     # check cmd
     valid = check_cmd(cmd, validcmds)
     if valid is False:
