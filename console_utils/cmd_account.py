@@ -145,14 +145,15 @@ class CmdAccount:
         print(account.getdetail())
 
     def show_ecdsa_account(self, name, password):
-
-        keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+        keyfile = "{}/{}".format(client_config.account_keyfile_path, name)
+        if os.path.exists(keyfile) is False:
+            keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+            if os.path.exists(keyfile) is True and password is None:
+                raise BcosException(
+                    "When loading an account file in keystore format, a password must be provided")
         # the keystore doesn't exists,try pem
         if os.path.exists(keyfile) is False:
             keyfile = "{}/{}.pem".format(client_config.account_keyfile_path, name)
-        else:
-            raise BcosException(
-                "When loading an account file in keystore format, a password must be provided")
         print("keyfile", keyfile)
         if os.path.exists(keyfile) is False:
             raise BcosException(

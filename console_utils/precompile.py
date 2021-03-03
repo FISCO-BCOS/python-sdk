@@ -15,6 +15,7 @@
 '''
 import os
 import json
+from client.common.compiler import Compiler
 from client.common import common
 from client.common.transaction_exception import TransactionException
 from client.precompile.cns.cns_service import CnsService
@@ -23,6 +24,7 @@ from client.precompile.config.config_precompile import ConfigPrecompile
 from client.precompile.permission.permission_service import PermissionService
 from client.precompile.crud.crud_service import CRUDService, Table
 from client.precompile.common import PrecompileCommon
+from console_utils.console_common import contracts_dir
 from client.bcoserror import BcosError, CompileError, PrecompileError, ArgumentsError, BcosException
 
 
@@ -228,6 +230,19 @@ class Precompile:
         if i == 0:
             common.print_info("    ", "Empty Set, result: {}".format(cns_info))
 
+    @staticmethod
+    def load_abi(contract_name, contracts_dir, contract_abi_path):
+        """
+        """
+        contract_abi = ""
+        contract_file_path = contracts_dir + "/" + contract_name + ".sol"
+        if not os.path.exists(contract_abi_path):
+            Compiler.compile_file(contract_file_path, contracts_dir)
+        with open(contract_abi_path, 'r') as load_f:
+            contract_abi = json.load(load_f)
+            load_f.close()
+        return contract_abi
+
     def call_cns(self):
         """
         call cns service
@@ -244,10 +259,13 @@ class Precompile:
             if self._cmd == self.functions["cns"][0]:
                 self.check_param_num(3, True)
                 contract_name = self._args[0]
+                contract_address = self._args[1]
                 contract_version = self._args[2]
+                contract_abi_path = contracts_dir + "/" + contract_name + ".abi"
+                contract_abi = Precompile.load_abi(contract_name, contracts_dir, contract_abi_path)
                 try:
                     result = self.cns_service.register_cns(
-                        contract_name, contract_version, self._args[1], "")
+                        contract_name, contract_version, contract_address, contract_abi)
                     self.print_succ_msg(result)
                 except TransactionException as e:
                     self.print_transaction_exception(e)

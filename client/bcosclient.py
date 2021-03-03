@@ -25,6 +25,7 @@ from client.bcoserror import BcosError, ArgumentsError, BcosException
 from client.channelhandler import ChannelHandler
 from client.channelpack import ChannelPack
 from client.common import common
+from client.common import transaction_status_code
 from client.signer_impl import Signer_GM, Signer_ECDSA, Signer_Impl
 from client.signtransaction import SignTx
 from client.stattool import StatTool
@@ -421,8 +422,9 @@ class BcosClient:
         # check status
         if "status" in response.keys():
             status = int(response["status"], 16)
-            if status != 0:
-                return response
+            error_message = transaction_status_code.TransactionStatusCode.get_error_message(status)
+            if error_message is not None:
+                raise BcosException("call error, error message: {}".format(error_message))
         if "output" in response.keys():
             outputdata = response["output"]
             # 取得方法的abi，签名，参数 和返回类型，进行call返回值的解析

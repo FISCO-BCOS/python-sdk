@@ -110,7 +110,8 @@ validcmds = get_validcmds() + RPCConsole.get_all_cmd() + Precompile.get_all_cmd(
 
 def main(argv):
     try:
-        cmd, inputparams = CommandParser.parse_commands(argv)
+        command_parser = CommandParser(validcmds)
+        cmd, inputparams = command_parser.parse_commands(argv)
         # check cmd
         valid = check_cmd(cmd, validcmds)
         if valid is False:
@@ -152,12 +153,8 @@ def main(argv):
         common.print_error_msg(cmd, e)
     except ValueError as e:
         common.print_error_msg(cmd, e)
-    except InsufficientDataBytes as e:
-        common.print_error_msg(cmd, e)
     except Exception as e:
         print("exception happened!")
-        import traceback
-
         print(traceback.format_exc())
         exit(-1)
 

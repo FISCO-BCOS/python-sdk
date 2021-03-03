@@ -13,9 +13,11 @@
   @author: yujiechen
   @date: 2021-03-03
 '''
+import os
 import argparse
 import argcomplete
 import glob
+from client_config import client_config
 from client.datatype_parser import DatatypeParser
 from client.contractnote import ContractNote
 from console_utils.console_common import contracts_dir
@@ -25,13 +27,18 @@ class CommandParser:
     """
     command parser
     """
-    @staticmethod
-    def parse_commands(argv):
+
+    def __init__(self, supported_cmds):
+        """
+        init supported cmds
+        """
+        self.supported_cmds = supported_cmds
+
+    def parse_commands(self, argv):
         # 首先创建一个ArgumentParser对象
         parser = argparse.ArgumentParser(description="FISCO BCOS 2.0 lite client @python")
-        parsed_args = argparse.Namespace()
         cmd = parser.add_argument("cmd", nargs="+", help="the command for console")  # 添加参数
-        cmd.completer = CommandParser.completion
+        cmd.completer = self.completion
 
         argcomplete.autocomplete(parser)
         args = parser.parse_args()
@@ -42,11 +49,18 @@ class CommandParser:
         return cmd, inputparams
 
     @staticmethod
+    def default_abi_file(contractname):
+        abi_file = contractname
+        if not abi_file.endswith(".abi"):
+            abi_file = contracts_dir + "/" + contractname + ".abi"
+        return abi_file
+
+    @staticmethod
     def get_functions_by_contract(contract_name):
         """
         get functions according to contract_name
         """
-        data_parser = DatatypeParser(default_abi_file(contract_name))
+        data_parser = DatatypeParser(CommandParser.default_abi_file(contract_name))
         return [*data_parser.func_abi_map_by_name.keys()]
 
     @staticmethod
@@ -72,15 +86,14 @@ class CommandParser:
         """
         list all accounts
         """
-        return CommandParser.filter_files_by_file_pattern(accounts_dir + "/*.keystore")
+        return CommandParser.filter_files_by_file_pattern(client_config.account_keyfile_path + "/*.keystore")
 
-    @staticmethod
-    def completion(prefix, parsed_args, **kwargs):
+    def completion(self, prefix, parsed_args, **kwargs):
         """
         complete the shell
         """
         if parsed_args.cmd is None:
-            return validcmds
+            return self.supported_cmds
         # deploy contract
         if parsed_args.cmd[0] == "deploy":
             return CommandParser.get_contracts()
@@ -119,9 +132,6 @@ class CommandParser:
             if len(parsed_args.cmd) == 1:
                 return CommandParser.get_contracts()
         # sysconfig
-        if (
-            parsed_args.cmd[0] == "setSystemConfigByKey"
-            or parsed_args.cmd[0] == "getSystemConfigByKey"
-        ):
+        if parsed_args.cmd[0] == "setSystemConfigByKey" or parsed_args.cmd[0] == "getSystemConfigByKey":
             return ["tx_count_limit", "tx_gas_limit"]
         return []
