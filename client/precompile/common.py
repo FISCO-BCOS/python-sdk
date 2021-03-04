@@ -18,7 +18,8 @@ class PrecompileCommon:
     define common values related to precompile
     """
     SYS_TABLE = "_sys_tables_"
-    USER_TABLE_PREFIX = "_user_"
+    SYS_TABLE_KEY = "table_name"
+    USER_TABLE_PREFIX = "u_"
     SYS_TABLE_ACCESS = "_sys_table_access_"
     SYS_CONSENSUS = "_sys_consensus_"
     SYS_CNS = "_sys_cns_"
