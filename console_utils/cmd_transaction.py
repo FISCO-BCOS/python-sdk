@@ -66,6 +66,12 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         # need save address whether or not
         needSaveAddress = True
         args_len = len(inputparams)
+        # need save address whether or not
+        needSaveAddress = False
+        args_len = len(inputparams)
+        if inputparams[-1] == "save":
+            needSaveAddress = True
+            args_len = len(inputparams) - 1
         # get the args
         fn_args = inputparams[1:args_len]
 
@@ -140,9 +146,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             common.print_tx_result(result)
 
         except Exception as e:
-            traceback.print_exc()
-            print("call exception! ", e)
-            tx_client.finish()
+            common.print_error_msg("call", e)
 
     # 2021.02版本已经支持创建不同的账户来发送交易，考虑到python命令行控制台的输入繁琐（也不像java控制台这样是预加载账户
     # 所以暂时未支持在控制台命令行传入账户名，如需用不同账户发送交易，可以切换到不同的目录或配置文件
@@ -189,9 +193,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             # 解析receipt里的log 和 相关的tx ,output
             print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         except Exception as e:
-            print("send tx exception! ", e)
-            traceback.print_exc()
-            tx_client.finish()
+            common.print_error_msg("sendtx", e)
 
     def deploylast(self):
         contracts = ContractNote.get_last_contracts()

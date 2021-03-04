@@ -209,9 +209,11 @@ class CRUDService:
 
     def desc(self, table_name):
         self.check_key_length(table_name)
+        selected_user_table = PrecompileCommon.USER_TABLE_PREFIX + table_name
         table = Table(PrecompileCommon.SYS_TABLE,
-                      PrecompileCommon.USER_TABLE_PREFIX + table_name, "")
+                      PrecompileCommon.SYS_TABLE_KEY, "")
         condition = table.get_condition()
+        condition.eq(PrecompileCommon.SYS_TABLE_KEY, selected_user_table)
         user_table = self.select(table, condition)
         if common.check_result(user_table) is False:
             return

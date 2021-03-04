@@ -17,6 +17,7 @@ FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it
 '''
 import os
 from client.common import common
+from client.common import transaction_status_code
 from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 import client.bcosclient as bcosclient
@@ -107,11 +108,15 @@ class TransactionCommon(bcosclient.BcosClient):
                                  "for empty status and output,"
                                  "transaction receipt:{}").format(receipt))
             status = receipt["status"]
-            if int(status, 16) != 0 or receipt["output"] is None:
+            status_code = int(status, 16)
+            error_message = transaction_status_code.TransactionStatusCode.get_error_message(
+                status_code)
+            if error_message is not None:
+                raise BcosException("call error, error message: {}".format(error_message))
+
+            if receipt["output"] is None:
                 raise TransactionException(receipt, ("send transaction failed,"
-                                                     "status: {}, gasUsed: {},"
-                                                     " (not enough gas?)"
-                                                     " (non-exist contract address?)").
+                                                     "status: {}, gasUsed: {}").
                                            format(status,
                                                   receipt["gasUsed"]))
             if fn_name is not None and fn_args is not None and self.dataparser is not None:
