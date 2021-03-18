@@ -112,6 +112,12 @@ def main(argv):
     try:
         command_parser = CommandParser(validcmds)
         cmd, inputparams = command_parser.parse_commands(argv)
+        if cmd == "list":
+            RPCConsole.print_rpc_usage()
+            print(
+                "--------------------------------------------------------------------"
+            )
+            return
         # check cmd
         valid = check_cmd(cmd, validcmds)
         if valid is False:
