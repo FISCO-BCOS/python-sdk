@@ -37,7 +37,7 @@ class CommandParser:
     def parse_commands(self, argv):
         # 首先创建一个ArgumentParser对象
         parser = argparse.ArgumentParser(description="FISCO BCOS 2.0 lite client @python")
-        cmd = parser.add_argument("cmd", nargs="+", help="the command for console")  # 添加参数
+        cmd = parser.add_argument("cmd", nargs="+", help="Please enter ./console.py usage for help information ")  # 添加参数
         cmd.completer = self.completion
 
         argcomplete.autocomplete(parser)
