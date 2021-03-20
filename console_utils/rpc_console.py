@@ -301,7 +301,8 @@ class RPCConsole:
         """
         exec_command
         """
-        self.client = BcosClient()
+        self.client :BcosClient = BcosClient()
+        print("INFO >> BcosClient: ",self.client.getinfo())
         function_name = self.get_func_name(cmd)
         # execute function
         ret_json = eval(function_name)(*params)

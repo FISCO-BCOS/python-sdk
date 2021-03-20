@@ -158,6 +158,7 @@ function test_account()
     LOG_INFO ">> test newaccount..."
     local addr=$(execute_cmd "${python_bin} console.py newaccount test_account "123456" | grep "address" | grep -v "new" | awk -F':' '{print \$2}' | awk '\$1=\$1'")
     if [ ! -f "${file_path}" ];then
+        # 国密时,生成的是json后缀
 		# LOG_ERROR "new account failed!"
 		local file_path="bin/accounts/test_account.json"
 		if [ ! -f "${file_path}" ];then
@@ -396,7 +397,7 @@ function test_rpc()
 function test_channel()
 {
     # update config to channel
-    sed -i "s/client_protocol = \"rpc\"/client_protocol = \"channel\"/g" client_config.py
+    #sed -i "s/client_protocol = \"rpc\"/client_protocol = \"channel\"/g" client_config.py
     test_rpc
     test_precompile
 }
@@ -410,16 +411,16 @@ function modify_to_rpc()
 
 function main()
 {
-   execute_cmd "cp client_config.py.template client_config.py"
+   #execute_cmd "cp client_config.py.template client_config.py"
    # test rpc
-   modify_to_rpc   
-   build_blockchain
-   start_nodes
+   #modify_to_rpc   
+   #build_blockchain
+   #start_nodes
    # callback demo_transaction
    execute_cmd "${python_bin} demo_transaction.py"
-   test_rpc
-   test_precompile
+   #test_rpc
+   #test_precompile
    test_channel
-   stop_nodes
+   #stop_nodes
 }
 main
