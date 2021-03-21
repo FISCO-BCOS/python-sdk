@@ -55,7 +55,11 @@ cdef class PyTasslSockWrap:
 		# print("{ in pyx -->} ssock send :",buffer)
 		if bufferlen is  None:
 			bufferlen = len(buffer)
-		r = self.ssock.send(buffer,bufferlen)
+		for i in range(0,3):
+			r = self.ssock.send(buffer,bufferlen)
+			if r>0:
+				break
+			time.sleep(0.1)
 		return r;
 
 	

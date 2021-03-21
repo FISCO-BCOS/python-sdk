@@ -70,7 +70,7 @@ class SSLSockWrap(CommonSSLSockWrap):
             import traceback
             traceback.print_stack()
             raise ChannelException(("init ssl context failed,"
-                                    " please check the certificats ,reason : {}").
+                                    " please check the certificates ,reason : {}").
                                    format(e))
 
     def try_connect(self, host=None, port=0):

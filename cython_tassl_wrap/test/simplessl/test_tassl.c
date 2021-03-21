@@ -418,7 +418,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			printf("error happend when sslwrite %d ,errno %d\n",r,stderr);
+			printf("error happened when sslwrite %d ,errno %d\n",r,stderr);
 			ERR_print_errors_fp(stderr);
 			
 			int err = SSL_get_error(ssl, (int)retval);

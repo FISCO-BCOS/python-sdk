@@ -17,6 +17,7 @@ import ctypes
 import os
 import platform
 from ctypes import *
+import time
 
 ECHO_NONE = 0x0000
 ECHO_PRINTF = 0x0001
@@ -173,22 +174,26 @@ class NativeTasslSockWrap:
         retval = self.nativelib.ssock_try_connect(self.ssock, host.encode("UTF-8"), port)
         return retval
 
-    def recv(self, recvsize=None) -> bytes:
+    def recv(self, recvsize=None) :
         recvsize = 10 * 10 * 1024
         buffer = ctypes.create_string_buffer(recvsize)
         retval = self.nativelib.ssock_recv(self.ssock, buffer, recvsize)
         # print("recv,retval={},len = {}".format(retval,len(buffer.raw)) )
-        retbuffer: bytes = b''
+        retbuffer = b''
         if retval > 0:
             retbuffer = buffer[:retval]
         return retbuffer
 
-    def send(self, buffer: bytes, bufferlen=None):
+    def send(self, buffer, bufferlen=None):
         if type(buffer) == str:
             buffer = buffer.encode("utf-8")
         bufflen = len(buffer)
-        retval = self.nativelib.ssock_send(self.ssock, buffer, bufflen)
-
+        retval = -1
+        for i in range(0,3):
+            retval = self.nativelib.ssock_send(self.ssock, buffer, bufflen)
+            if retval > 0:
+                break
+            time.sleep(0.1)
         return retval
 
     def finish(self):

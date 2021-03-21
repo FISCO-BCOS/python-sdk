@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''
+"""
   FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
   FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
@@ -10,10 +10,9 @@
   rlp, eth-rlp , hexbytes ... and relative projects
   @author: kentzhang
   @date: 2019-06
-'''
+"""
 import uuid
 import struct
-
 
 '''
 channel protocol ref:
@@ -42,8 +41,8 @@ class ChannelPack:
     seq = None
     totallen = None
 
-    def __init__(self, type, seq, result, data):
-        self.type = type
+    def __init__(self, ctype, seq, result, data):
+        self.type = ctype
         self.seq = seq
         self.result = result
         self.data = data
@@ -54,7 +53,7 @@ class ChannelPack:
             if self.data is not None:
                 datalen = len(self.data)
             self.totallen = ChannelPack.getheaderlen() + datalen
-        msg = "len:{},type:{},result:{},seq:{},data:{}"\
+        msg = "len:{},type:{},result:{},seq:{},data:{}" \
             .format(self.totallen, hex(self.type), hex(self.result), self.seq, self.data)
         return msg
 
@@ -62,7 +61,7 @@ class ChannelPack:
     def make_seq32():
         seq = uuid.uuid1()
         seq32 = seq.hex
-        #seq32 = "".join(str(seq).split("-")).upper()
+        # seq32 = "".join(str(seq).split("-")).upper()
         seq32bytes = bytes(seq32, encoding='utf-8')
         return seq32bytes
 
@@ -82,34 +81,32 @@ class ChannelPack:
         return ChannelPack.pack_all(self.type, self.seq, self.result, self.data)
 
     @staticmethod
-    def pack_all(type, seq, result, data):
+    def pack_all(ctype, seq, result, data):
         headerlen = struct.calcsize(ChannelPack.headerfmt)
         databytes = data
         if not isinstance(databytes, bytes):
             databytes = bytes(data, "utf-8")
         fmt = "!IH32sI%ds" % (len(data))
         totallen = headerlen + len(data)
-        buffer = struct.pack(fmt, totallen, type, seq, result, databytes)
+        buffer = struct.pack(fmt, totallen, ctype, seq, result, databytes)
         return buffer
 
     @staticmethod
     # return（code, 消耗的字节数，解析好的cp或None）
     def unpack(buffer):
         headerlen = struct.calcsize(ChannelPack.headerfmt)
-        if(len(buffer) < headerlen):
-            return (-1, 0, None)
+        if len(buffer) < headerlen:
+            return -1, 0, None
         totallen = struct.unpack_from("!I", buffer, 0)[0]
-        if(len(buffer) < totallen):
+        if len(buffer) < totallen:
             # no enough bytes to decode
-            return (-1, 0, None)
+            return -1, 0, None
         datalen = len(buffer) - headerlen
-        (totallen, type, seq, result) = struct.unpack_from(ChannelPack.headerfmt, buffer, 0)
+        (totallen, ctype, seq, result) = struct.unpack_from(ChannelPack.headerfmt, buffer, 0)
         data = struct.unpack_from("%ds" % datalen, buffer, headerlen)[0]
-        cp = ChannelPack(type, seq, result, data)
+        cp = ChannelPack(ctype, seq, result, data)
         cp.totallen = totallen
-        return (0, totallen, cp)
-
-
+        return 0, totallen, cp
 
 
 '''

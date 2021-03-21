@@ -47,7 +47,7 @@ seq = ChannelPack.make_seq32()
 data = "{\"jsonrpc\":\"2.0\",\"method\":\"getClientVersion\",\"params\":[],\"id\":1}"
 pack = ChannelPack(ChannelPack.TYPE_RPC, seq, 0, data)
 ret = sw.send(pack.pack())
-print("send ret ", ret)
+print("in test,send ret ", ret)
 for i in range(0, 10):
     response = sw.recv()
     if len(response) > 0:

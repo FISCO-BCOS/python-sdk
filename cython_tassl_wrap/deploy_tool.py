@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
   FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
   FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
@@ -8,7 +8,7 @@
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   @author: kentzhang
   @date: 2021-03
-'''
+"""
 import os
 import platform
 import re
@@ -107,21 +107,20 @@ def check_job(job):
         source = os.path.join(job["path"], filename)
         target = os.path.join(target_path, filename)
         filestat = None
-        info = ""
-        if (os.path.exists(source)):
+        if os.path.exists(source):
             filestat = os.stat(source)
             info = "modify :" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(filestat.st_mtime))
         else:
             info = "\033[31m FILE MISSING !!! \033[0m"
-        conflit = ""
+        conflict = ""
         if os.path.exists(target):
             targetstat = os.stat(target)
             diffstat = "\033[31m(SIZE NOT EQUAL)\033[0m"
             if targetstat.st_size == filestat.st_size:
                 diffstat = "\033[32m(size equal)\033[0m"
-            conflit = "\033[33m [target exists] \033[0m {}".format(diffstat)
+            conflict = "\033[33m [target exists] \033[0m {}".format(diffstat)
 
-        print("{} ,[ {} ] {}".format(info, source, conflit))
+        print("{} ,[ {} ] {}".format(info, source, conflict))
         #
         pass
 
@@ -141,7 +140,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         usage()
         sys.exit(0)
-
+    cmd = ""
     if len(sys.argv) > 1:
         if sys.argv[1].lower() == "help" \
                 or sys.argv[0].lower() == "usage" \

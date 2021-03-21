@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''
+"""
   FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
   FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
@@ -12,7 +12,7 @@
   @function:
   @author: yujiechen
   @date: 2019-07
-'''
+"""
 from client.bcosclient import BcosClient
 from client.bcoserror import ArgumentsError
 from eth_utils import to_checksum_address
@@ -301,8 +301,8 @@ class RPCConsole:
         """
         exec_command
         """
-        self.client :BcosClient = BcosClient()
-        print("INFO >> BcosClient: ",self.client.getinfo())
+        self.client: BcosClient = BcosClient()
+        print("INFO >> BcosClient: ", self.client.getinfo())
         function_name = self.get_func_name(cmd)
         # execute function
         ret_json = eval(function_name)(*params)
