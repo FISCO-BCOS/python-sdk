@@ -24,21 +24,19 @@ import time
 import itertools
 import ssl
 import json
-import socket
 from client.channelpack import ChannelPack
 from utils.encoding import FriendlyJsonSerde
 from client.bcoserror import BcosError, ChannelException
 from eth_utils import (to_text, to_bytes)
 from client.channel_push_dispatcher import ChannelPushDispatcher
+from client.ssl_sock_wrap import CommonSSLSockWrap, SSLSockWrap
 
 
 class ChannelHandler(threading.Thread):
     context = None
-    CA_File = None
-    node_crt_file = None
-    node_key_file = None
-    ECDH_curve = "secp256k1"
-    ssock = None
+
+    ssock: CommonSSLSockWrap = None
+
     host = None
     port = None
     request_counter = itertools.count()
@@ -60,23 +58,22 @@ class ChannelHandler(threading.Thread):
         self.getResultPrefix = "getResult"
         self.lock = threading.RLock()
 
-    def initTLSContext(self, ca_file, node_crt_file, node_key_file,
+    def initTLSContext(self, ssl_type, ca_file, node_crt_file, node_key_file,
+                       en_crt_file=None,  # for gmssl
+                       en_key_file=None,  # for gmssl
                        protocol=ssl.PROTOCOL_TLSv1_2,
                        verify_mode=ssl.CERT_REQUIRED):
-        try:
-            context = ssl.SSLContext(protocol)
-            context.check_hostname = False
-            context.load_verify_locations(ca_file)
-
-            context.load_cert_chain(node_crt_file, node_key_file)
-            # print(context.get_ca_certs())
-            context.set_ecdh_curve(self.ECDH_curve)
-            context.verify_mode = verify_mode
-            self.context = context
-        except Exception as e:
-            raise ChannelException(("init ssl context failed,"
-                                    " please check the certificatsreason: {}").
-                                   format(e))
+        if ssl_type.upper() != "GM":
+            self.ssock = SSLSockWrap()
+            self.ssock.logger = self.logger
+        else:
+            from client.tassl_sock_wrap_impl import TasslSockWrap
+            self.ssock = TasslSockWrap()
+        self.ssock.init(ca_file, node_crt_file, node_key_file,
+                        en_crt_file=en_crt_file,
+                        en_key_file=en_key_file,
+                        protocol=protocol,
+                        verify_mode=verify_mode)
 
     def __del__(self):
         self.finish()
@@ -86,8 +83,7 @@ class ChannelHandler(threading.Thread):
         if self.ssock is not None and self.socketClosed is False:
 
             self.socketClosed = True
-            self.ssock.shutdown(socket.SHUT_RDWR)
-            self.ssock.close()
+            self.ssock.finish()
             self.logger.info(
                 "disconnect for read/write error, host: {}, port: {}".format(self.host, self.port))
         self.lock.release()
@@ -152,10 +148,8 @@ class ChannelHandler(threading.Thread):
                 self.name, self.keepWorking))
 
     def start_connect(self):
-        sock = socket.create_connection((self.host, self.port))
-        self.logger.debug("connect {}:{},as socket {}".format(self.host, self.port, sock))
-        # 将socket打包成SSL socket
-        self.ssock = self.context.wrap_socket(sock)
+        self.ssock.try_connect(self.host, self.port)
+        self.socketClosed = False
 
     def start_channel(self, host, port):
         try:
@@ -164,11 +158,14 @@ class ChannelHandler(threading.Thread):
             self.host = host
             self.port = port
             self.start_connect()
+            # print("start send thread")
+            self.sendThread = ChannelSendThread(self)
+            self.sendThread.setDaemon(True)
+            # print("start read thread")
             self.recvThread = ChannelRecvThread(self)
             self.recvThread.setDaemon(True)
             self.recvThread.start()
-            self.sendThread = ChannelSendThread(self)
-            self.sendThread.setDaemon(True)
+
             self.sendThread.start()
             self.pushDispacher = ChannelPushDispatcher()
             self.pushDispacher.setDaemon(True)
@@ -396,7 +393,8 @@ class ChannelRecvThread(threading.Thread):
                 return 0
         except Exception as e:
             self.logger.error("{}:ssock read error {}".format(self.name, e))
-            return -1
+            # print("{}:ssock read error {}".format(self.name, e))
+            return -2
         self.respbuffer += msg
         # if no enough data even for header ,continue to read
         if len(self.respbuffer) < ChannelPack.getheaderlen():
