@@ -109,48 +109,15 @@ install_python3()
 	LOG_INFO "install python3 succeed!"
 }
 
-install_linux_solc()
+install_solc()
 {
     mkdir -p ${SOLC_DIR}
-    if [ ! -f ${SOLC_PATH} ];then
-        LOG_INFO "Download and install solc into ${SOLC_PATH}..."
-        curl -LO ${SOLC_LINUX_URL}
-        tar -xvf solc-linux.tar.gz
-        mv solc ${SOLC_DIR}
-    else
-        LOG_INFO "solc is already installed into ${SOLC_PATH}"
-    fi
-    if [ ! -f ${SOLC_GM_PATH} ];then
-        LOG_INFO "Download and install solc-gm into ${SOLC_GM_PATH}..."
-        curl -LO ${SOLC_LINUX_GM_URL}
-        tar -xvf solc-linux-gm.tar.gz
-        mv solc ${SOLC_GM_PATH}
-    else
-        LOG_INFO "solc-gm is already installed into ${SOLC_GM_PATH}"
-    fi
+    LOG_INFO "Download and install solc into ${SOLC_PATH}..."
+    bash tools/download_solc.sh
+    mv solc-0.4.25 ${SOLC_DIR}/solc
+    bash tools/download_solc.sh -g
+    mv solc-0.4.25-gm ${SOLC_DIR}/solc-gm
 }
-
-install_mac_solc()
-{
-    mkdir -p ${SOLC_DIR}
-    if [ ! -f ${SOLC_PATH} ];then
-        LOG_INFO "Download and install solc into ${SOLC_PATH}..."
-        curl -LO ${SOLC_MAC_URL}
-        tar -xvf solc-mac.tar.gz
-        mv solc ${SOLC_DIR}
-    else
-        LOG_INFO "solc is already installed into ${SOLC_PATH}"
-    fi
-    if [ ! -f ${SOLC_GM_PATH} ];then
-        LOG_INFO "Download and install solc-gm into ${SOLC_GM_PATH}..."
-        curl -LO ${SOLC_MAC_GM_URL}
-        tar -xvf solc-mac-gm.tar.gz
-        mv solc ${SOLC_GM_PATH}
-    else
-        LOG_INFO "solc-gm is already installed into ${SOLC_GM_PATH}"
-    fi
-}
-
 init_config()
 {
 	if [ ! -f "client_config.py" ];then
@@ -159,11 +126,7 @@ init_config()
 	fi
     solc_path="bin/solc/v0.4.25"
     LOG_INFO "install solc v0.4.25..."
-    if [ "${OS_TYPE}" == "Linux" ];then
-        install_linux_solc
-    elif [ "${OS_TYPE}" == "Darwin" ];then
-        install_mac_solc
-    fi
+    install_solc
 }
 
 python_init()
