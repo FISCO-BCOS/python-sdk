@@ -69,7 +69,7 @@ function stop_nodes()
 
 function getBlockNumber()
 {
-    execute_cmd "${python_bin} console.py getBlockNumber | grep -v INFO |grep -v BcosClient | awk -F':' '{print \$2}' | awk '\$1=\$1'"
+    execute_cmd "${python_bin} console.py getBlockNumber | grep -v INFO |grep -v BcosClient | grep -v crypto | awk -F':' '{print \$2}' | awk '\$1=\$1'"
 }
 
 # test the common jsonRPC interface
