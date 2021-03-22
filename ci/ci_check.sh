@@ -321,7 +321,7 @@ function test_consensus_precompile()
 function get_config_by_key()
 {
     key="${1}"
-    value=$(execute_cmd "${python_bin} console.py \"getSystemConfigByKey\" \${key} | grep -v INFO | awk -F':' '{print \$2}' | awk '\$1=\$1'")
+    value=$(execute_cmd "${python_bin} console.py \"getSystemConfigByKey\" \${key} | grep -v INFO |grep -v crypto | awk -F':' '{print \$2}' | awk '\$1=\$1'")
     echo "${value}"
 }
 
