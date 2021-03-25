@@ -121,8 +121,10 @@ class NativeTasslSockWrap:
         if self.target_platform.lower().startswith("win"):
             # print(os.path.dirname(read_lib_name))
             os.add_dll_directory(os.path.dirname(read_lib_name))
-        self.nativelib = cdll.LoadLibrary(read_lib_name)
-
+        # self.nativelib = cdll.LoadLibrary(read_lib_name) 
+        print("test as RTLD_LOCAL",ctypes.RTLD_LOCAL)
+        print("test as RTLD_GLOBAL",ctypes.RTLD_GLOBAL)
+        self.nativelib = PyDLL(read_lib_name,ctypes.RTLD_GLOBAL)
         if self.nativelib is None:
             return -1
         # python里，对c语言的库 ,需要显式定义入参和出参，否则ctypes可能会出错

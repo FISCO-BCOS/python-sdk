@@ -9,7 +9,6 @@
   
 int main(int argc, char **argv) {  
 	void *module;    
-	char *error;
 	char libname[]="libnative_tassl_sock_wrap.so";
 	module = dlopen (libname, RTLD_LAZY);  
 	if (!module) {  
