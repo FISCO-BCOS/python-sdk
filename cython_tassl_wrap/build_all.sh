@@ -9,7 +9,7 @@ Linux*)
 	cpp_path="cpp_linux"
 	echo "goto" $cpp_path
 	cd cpp_linux	
-	./fetch_tassl_obj.sh
+	source ./fetch_tassl_obj.sh
 	make
 	cp *.so ..
 	cd .. 
