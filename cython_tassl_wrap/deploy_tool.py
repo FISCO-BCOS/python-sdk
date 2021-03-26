@@ -42,7 +42,7 @@ linux_runtime_libs["libs"] = []
 linux_tassl_sock_wrap_libs = {}
 linux_tassl_sock_wrap_libs["desc"] = "linux cpp tassl_sock_wrap libs"
 linux_tassl_sock_wrap_libs["path"] = "./cpp_linux"
-linux_tassl_sock_wrap_libs["libs"] = ["libtassl_sock_wrap.so"]
+linux_tassl_sock_wrap_libs["libs"] = ["libtassl_sock_wrap.so","libnativetassl_sock_wrap.so"]
 # 2.3------------
 linux_cython_tassl_sock_wrap_libs = {}
 linux_cython_tassl_sock_wrap_libs["desc"] = "linux cython tassl_sock_wrap libs"
@@ -90,7 +90,10 @@ def copy_job(job):
         source = os.path.join(job["path"], filename)
         target = os.path.join(target_path, filename)
         print("copy file : from {} to {}".format(source, target))
-        shutil.copyfile(source, target)
+        try:
+            shutil.copyfile(source, target)
+        except Exception as e:
+            print("copy  : {}, error {} ".format(source ,e) )
 
 
 def clean_job(job):
@@ -112,12 +115,13 @@ def check_job(job):
             info = "modify :" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(filestat.st_mtime))
         else:
             info = "\033[31m FILE MISSING !!! \033[0m"
-        conflict = ""
+        conflict = ""   
         if os.path.exists(target):
             targetstat = os.stat(target)
             diffstat = "\033[31m(SIZE NOT EQUAL)\033[0m"
-            if targetstat.st_size == filestat.st_size:
-                diffstat = "\033[32m(size equal)\033[0m"
+            if filestat is not None:
+                if targetstat.st_size == filestat.st_size:
+                    diffstat = "\033[32m(size equal)\033[0m"
             conflict = "\033[33m [target exists] \033[0m {}".format(diffstat)
 
         print("{} ,[ {} ] {}".format(info, source, conflict))
@@ -164,7 +168,7 @@ if __name__ == '__main__':
     if "linux" in target_platform:
         target_libs.append(linux_runtime_libs)
         target_libs.append(linux_tassl_sock_wrap_libs)
-        target_libs.append(linux_cython_tassl_sock_wrap_libs)
+        target_libs.append(linux_cython_tassl_sock_wrap_libs) 
 
     idx = 0
     for lib_job in target_libs:
