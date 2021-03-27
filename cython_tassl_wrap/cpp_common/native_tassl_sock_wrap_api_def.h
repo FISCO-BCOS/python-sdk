@@ -9,7 +9,9 @@ pure c api的函数指针类型定义，在加载dll/so时需要用到这些函�
 
 #ifndef NATIVE_TASSL_SOCK_WRAP_API_DEF
 #define NATIVE_TASSL_SOCK_WRAP_API_DEF 
-
+#ifdef __GNUC__ 
+__extension__
+#endif
  
 typedef void * (* FN_ssock_create)( );
 typedef  void   (* FN_ssock_release)(void * p_void_ssock);

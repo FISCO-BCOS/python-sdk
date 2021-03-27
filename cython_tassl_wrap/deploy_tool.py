@@ -34,29 +34,29 @@ win_cython_tassl_sock_wrap_libs["filter"] = "cython_tassl_sock_wrap(.*).dll"
 win_cython_tassl_sock_wrap_libs["libs"] = []
 # *************
 # 2.1------------
-centos7_runtime_libs = {}
-centos7_runtime_libs["desc"] = "linux centos7 runtime libs"
-centos7_runtime_libs["path"] = "./cpp_linux/runtime_libs_centos7"
-centos7_runtime_libs["libs"] = []
+linux_runtime_libs = {}
+linux_runtime_libs["desc"] = "linux runtime libs"
+linux_runtime_libs["path"] = "./cpp_linux/runtime_libs_linux"
+linux_runtime_libs["libs"] = []
 # 2.2------------
-centos7_tassl_sock_wrap_libs = {}
-centos7_tassl_sock_wrap_libs["desc"] = "linux centos7 cpp tassl_sock_wrap libs"
-centos7_tassl_sock_wrap_libs["path"] = "./cpp_linux"
-centos7_tassl_sock_wrap_libs["libs"] = ["libtassl_sock_wrap.so"]
+linux_tassl_sock_wrap_libs = {}
+linux_tassl_sock_wrap_libs["desc"] = "linux cpp tassl_sock_wrap libs"
+linux_tassl_sock_wrap_libs["path"] = "./cpp_linux"
+linux_tassl_sock_wrap_libs["libs"] = ["libtassl_sock_wrap.so","libnativetassl_sock_wrap.so"]
 # 2.3------------
-centos7_cython_tassl_sock_wrap_libs = {}
-centos7_cython_tassl_sock_wrap_libs["desc"] = "linux centos7 cython tassl_sock_wrap libs"
-centos7_cython_tassl_sock_wrap_libs["path"] = "./"
-centos7_cython_tassl_sock_wrap_libs["filter"] = "cython_tassl_sock_wrap(.*).so"
-centos7_cython_tassl_sock_wrap_libs["libs"] = []
+linux_cython_tassl_sock_wrap_libs = {}
+linux_cython_tassl_sock_wrap_libs["desc"] = "linux cython tassl_sock_wrap libs"
+linux_cython_tassl_sock_wrap_libs["path"] = "./"
+linux_cython_tassl_sock_wrap_libs["filter"] = "cython_tassl_sock_wrap(.*).so"
+linux_cython_tassl_sock_wrap_libs["libs"] = []
 
 target_platform = "unknown"
 target_path = "../"
 platsys = platform.platform()
 if platsys.lower().startswith("win"):
     target_platform = "win64"
-if "centos" in platsys.lower():
-    target_platform = "centos"
+if "linux" in platsys.lower():
+    target_platform = "linux"
 
 print("current platform : {},using config :{} ".format(platsys, target_platform))
 
@@ -90,7 +90,10 @@ def copy_job(job):
         source = os.path.join(job["path"], filename)
         target = os.path.join(target_path, filename)
         print("copy file : from {} to {}".format(source, target))
-        shutil.copyfile(source, target)
+        try:
+            shutil.copyfile(source, target)
+        except Exception as e:
+            print("copy  : {}, error {} ".format(source ,e) )
 
 
 def clean_job(job):
@@ -112,12 +115,13 @@ def check_job(job):
             info = "modify :" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(filestat.st_mtime))
         else:
             info = "\033[31m FILE MISSING !!! \033[0m"
-        conflict = ""
+        conflict = ""   
         if os.path.exists(target):
             targetstat = os.stat(target)
             diffstat = "\033[31m(SIZE NOT EQUAL)\033[0m"
-            if targetstat.st_size == filestat.st_size:
-                diffstat = "\033[32m(size equal)\033[0m"
+            if filestat is not None:
+                if targetstat.st_size == filestat.st_size:
+                    diffstat = "\033[32m(size equal)\033[0m"
             conflict = "\033[33m [target exists] \033[0m {}".format(diffstat)
 
         print("{} ,[ {} ] {}".format(info, source, conflict))
@@ -141,10 +145,13 @@ if __name__ == '__main__':
         usage()
         sys.exit(0)
     cmd = ""
+    
     if len(sys.argv) > 1:
         if sys.argv[1].lower() == "help" \
-                or sys.argv[0].lower() == "usage" \
-                or sys.argv[0] == "?":
+                or sys.argv[1].lower() == "usage" \
+                or sys.argv[1] == "?" \
+                or sys.argv[1] not in ["deploy","check","clean"] \
+                :
             usage()
             sys.exit(0)
         cmd = sys.argv[1]
@@ -158,10 +165,10 @@ if __name__ == '__main__':
         target_libs.append(win_tassl_sock_wrap_libs)
         target_libs.append(win_cython_tassl_sock_wrap_libs)
 
-    if "centos" in target_platform:
-        target_libs.append(centos7_runtime_libs)
-        target_libs.append(centos7_tassl_sock_wrap_libs)
-        target_libs.append(centos7_cython_tassl_sock_wrap_libs)
+    if "linux" in target_platform:
+        target_libs.append(linux_runtime_libs)
+        target_libs.append(linux_tassl_sock_wrap_libs)
+        target_libs.append(linux_cython_tassl_sock_wrap_libs) 
 
     idx = 0
     for lib_job in target_libs:
