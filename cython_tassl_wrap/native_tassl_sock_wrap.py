@@ -204,3 +204,6 @@ class NativeTasslSockWrap:
         self.nativelib.ssock_release(self.ssock)
         self.ssock = None
 
+    def finish(self):
+        self.nativelib.ssock_finish(self.ssock)
+
