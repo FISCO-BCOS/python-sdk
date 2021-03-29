@@ -122,8 +122,8 @@ class NativeTasslSockWrap:
             # print(os.path.dirname(read_lib_name))
             os.add_dll_directory(os.path.dirname(read_lib_name))
         # self.nativelib = cdll.LoadLibrary(read_lib_name) 
-        print("test as RTLD_LOCAL",ctypes.RTLD_LOCAL)
-        print("test as RTLD_GLOBAL",ctypes.RTLD_GLOBAL)
+        # print("test as RTLD_LOCAL",ctypes.RTLD_LOCAL)
+        # print("test as RTLD_GLOBAL",ctypes.RTLD_GLOBAL)
         self.nativelib = PyDLL(read_lib_name,ctypes.RTLD_GLOBAL)
         if self.nativelib is None:
             return -1
@@ -198,5 +198,9 @@ class NativeTasslSockWrap:
             time.sleep(0.1)
         return retval
 
-    def finish(self):
-        self.nativelib.ssock_finish(self.ssock)
+    def release(self):
+        if self.ssock is None:
+            return
+        self.nativelib.ssock_release(self.ssock)
+        self.ssock = None
+

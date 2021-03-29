@@ -23,6 +23,8 @@ using namespace fisco_tassl_sock_wrap;
 	void   ssock_release(void * p_void_ssock){
 		TasslSockWrap *pssock = (TasslSockWrap *)p_void_ssock;
 		if(pssock==NULL){return;}
+		pssock->finish();
+		delete pssock;
 	}
 	
 

@@ -116,16 +116,7 @@ TasslSockWrap::TasslSockWrap()
 
 TasslSockWrap::~TasslSockWrap()
 {
-	if (ssl) {
-		SSL_free(ssl);
-		ssl = NULL;
-	}
-	
-	fflush(stdout);
-	if (ctx) {
-		SSL_CTX_free(ctx);
-		ctx = NULL;
-	}
+    finish();
 	
 }
 void TasslSockWrap::set_echo_mode(int mode_)
@@ -281,12 +272,27 @@ int TasslSockWrap::init(
 }
 
 
-
+//after finish ,is need to run again,must init first
 int TasslSockWrap::finish()
 {
+
+    if (ssl == NULL && ctx == NULL && sock == 0)
+    {
+        return 0;
+	}
 	altprint(echo_mode,"[in cpp wrap -->] TasslSockWrap::finish.\n");
 
 	close_socket();
+	if (ssl) {
+		SSL_free(ssl);
+		ssl = NULL;
+	}
+
+	fflush(stdout);
+	if (ctx) {
+		SSL_CTX_free(ctx);
+		ctx = NULL;
+	}
 	return 0;
 }
 

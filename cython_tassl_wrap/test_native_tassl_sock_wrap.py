@@ -64,3 +64,4 @@ for i in range(0, 10):
                 print("-----response: ", response)
         break
     time.sleep(1)
+sw.release()
