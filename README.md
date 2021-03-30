@@ -18,9 +18,9 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 可基于[Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/protocol_description.html#channelmessage)与FISCO BCOS进行通信，保证节点与SDK安全加密通信的同时，可接收节点推送的消息。
 - 支持交易解析功能：包括交易输入、交易输出、Event Log等ABI数据的拼装和解析。
 - 支持合约编译，将`sol`合约编译成`abi`和`bin`文件。
-- 支持基于keystore的账户管理。
-- 支持合约历史查询。
-- 支持国密(SM2,SM3,SM4)
+- 支持基于keystore的账户管理。支持从pem文件加载ECDSA算法的私钥，以便和其他私钥管理模块互通。
+- 支持本地的合约部署历史查询 (不支持链上所有部署的合约查询)。
+- 支持国密(支持交易调用时的SM2,SM3,SM4算法）
 - 支持event回调监听
 ## 部署Python SDK
 
@@ -108,7 +108,7 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
 ```bash
 # 该脚本执行操作如下：
-# 1. 拷贝client_config.py.template->client_config.py
+# 1. 拷贝client_config.py.template -> client_config.py
 # 2. 安装solc编译器
 bash init_env.sh -i
 ```
@@ -175,7 +175,8 @@ channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk�
 **国密支持**
  -  支持国密版本的非对称加密、签名验签(SM2), HASH算法(SM3),对称加解密(SM4)
  -  国密版本在使用上和非国密版本基本一致，主要是配置差异。
- -  国密版本sdk同一套代码可以连接国密和非国密的节点，需要根据不同的节点配置相应的IP端口和证书
+ -  国密版本sdk同一套代码可以连接国密和非国密的节点，需要根据不同的节点配置相应的IP端口
+ -  截止2021.02版本，连接国密节点需使用非国密节点和SDK证书（节点生成非国密连接证书，参见节点的build_chain.sh和企业版搭链等文档），TLS国密认证实现中
  -  因为当前版本的实现里，账户文件格式有差异，所以国密的账户文件和ECDSA的账户文件采用不同的配置
 
 连接国密节点时，有以下相关的配置项需要修改和确认，IP端口也需要确认是指向国密版本节点
@@ -235,9 +236,9 @@ params: contractname address event_name indexed
 
 **部署HelloWorld合约**
 ```bash
-$ ./console.py deploy HelloWorld save 
+$ ./console.py deploy HelloWorld  
 
-INFO >> user input : ['deploy', 'HelloWorld', 'save']
+INFO >> user input : ['deploy', 'HelloWorld']
 
 backup [contracts/HelloWorld.abi] to [contracts/HelloWorld.abi.20190807102912]
 backup [contracts/HelloWorld.bin] to [contracts/HelloWorld.bin.20190807102912]

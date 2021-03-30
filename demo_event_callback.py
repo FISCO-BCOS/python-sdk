@@ -13,7 +13,7 @@ from client_config import client_config
 def usage():
     usagetext = '\nUsage:\nparams: contractname address event_name indexed\n' \
                 '\t1. contractname :\t合约的文件名,不需要带sol后缀,默认在当前目录的contracts目录下\n' \
-                '\t2. address :\t十六进制的合约地址,或者可以为:last,表示采用bin/contract.ini里的记录\n' \
+                '\t2. address :\t十六进制的合约地址,或者可以为:last 或 latest,表示采用bin/contract.ini里的记录\n' \
                 '\t3. event_name :\t可选,如不设置监听所有事件 \n' \
                 '\t4. indexed :\t可选,根据event定义里的indexed字段,作为过滤条件)\n\n'
     usagetext = usagetext + "\teg: for contract sample [contracts/HelloEvent.sol], use cmdline:\n\n"
@@ -82,7 +82,8 @@ def main(argv):
         print(bcos_event.client.getinfo())
 
         print("usage input {},{},{},{}".format(contractname, address, event_name, indexed_value))
-        if address == "last":
+        print(address)
+        if address == "last" or address == "latest":
             cn = ContractNote()
             address = cn.get_last(contractname)
             print("hex address :", address)

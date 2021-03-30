@@ -19,19 +19,25 @@ from client_config import client_config
 platsys = platform.system()
 solc_bin = client_config.solc_path
 solc_option = "--abi --bin --bin-runtime --overwrite"
+solc_default_contractpath = "./contracts"
 solc_default_output = "./contracts"
 
 if platsys.lower().startswith("win"):
     solc_bin = solc_bin.replace("/", "\\")
 
 
-# sample: bin/solc/solc.exe --abi --bin --allow-paths=./contracts contracts/Test.sol -o ./tmp
+# sample: bin/solc/solc.exe --abi --bin contracts/Test.sol -o ./tmp
 def sol_cmdline(solfile, outputpath, option=solc_option):
-    solpath = os.path.dirname(solfile)
-    allowpath = ""
-    if solpath == "":
-        allowpath = "--allow-paths=" + solpath
-    cmdline = "{} {} {} -o {} {}".format(solc_bin, option, allowpath, outputpath, solfile)
+    orgsolfile = solfile
+    if not solfile.endswith(".sol"):
+        # fix default ext name for sol
+        solfile = solfile + ".sol"
+    if not os.path.exists(solfile):
+        solfile = solc_default_contractpath + "/" + solfile  # try to match solfile in default path
+    if not os.path.exists(solfile):
+        print("sol file [{}] not found ,even in {}".format(orgsolfile, solfile))
+        return None
+    cmdline = "{} {}  -o {} {}".format(solc_bin, option, outputpath, solfile)
     return cmdline
 
 
@@ -42,10 +48,14 @@ def run_cmd(cmdline):
 
 def run_solc(solfile, outputpath, option=solc_option):
     cmdline = sol_cmdline(solfile, outputpath, option)
+    if cmdline is None:
+        return -1
     print(cmdline)
     res = run_cmd(cmdline)
+
     if len(res) > 0:
         print(res)
+    return 0
 
 
 solc_url_win = []
@@ -111,13 +121,54 @@ if __name__ == '__main__':
     if (len(sys.argv) == 3):
         outputdir = sys.argv[2]
     print("compile [{}],output to [{}]".format(solfile, outputdir))
-    run_solc(solfile, outputdir)
+    res = run_solc(solfile, outputdir)
+    if res < 0:
+        sys.exit(res)
     name = os.path.splitext(os.path.basename(solfile))[0]
     outputbin = "{}/{}.bin".format(outputdir, name)
     outputabi = "{}/{}.abi".format(outputdir, name)
-    print("** check the output  -> [{},{}]".format(outputbin, outputabi))
-    size = os.path.getsize(outputbin)
-    print("bin : [ {} ] file size: {}".format(outputbin, size))
+    import time
+    nowtick = time.time()
+    if os.path.exists(outputbin):
+        print("\n** check the output  -> ")
+        size = os.path.getsize(outputbin)
+        fmtime = os.path.getmtime(outputbin)
 
-    size = os.path.getsize(outputabi)
-    print("abi : [ {} ] file size: {}".format(outputabi, size))
+        print(
+            "bin : [ {} ] file size: {} , updatetime: {}".format(
+                outputbin,
+                size,
+                time.strftime(
+                    "%Y-%m-%d %H:%M:%S",
+                    time.localtime(fmtime))))
+        difftick = (int)(nowtick - fmtime)
+        if difftick > 1:
+            # maybe old file,when solc compile sol error ,but old file exist before,
+            # will cause WRONG version
+            print(
+                "\n× WARNING : OLD FILE, updated [ {} ] seconds ago , maybe compile FAILED ×\n"
+                .format(difftick))
+        else:
+            print("Seems compile & generate a new GOOD file √")
+    else:
+        print("not exist ", outputbin)
+    if os.path.exists(outputabi):
+        size = os.path.getsize(outputabi)
+        fmtime = os.path.getmtime(outputabi)
+        print(
+            "abi : [ {} ] file size: {} , updatetime: {} ".format(
+                outputabi,
+                size,
+                time.strftime(
+                    "%Y-%m-%d %H:%M:%S",
+                    time.localtime(fmtime))))
+        difftick = (int)(nowtick - fmtime)
+        if difftick > 1:
+            # maybe old file
+            print(
+                "\n× WARNING : OLD FILE, updated [ {} ] seconds ago , maybe compile FAILED ×\n"
+                .format(difftick))
+        else:
+            print("Seems compile & generate a new GOOD file √")
+    else:
+        print("not exist ", outputabi)

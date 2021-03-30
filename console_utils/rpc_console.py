@@ -18,6 +18,7 @@ from client.bcoserror import ArgumentsError
 from eth_utils import to_checksum_address
 from client.common import common
 from client.contractnote import ContractNote
+import os
 
 
 class RPCConsole:
@@ -31,6 +32,10 @@ class RPCConsole:
         self.params = params
         self.contract_path = contract_path
         RPCConsole.define_commands()
+
+    @staticmethod
+    def usage():
+        RPCConsole.print_rpc_usage()
 
     @staticmethod
     def print_rpc_usage():
@@ -109,6 +114,7 @@ class RPCConsole:
         """
         parse the result
         """
+
         if "blockNumber" in result:
             blocknum = result["blockNumber"]
             if blocknum.startswith("0x"):
@@ -178,16 +184,46 @@ class RPCConsole:
             return
         # decode output
         contractname = None
-        if len(params) == 3:
-            contractname = params[2]
-        else:
-            hisdetail = ContractNote.get_address_history(result["to"])
+        # print(params)
+        to_addr = None
+        if "to" in result:
+            to_addr = result["to"]
+        deploy_addr = None
+        is_deploy = False
+        if to_addr is None or to_addr == "0x0000000000000000000000000000000000000000":
+            is_deploy = True
+            if "contractAddress" in result:
+                # transaction 结构体并没有contractAddress字段
+                deploy_addr = result["contractAddress"]
+
+        if len(params) >= 2:
+            contractname = params[-1]
+            # 試一下是否存在這個合約
+            abi_path = os.path.join(self.contract_path, contractname + ".abi")
+            if not os.path.exists(abi_path):
+                contractname = None
+
+        # 从参数获取不到，则从地址去检索历史记录，尝试获取
+
+        if contractname is None:
+            # 如果是部署合约，则to是空的，要获取address
+            to_addr = result["to"]
+            if is_deploy and deploy_addr is not None:
+                abi_contract_addr = deploy_addr
+            else:
+                abi_contract_addr = to_addr
+            hisdetail = ContractNote.get_address_history(abi_contract_addr)
             if hisdetail is not None:
                 contractname = hisdetail["name"]
                 print(
-                    "transaction to contract : {} (deploy time: {})".format(
-                    contractname,
-                    hisdetail["timestr"]))
+                    "histroy transaction to contract : {} [{}] (deploy time: {})".format(
+                        contractname,
+                        abi_contract_addr,
+                        hisdetail["timestr"]))
+
+        if is_deploy and deploy_addr is not None:
+            print("\nis [DEPLOY] transaction,result address : {}\n"
+                  .format(deploy_addr))
         if contractname is None:
             return
         self.parse_output(cmd, contractname, result)

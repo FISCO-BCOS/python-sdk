@@ -12,81 +12,57 @@
   @date: 2020-01
 '''
 
-from client.gm_account import GM_Account
 from collections import (
     Mapping,
-)
-
-from gmssl import sm2, func
-from gmssl import sm2_helper
-from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
-
-from eth_account.datastructures import (
-    AttributeDict,
 )
 
 from cytoolz import (
     dissoc,
 )
 
-from eth_utils.hexadecimal import encode_hex, decode_hex
+from client.bcoserror import BcosException
 from client.bcostransactions import (
-    ChainAwareUnsignedTransaction,
     BcosUnsignedTransaction,
     encode_transaction,
     serializable_unsigned_transaction_from_dict,
-    strip_signature,
 )
-
+from client.signer_impl import Signer_Impl
+from eth_account.datastructures import (
+    AttributeDict,
+)
 from eth_utils.curried import (
-    combomethod,
-    hexstr_if_str,
-    is_dict,
     keccak,
-    text_if_str,
-    to_bytes,
-    to_int,
 )
 from hexbytes import (
     HexBytes,
 )
-from client.bcoskeypair import BcosKeyPair
-from client.bcoserror import BcosException
-from eth_account.signers.local import (
-    LocalAccount,
-)
-
-CHAIN_ID_OFFSET = 35
-V_OFFSET = 27
-
-# signature versions
-PERSONAL_SIGN_VERSION = b'E'  # Hex value 0x45
-INTENDED_VALIDATOR_SIGN_VERSION = b'\x00'  # Hex value 0x00
-STRUCTURED_DATA_SIGN_VERSION = b'\x01'  # Hex value 0x01
 
 
 class SignTx():
-    gm_account = None  # 国密的账号
-    ecdsa_account = None  # ECDSA的公私钥对象，类型为 LocalAccount : eth_account/signers/local.py
-    crypto_type = None  # 加密类型，国密或通用，来自eth_utils/crypto.py的CRYPTO_TYPE_GM，CRYPTO_TYPE_ECDSA
+    # gm_account = None  # 国密的账号
+    # ecdsa_account = None  # ECDSA的公私钥对象，类型为 LocalAccount : eth_account/signers/local.py
+    # crypto_type = None  # 加密类型，国密或通用，来自eth_utils/crypto.py的CRYPTO_TYPE_GM，CRYPTO_TYPE_ECDSA
 
-    def to_eth_v(self, v_raw, chain_id=None):
-        if chain_id is None:
-            v = v_raw + V_OFFSET
-        else:
-            v = v_raw + CHAIN_ID_OFFSET + 2 * chain_id
-        return v
+    # 2021.02 采用统一的signer接口去签名交易（需要附带chain_id,可以为None
+    # 实现参见 client/singer_impl.py, sign(data,chain_id)即为通用接口
+    signer: Signer_Impl
 
     def sign_transaction_hash(self, transaction_hash, chain_id):
-        hashbyte = bytes(transaction_hash)
+
+        if not isinstance(self.signer, Signer_Impl):
+            raise BcosException("Transaction Signer must by Signer_Imple(GM/ECDSA)type")
+
+        (v, r, s) = self.signer.sign(transaction_hash, chain_id)
+        return (v, r, s)
+        '''
+        原来的老实现，先放一放，稳定后删掉
+        hashbytes = bytes(transaction_hash)
         if self.crypto_type == CRYPTO_TYPE_GM:
             # gm sign
             public_key = self.gm_account.keypair.public_key
             private_key = self.gm_account.keypair.private_key
             sm2_crypt = sm2.CryptSM2(
                 public_key=public_key, private_key=private_key)
-            public_key = self.gm_account.keypair.public_key
-            private_key = self.gm_account.keypair.private_key
             (r, s) = sm2_crypt.sign(hashbyte)
             v_raw = public_key
             v = int(v_raw, 16)
@@ -95,12 +71,14 @@ class SignTx():
             signature = self.ecdsa_account._key_obj.sign_msg_hash(transaction_hash)
             (v_raw, r, s) = signature.vrs
             v = self.to_eth_v(v_raw, chain_id)
+
         else:
             raise BcosException(
                 "when sign transaction, unknown crypto type {}".format(
                     self.crypto_type))
 
         return (v, r, s)
+        '''
     '''
         debug = False
         if debug: #debug gm
@@ -149,11 +127,11 @@ class SignTx():
 
         # allow from field, *only* if it matches the private key
         if 'from' in transaction_dict:
-            if transaction_dict['from'] == self.KeyPair.address:
+            if transaction_dict['from'] == self.signer.get_keypair().address:
                 sanitized_transaction = dissoc(transaction_dict, 'from')
             else:
                 raise TypeError("from field must match key's %s, but it was %s" % (
-                    self.KeyPair.address,
+                    self.signer.get_keypair().address,
                     transaction_dict['from'],
                 ))
         else:

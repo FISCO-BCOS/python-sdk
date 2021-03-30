@@ -17,14 +17,14 @@ FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it
 '''
 import os
 from client.common import common
-from collections import Iterable
+from client.common import transaction_status_code
 from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 import client.bcosclient as bcosclient
-from eth_utils import to_checksum_address
-from client.bcoserror import BcosError, CompileError, ArgumentsError, BcosException
+from client.bcoserror import BcosError, CompileError, BcosException
 from client.common.transaction_exception import TransactionException
 from utils.abi import get_constructor_abi
+from client.format_param_by_abi import format_args_by_function_abi
 
 
 class TransactionCommon(bcosclient.BcosClient):
@@ -42,11 +42,15 @@ class TransactionCommon(bcosclient.BcosClient):
         self.contract_abi_path = contract_path + "/" + contract_name + ".abi"
         self.contract_bin_path = contract_path + "/" + contract_name + ".bin"
         self.sol_path = contract_path + "/" + contract_name + ".sol"
+        self.dataparser = None
+
         if os.path.exists(self.sol_path) is False:
             raise BcosException(("contract {} not exists,"
                                  " please put {}.sol into {}").
                                 format(contract_name,
                                        contract_name, contract_path))
+        if os.path.exists(self.contract_bin_path):
+            self.dataparser = DatatypeParser(self.contract_abi_path)
 
     def __del__(self):
         super().finish()
@@ -70,7 +74,13 @@ class TransactionCommon(bcosclient.BcosClient):
                 return
         Compiler.compile_file(self.sol_path, self.contract_path)
 
-    def send_transaction_getReceipt(self, fn_name, fn_args, gasPrice=30000000, deploy=False):
+    def send_transaction_getReceipt(
+            self,
+            fn_name,
+            fn_args,
+            gasPrice=30000000,
+            deploy=False,
+            from_account_signer=None):
         """
         send transactions to CNS contract with the givn function name and args
         """
@@ -80,13 +90,16 @@ class TransactionCommon(bcosclient.BcosClient):
             if deploy is True and os.path.exists(self.contract_bin_path) is True:
                 with open(self.contract_bin_path) as f:
                     contract_bin = f.read()
+                    f.close()
                 if contract_bin is not None and len(contract_bin) > 0x40000:
                     raise BcosException(("contract bin size overflow,"
                                          " limit: 0x40000(256K), size: {})")
                                         .format(len(contract_bin), 16))
             receipt = super().sendRawTransactionGetReceipt(self.contract_addr,
                                                            contract_abi, fn_name,
-                                                           args, contract_bin, gasPrice)
+                                                           args, contract_bin, gasPrice,
+                                                           from_account_signer=from_account_signer
+                                                           )
             # check status
             if "status" not in receipt.keys() or \
                     "output" not in receipt.keys():
@@ -95,15 +108,19 @@ class TransactionCommon(bcosclient.BcosClient):
                                  "for empty status and output,"
                                  "transaction receipt:{}").format(receipt))
             status = receipt["status"]
-            if int(status, 16) != 0 or receipt["output"] is None:
+            status_code = int(status, 16)
+            error_message = transaction_status_code.TransactionStatusCode.get_error_message(
+                status_code)
+            if error_message is not None:
+                raise BcosException("call error, error message: {}".format(error_message))
+
+            if receipt["output"] is None:
                 raise TransactionException(receipt, ("send transaction failed,"
-                                                     "status: {}, gasUsed: {},"
-                                                     " (not enough gas?)"
-                                                     " (non-exist contract address?)").
+                                                     "status: {}, gasUsed: {}").
                                            format(status,
                                                   receipt["gasUsed"]))
-            if fn_name is not None and fn_args is not None:
-                output = common.parse_output(receipt["output"], fn_name, contract_abi, args)
+            if fn_name is not None and fn_args is not None and self.dataparser is not None:
+                output = self.dataparser.parse_receipt_output(fn_name, receipt["output"])
             else:
                 output = None
             return (receipt, output)
@@ -117,49 +134,6 @@ class TransactionCommon(bcosclient.BcosClient):
                               format(self.sol_path, e))
             raise e
 
-    @staticmethod
-    def format_args_by_abi(inputparams, inputabi):
-        try:
-            paramformatted = []
-            index = -1
-            if len(inputparams) != len(inputabi):
-                raise ArgumentsError(("Invalid Arguments {}, expected params size: {},"
-                                      " inputted params size: {}".format(inputparams,
-                                                                         len(inputabi),
-                                                                         len(inputparams))))
-            for input_item in inputabi:
-                index += 1
-                param = inputparams[index]
-                if param is None:
-                    continue
-                if isinstance(param, Iterable) is False:
-                    paramformatted.append(param)
-                    continue
-                if '\'' in param:
-                    param = param.replace('\'', "")
-                if "int" in input_item["type"] or "int256" in input_item["type"]:
-                    paramformatted.append(int(param, 10))
-                    continue
-                if "address" in input_item["type"]:
-                    try:
-                        paramformatted.append(to_checksum_address(param))
-                    except ArgumentsError as e:
-                        raise ArgumentsError(("ERROR >> covert {} to to_checksum_address failed,"
-                                              " exception: {}").format(param, e))
-                    continue
-                if "bytes" in input_item["type"]:
-                    try:
-                        paramformatted.append(bytes(param, "utf-8"))
-                    except Exception as e:
-                        raise ArgumentsError(
-                            "ERROR >> parse {} to bytes failed, error info: {}".format(param, e))
-                    continue
-                paramformatted.append(param)
-            return paramformatted
-        except Exception as e:
-            raise BcosException(("inputparams illegal params: {},"
-                                 "error info: {}").format(inputparams, e))
-
     def format_args(self, fn_name, fn_args, needCover=False):
         """
         format args
@@ -167,6 +141,7 @@ class TransactionCommon(bcosclient.BcosClient):
         self.gen_contract_abi(needCover)
         data_parser = DatatypeParser(self.contract_abi_path)
         contract_abi = data_parser.contract_abi
+        self.dataparser = data_parser
         args = None
         if fn_args is None:
             return (contract_abi, fn_args)
@@ -176,13 +151,13 @@ class TransactionCommon(bcosclient.BcosClient):
                                         ''.join(data_parser.func_abi_map_by_name.keys())))
         if fn_name is not None:
             inputabi = data_parser.func_abi_map_by_name[fn_name]["inputs"]
-            args = TransactionCommon.format_args_by_abi(fn_args, inputabi)
+            args = format_args_by_function_abi(fn_args, inputabi)
         # the constructor with params
         elif fn_args is not None and contract_abi is not None:
             abidata = get_constructor_abi(contract_abi)
             if abidata is not None:
                 inputabi = abidata["inputs"]
-                args = TransactionCommon.format_args_by_abi(fn_args, inputabi)
+                args = format_args_by_function_abi(fn_args, inputabi)
         return (contract_abi, args)
 
     def call_and_decode(self, fn_name, fn_args=None):
