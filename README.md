@@ -20,9 +20,11 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 支持合约编译，将`sol`合约编译成`abi`和`bin`文件。
 - 支持基于keystore的账户管理。支持从pem文件加载ECDSA算法的私钥，以便和其他私钥管理模块互通。
 - 支持本地的合约部署历史查询 (不支持链上所有部署的合约查询)。
-
-- 支持国密(SM2,SM3,SM4算法),国密SSL通信 参见 [cython_tassl_wrap的README](./cython_tassl_wrap)
+- 支持国密(SM2,SM3,SM4算法)。如需支持国密SSL通信需要独立编译组件，参见 [cython_tassl_wrap的README](./cython_tassl_wrap)
 - 支持event回调监听
+- 支持liquid智能合约。需要采用[liquid开发环境](https://liquid-doc.readthedocs.io/)编译wasm合约。使用python-sdk部署和调用liquid合约时，合约名带上.wasm后缀，以和sol合约区别。
+
+
 ## 部署Python SDK
 
 ### 环境要求

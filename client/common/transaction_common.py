@@ -42,22 +42,22 @@ class TransactionCommon(bcosclient.BcosClient):
         self.contract_path = contract_path
         (fname, extname) = os.path.splitext(contract_name)
         if extname.endswith("wasm"):
+            # deal with wasm , not compile in this version, todo list
             self.contract_abi_path = contract_path + "/" + fname + ".abi"
             self.contract_bin_path = contract_path + "/" + contract_name
             self.sol_path = contract_path + "/" + contract_name
         else:
+            # deal with sol files ,may be force re compile sol file ,so set the sol filename
             self.contract_abi_path = contract_path + "/" + contract_name + ".abi"
             self.contract_bin_path = contract_path + "/" + contract_name + ".bin"
             self.sol_path = contract_path + "/" + contract_name + ".sol"
+            if os.path.exists(self.sol_path) is False:
+                raise BcosException(("contract {} not exists,"
+                                     " please put {}.sol into {}").
+                                    format(contract_name,
+                                           contract_name, contract_path))
         print("contract_abi_path {}, contract_bin_path {}".format(self.contract_abi_path,self.contract_bin_path))
         self.dataparser = None
-        '''
-        if os.path.exists(self.sol_path) is False:
-            raise BcosException(("contract {} not exists,"
-                                 " please put {}.sol into {}").
-                                format(contract_name,
-                                       contract_name, contract_path))
-        '''
         if os.path.exists(self.contract_bin_path):
             self.dataparser = DatatypeParser(self.contract_abi_path)
 
