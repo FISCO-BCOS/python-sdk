@@ -21,7 +21,7 @@ gmssl是包含国密SM2算法的Python实现， 提供了 `encrypt`、 `decrypt`
 ```python
 import base64
 import binascii
-from gmssl import sm2, func
+from gmssl_utils import sm2, func
 #16进制的公钥和私钥
 private_key = '00B9AB0B828FF68872F21A837FC303668428DEA11DCD1B24429D0C99E24EED83D5'
 public_key = 'B9C9A6E04E9C91F7BA880429273747D7EF5DDEB0BB2FF6317EB00BEF331A83081A6994B8993F3F5D6EADDDB81872266C87C018FB4162F5AF347B483E24620207'
@@ -58,7 +58,7 @@ gmssl是包含国密SM4算法的Python实现， 提供了 `encrypt_ecb`、 `decr
 #### 1. 初始化`CryptSM4`
 
 ```python
-from gmssl.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
+from gmssl_utils.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
 
 key = b'3l5butlj26hvv313'
 value = b'111' #  bytes类型

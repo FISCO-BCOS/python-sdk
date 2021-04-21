@@ -1,7 +1,7 @@
 import base64
 import binascii
-from gmssl import sm2, func
-from gmssl import sm2_helper
+from gmssl_utils import sm2, func
+from gmssl_utils import sm2_helper
 
 
 if __name__ == '__main__':

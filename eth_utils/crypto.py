@@ -4,7 +4,7 @@ from eth_hash.auto import keccak as keccak_256
 
 from .conversions import to_bytes
 
-from gmssl.sm3 import sm3_hash
+from gmssl_utils.sm3 import sm3_hash
 
 from eth_utils.hexadecimal import decode_hex
 CRYPTO_TYPE = 'keccak'

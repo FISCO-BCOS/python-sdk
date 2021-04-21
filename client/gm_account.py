@@ -18,13 +18,13 @@
 # **原来已经实现的，使用ecdsa的account，暂时不做重构，保持其稳定性
 import base64
 import binascii
-from gmssl import sm2, func
-from gmssl import sm2_helper
-from gmssl import sm3, func
+from gmssl_utils import sm2, func
+from gmssl_utils import sm2_helper
+from gmssl_utils import sm3, func
 from eth_utils.hexadecimal import decode_hex
 from eth_utils import to_checksum_address
 from eth_utils.crypto import *
-from gmssl.sm4 import CryptSM4, SM4_DECRYPT, SM4_ENCRYPT
+from gmssl_utils.sm4 import CryptSM4, SM4_DECRYPT, SM4_ENCRYPT
 from client.bcoskeypair import BcosKeyPair
 import json
 import hmac

@@ -1,4 +1,4 @@
-from gmssl.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
+from gmssl_utils.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
 
 key = b'3l5butlj26hvv313'
 value = b'111'

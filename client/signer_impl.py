@@ -9,8 +9,8 @@ from client.gm_account import GM_Account
 from eth_account.account import Account
 from eth_account.signers.local import LocalAccount
 from eth_utils import encode_hex
-from gmssl import sm2
-from gmssl.sm2 import CryptSM2
+from gmssl_utils import sm2
+from gmssl_utils.sm2 import CryptSM2
 
 
 class Signer_Impl:
