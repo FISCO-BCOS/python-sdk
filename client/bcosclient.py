@@ -116,9 +116,13 @@ class BcosClient:
                 self.channel_handler = ChannelHandler()
                 self.channel_handler.setDaemon(True)
                 self.channel_handler.logger = self.logger
-                self.channel_handler.initTLSContext(client_config.channel_ca,
+                self.channel_handler.initTLSContext(
+                                                    client_config.ssl_type,
+                                                    client_config.channel_ca,
                                                     client_config.channel_node_cert,
-                                                    client_config.channel_node_key
+                                                    client_config.channel_node_key,
+                                                    client_config.channel_en_crt,
+                                                    client_config.channel_en_key
                                                     )
                 self.channel_handler.start_channel(
                     client_config.channel_host, client_config.channel_port)
@@ -143,6 +147,8 @@ class BcosClient:
         if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
             info = "channel {}:{}".format(self.channel_handler.host, self.channel_handler.port)
         info += ",groupid :{}".format(self.groupid)
+        info += ",crypto type:{}".format(client_config.crypto_type)
+        info += ",ssl type:{}".format(client_config.ssl_type)
         return info
 
     def is_error_response(self, response):

@@ -69,7 +69,7 @@ function stop_nodes()
 
 function getBlockNumber()
 {
-    execute_cmd "${python_bin} console.py getBlockNumber | grep -v INFO | awk -F':' '{print \$2}' | awk '\$1=\$1'"
+    execute_cmd "${python_bin} console.py getBlockNumber | grep -v INFO |grep -v BcosClient | grep -v crypto | awk -F':' '{print \$2}' | awk '\$1=\$1'"
 }
 
 # test the common jsonRPC interface
@@ -158,8 +158,12 @@ function test_account()
     LOG_INFO ">> test newaccount..."
     local addr=$(execute_cmd "${python_bin} console.py newaccount test_account "123456" | grep "address" | grep -v "new" | awk -F':' '{print \$2}' | awk '\$1=\$1'")
     if [ ! -f "${file_path}" ];then
-        LOG_ERROR "new account failed!"
-    fi
+		# LOG_ERROR "new account failed!"
+		local file_path="bin/accounts/test_account.json"
+		if [ ! -f "${file_path}" ];then
+			LOG_ERROR "new account failed!"
+		fi
+	fi
 
     # show account
     LOG_INFO ">> test showaccount..."
@@ -317,7 +321,7 @@ function test_consensus_precompile()
 function get_config_by_key()
 {
     key="${1}"
-    value=$(execute_cmd "${python_bin} console.py \"getSystemConfigByKey\" \${key} | grep -v INFO | awk -F':' '{print \$2}' | awk '\$1=\$1'")
+    value=$(execute_cmd "${python_bin} console.py \"getSystemConfigByKey\" \${key} | grep -v INFO |grep -v crypto | awk -F':' '{print \$2}' | awk '\$1=\$1'")
     echo "${value}"
 }
 

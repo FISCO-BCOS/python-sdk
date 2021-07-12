@@ -15,13 +15,12 @@
 import json
 import sys
 import traceback
-
+import os
 from client.common import common
 from client.common import transaction_common
 from client.contractnote import ContractNote
 from client.datatype_parser import DatatypeParser
 from client_config import client_config
-from console_utils.console_common import default_abi_file
 from console_utils.console_common import fill_params
 from console_utils.console_common import list_files
 from console_utils.console_common import print_receipt_logs_and_txoutput
@@ -81,7 +80,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
 
         try:
             receipt = tx_client.send_transaction_getReceipt(
-                None, fn_args, deploy=True
+                None, fn_args, isdeploy=True
             )[0]
             print("INFO >> client info: {}".format(tx_client.getinfo()))
             print(
@@ -104,7 +103,8 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
                     address for (call/sendtx)\nadd 'save' to cmdline and run again"""
                 )
             ContractNote.save_history(name, address, blocknum, txhash)
-            data_parser = DatatypeParser(default_abi_file(contractname))
+            contractabi = tx_client.contract_abi_path
+            data_parser = DatatypeParser(contractabi)
             # 解析receipt里的log 和 相关的tx ,output
             print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         except Exception as e:
@@ -189,7 +189,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             # 参见国密（client.GM_Account）和非国密的account管理类LocalAccount
             (receipt, output) = tx_client.send_transaction_getReceipt(
                 fn_name, fn_args, from_account_signer=from_account_signer)
-            data_parser = DatatypeParser(default_abi_file(contractname))
+            data_parser = DatatypeParser(tx_client.contract_abi_path)
             # 解析receipt里的log 和 相关的tx ,output
             print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
         except Exception as e:

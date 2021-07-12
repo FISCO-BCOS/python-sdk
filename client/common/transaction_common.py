@@ -25,6 +25,7 @@ from client.bcoserror import BcosError, CompileError, BcosException
 from client.common.transaction_exception import TransactionException
 from utils.abi import get_constructor_abi
 from client.format_param_by_abi import format_args_by_function_abi
+from eth_utils.hexadecimal import encode_hex
 
 
 class TransactionCommon(bcosclient.BcosClient):
@@ -39,16 +40,24 @@ class TransactionCommon(bcosclient.BcosClient):
         bcosclient.BcosClient.__init__(self)
         self.contract_addr = contract_addr
         self.contract_path = contract_path
-        self.contract_abi_path = contract_path + "/" + contract_name + ".abi"
-        self.contract_bin_path = contract_path + "/" + contract_name + ".bin"
-        self.sol_path = contract_path + "/" + contract_name + ".sol"
+        (fname, extname) = os.path.splitext(contract_name)
+        if extname.endswith("wasm"):
+            # deal with wasm , not compile in this version, todo list
+            self.contract_abi_path = contract_path + "/" + fname + ".abi"
+            self.contract_bin_path = contract_path + "/" + contract_name
+            self.sol_path = contract_path + "/" + contract_name
+        else:
+            # deal with sol files ,may be force re compile sol file ,so set the sol filename
+            self.contract_abi_path = contract_path + "/" + contract_name + ".abi"
+            self.contract_bin_path = contract_path + "/" + contract_name + ".bin"
+            self.sol_path = contract_path + "/" + contract_name + ".sol"
+            if os.path.exists(self.sol_path) is False:
+                raise BcosException(("contract {} not exists,"
+                                     " please put {}.sol into {}").
+                                    format(contract_name,
+                                           contract_name, contract_path))
+        print("contract_abi_path {}, contract_bin_path {}".format(self.contract_abi_path,self.contract_bin_path))
         self.dataparser = None
-
-        if os.path.exists(self.sol_path) is False:
-            raise BcosException(("contract {} not exists,"
-                                 " please put {}.sol into {}").
-                                format(contract_name,
-                                       contract_name, contract_path))
         if os.path.exists(self.contract_bin_path):
             self.dataparser = DatatypeParser(self.contract_abi_path)
 
@@ -79,22 +88,29 @@ class TransactionCommon(bcosclient.BcosClient):
             fn_name,
             fn_args,
             gasPrice=30000000,
-            deploy=False,
+            isdeploy=False,
             from_account_signer=None):
         """
         send transactions to CNS contract with the givn function name and args
         """
         try:
-            contract_abi, args = self.format_args(fn_name, fn_args, deploy)
+            contract_abi, args = self.format_abi_args(fn_name, fn_args, isdeploy)
             contract_bin = None
-            if deploy is True and os.path.exists(self.contract_bin_path) is True:
-                with open(self.contract_bin_path) as f:
+            if isdeploy is True and os.path.exists(self.contract_bin_path) is True:
+                with open(self.contract_bin_path,"rb") as f:
                     contract_bin = f.read()
                     f.close()
+                    # print(contract_bin)
+                    if self.contract_bin_path.endswith("wasm"):
+                        contract_bin = encode_hex(contract_bin)
+                    else:
+                        contract_bin = bytes.decode(contract_bin,"utf-8")
+
                 if contract_bin is not None and len(contract_bin) > 0x40000:
                     raise BcosException(("contract bin size overflow,"
                                          " limit: 0x40000(256K), size: {})")
                                         .format(len(contract_bin), 16))
+
             receipt = super().sendRawTransactionGetReceipt(self.contract_addr,
                                                            contract_abi, fn_name,
                                                            args, contract_bin, gasPrice,
@@ -134,11 +150,12 @@ class TransactionCommon(bcosclient.BcosClient):
                               format(self.sol_path, e))
             raise e
 
-    def format_args(self, fn_name, fn_args, needCover=False):
+    def format_abi_args(self, fn_name :str, fn_args, needCover=False):
         """
         format args
         """
-        self.gen_contract_abi(needCover)
+        if not self.contract_bin_path.endswith(".wasm"):
+            self.gen_contract_abi(needCover)
         data_parser = DatatypeParser(self.contract_abi_path)
         contract_abi = data_parser.contract_abi
         self.dataparser = data_parser
@@ -164,6 +181,6 @@ class TransactionCommon(bcosclient.BcosClient):
         """
         call and get the output
         """
-        contract_abi, args = self.format_args(fn_name, fn_args, False)
+        contract_abi, args = self.format_abi_args(fn_name, fn_args, False)
         result = super().call(self.contract_addr, contract_abi, fn_name, args)
         return result
