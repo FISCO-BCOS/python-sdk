@@ -11,7 +11,7 @@
 
 Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)提供Python API，使用FISCO BCOS Python SDK可以简单快捷的基于FISCO-BCOS进行区块链应用开发。**此版本只支持**[FISCO BCOS 2.0](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/)。
 
-(备注：仅供开发者参考的实验版本[https://gitee.com/coderkent/python-sdk](https://gitee.com/coderkent/python-sdk),已经支持合约接口中数组和结构体,为开发者coderkentzhang维护和自测的版本，更新较快，稳定后合入此代码库)
+(备注：仅供开发者参考的实验版本[https://gitee.com/coderkent/python-sdk](https://gitee.com/coderkent/python-sdk),已经支持合约接口中数组和结构体,为开发者[coderkentzhang](https://github.com/coderkentzhang)维护和自测的版本，更新较快，稳定后合入此代码库)
 
 
 ## 关键特性
