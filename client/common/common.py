@@ -283,7 +283,7 @@ def print_tx_result(outputresults):
         if isinstance(result, bytes):
             print("{}, ".format(bytesToHex(result)))
             continue
-        print("tx reuslt: {}, ".format(result))
+        print("reuslt: {}, ".format(result))
 
 
 def check_result(result):

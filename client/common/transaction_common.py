@@ -23,9 +23,10 @@ from client.common.compiler import Compiler
 import client.bcosclient as bcosclient
 from client.bcoserror import BcosError, CompileError, BcosException
 from client.common.transaction_exception import TransactionException
-from utils.abi import get_constructor_abi
+from utils.abi import get_constructor_abi, get_abi_input_types
 from client.format_param_by_abi import format_args_by_function_abi
 from eth_utils.hexadecimal import encode_hex
+from utils.contracts import get_function_info
 
 
 class TransactionCommon(bcosclient.BcosClient):
@@ -167,8 +168,12 @@ class TransactionCommon(bcosclient.BcosClient):
                                 .format(fn_name,
                                         ''.join(data_parser.func_abi_map_by_name.keys())))
         if fn_name is not None:
-            inputabi = data_parser.func_abi_map_by_name[fn_name]["inputs"]
+            fn_abi = data_parser.func_abi_map_by_name[fn_name]
+            inputabi = data_parser.get_function_inputs_abi(fn_name)
+            #inputabi = data_parser.get_function_abi(fn_name)
+
             args = format_args_by_function_abi(fn_args, inputabi)
+            #print("args after format:",args)
         # the constructor with params
         elif fn_args is not None and contract_abi is not None:
             abidata = get_constructor_abi(contract_abi)

@@ -14,18 +14,19 @@
 
 # codec for abi,block,transaction,receipt,logs
 import json
-from eth_abi import decode_single
+from eth_abi import decode_single, decode_abi
 from eth_utils import (
     function_signature_to_4byte_selector,
     event_abi_to_log_topic,
     encode_hex, decode_hex)
+from eth_utils.abi import collapse_if_tuple
 from eth_utils.crypto import keccak
 
 from utils.abi import (
     filter_by_type,
     abi_to_signature,
     get_fn_abi_types_single,
-    exclude_indexed_event_inputs_to_single)
+    exclude_indexed_event_inputs_to_single, exclude_indexed_event_inputs_to_abi)
 
 
 class DatatypeParser:
@@ -92,9 +93,12 @@ class DatatypeParser:
             if eventabi is None:
                 continue
             # args_abi = get_fn_abi_types(eventabi,'inputs')
-            argslist = exclude_indexed_event_inputs_to_single(eventabi)
+            #argslist = exclude_indexed_event_inputs_to_single(eventabi)
+            #print("event abi",eventabi)
+            argslist = exclude_indexed_event_inputs_to_abi(eventabi)
+            #print("parse log :",argslist)
             # print(argslist)
-            result = decode_single(argslist, decode_hex(log['data']))
+            result = decode_abi(argslist, decode_hex(log['data']))
             # print(result)
             log["topic"] = topic
             log["eventdata"] = result
@@ -137,10 +141,44 @@ class DatatypeParser:
         fn_abi = self.func_abi_map_by_name[fn_name]
         return fn_abi
 
+    def types_if_tuple(self,abi):
+        """Converts a tuple from a dict to a parenthesized list of its types.
+        >>> from eth_utils.abi import collapse_if_tuple
+        >>> collapse_if_tuple(
+        ...     {
+        ...         'components': [
+        ...             {'name': 'anAddress', 'type': 'address'},
+        ...             {'name': 'anInt', 'type': 'uint256'},
+        ...             {'name': 'someBytes', 'type': 'bytes'},
+        ...         ],
+        ...         'type': 'tuple' or 'tuple[3]',
+        ...     }
+        ... )
+        (address,uint256,bytes) ([])
+        """
+        typ = abi["type"]
+
+        if not typ.startswith("tuple"):
+            return typ
+        tuplearray = []
+        #print("abi >>> ",abi)
+        for c in abi["components"]:
+            tuplearray.append(self.types_if_tuple(c))
+        #print("tuplearray",tuplearray)
+        return tuple(tuplearray)
+
+
     def get_function_inputs_abi(self, fn_name):
         fn_abi = self.get_function_abi(fn_name)
         if fn_abi is not None:
-            return fn_abi["inputs"]
+            inputs =  fn_abi["inputs"]
+            inputsres = []
+            #print(">>>>",inputs)
+            for item in inputs:
+                #将里面的tuple转义
+                inputsres.append(collapse_if_tuple(item))
+            #print("get_function_inputs_abi",inputsres)
+            return inputsres
         return None
 
     def get_function_outputs_abi(self, fn_name):

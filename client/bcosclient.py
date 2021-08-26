@@ -33,11 +33,11 @@ from client_config import client_config
 from eth_abi import decode_single
 from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
 from eth_utils.hexadecimal import decode_hex, encode_hex
-from utils.abi import itertools, get_fn_abi_types_single
+from utils.abi import itertools, get_fn_abi_types_single, get_abi_output_types
 from utils.contracts import encode_transaction_data
 from utils.contracts import get_aligned_function_data
 from utils.contracts import get_function_info
-
+from eth_abi import decode_abi
 
 class BcosClient:
 
@@ -425,6 +425,7 @@ class BcosClient:
         params = [client_config.groupid, callmap]
         # 发送
         response = self.common_request(cmd, params)
+        #print("response : ",response)
         # check status
         if "status" in response.keys():
             status = int(response["status"], 16)
@@ -439,11 +440,14 @@ class BcosClient:
             )
             # print("fn_selector",fn_selector)
             # print("fn_arguments",fn_arguments)
-            fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
+            #fn_output_types = get_fn_abi_types_single(fn_abi, "outputs")
+            fn_output_types = get_abi_output_types(fn_abi);
             try:
-                decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
+                #decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
+                #print("fn_output_types",fn_output_types)
+                decoderesult = decode_abi(fn_output_types,decode_hex(outputdata))
                 return decoderesult
-            except BaseException:
+            except BaseException as e:
                 return response
         return response
 

@@ -76,7 +76,8 @@ def find_matching_fn_abi(abi, fn_identifier=None, args=None, kwargs=None):
     args = args or tuple()
     kwargs = kwargs or dict()
     num_arguments = len(args) + len(kwargs)
-
+    #print("len ",len(args))
+    #print("num_arguments",num_arguments)
     if fn_identifier is FallbackFn:
         return get_fallback_func_abi(abi)
 
@@ -92,7 +93,7 @@ def find_matching_fn_abi(abi, fn_identifier=None, args=None, kwargs=None):
     else:
         matching_identifiers = name_filter(abi)
         matching_function_signatures = [abi_to_signature(func) for func in matching_identifiers]
-
+        #print("matching_function_signatures",matching_function_signatures)
         arg_count_matches = len(arg_count_filter(matching_identifiers))
         encoding_matches = len(encoding_filter(matching_identifiers))
 
@@ -126,7 +127,6 @@ def find_matching_fn_abi(abi, fn_identifier=None, args=None, kwargs=None):
 
 def encode_abi(abi, arguments, data=None):
     argument_types = get_abi_input_types(abi)
-
     if not check_if_arguments_can_be_encoded(abi, arguments, {}):
         raise TypeError(
             "One or more arguments could not be encoded to the necessary "
@@ -145,10 +145,13 @@ def encode_abi(abi, arguments, data=None):
         argument_types,
         arguments,
     )
+    #print("argument_types",argument_types)
+    #print("normalized_arguments",normalized_arguments)
     encoded_arguments = eth_abi_encode_abi(
         argument_types,
         normalized_arguments,
     )
+    #print("encoded_arguments",data,encoded_arguments)
 
     if data:
         return to_hex(HexBytes(data) + encoded_arguments)
@@ -210,7 +213,7 @@ def encode_transaction_data(
         )
     else:
         raise TypeError("Unsupported function identifier")
-
+    #print("fn_selector",fn_selector)
     return add_0x_prefix(encode_abi(fn_abi, fn_arguments, fn_selector))
 
 

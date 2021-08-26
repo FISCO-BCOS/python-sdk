@@ -2,13 +2,7 @@
   @author: kentzhang
   @date: 2019-06
 '''
-import os
 from configobj import ConfigObj
-
-fname = "hello.wasm"
-print(os.path.splitext(fname))
-fname = "hello"
-print(os.path.splitext(fname))
 
 config = ConfigObj("sample/contract.ini", encoding='UTF8')
 
@@ -27,4 +21,3 @@ print(config['address']['testnode'])
 
 del config['address']['testnode']
 config.write()
-

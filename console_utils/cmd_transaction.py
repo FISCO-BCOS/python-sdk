@@ -65,12 +65,6 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         # need save address whether or not
         needSaveAddress = True
         args_len = len(inputparams)
-        # need save address whether or not
-        needSaveAddress = False
-        args_len = len(inputparams)
-        if inputparams[-1] == "save":
-            needSaveAddress = True
-            args_len = len(inputparams) - 1
         # get the args
         fn_args = inputparams[1:args_len]
 
@@ -143,6 +137,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         )
         try:
             result = tx_client.call_and_decode(fn_name, fn_args)
+
             common.print_tx_result(result)
 
         except Exception as e:

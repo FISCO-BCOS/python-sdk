@@ -165,6 +165,7 @@ class ChannelHandler(threading.Thread):
             self.recvThread = ChannelRecvThread(self)
             self.recvThread.setDaemon(True)
             self.recvThread.start()
+
             self.sendThread.start()
             self.pushDispacher = ChannelPushDispatcher()
             self.pushDispacher.setDaemon(True)

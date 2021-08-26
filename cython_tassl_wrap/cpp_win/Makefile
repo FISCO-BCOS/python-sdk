@@ -31,7 +31,7 @@ SYS_CFLAGS=-Wall -pedantic -g -O2 -D__WINDOWS__
 #for openssl & tassl
 OPENSSL_DIR=$(TASSL)
 OPENSSL_INCLUDES=-I$(OPENSSL_DIR)/include
-OPENSSL_LIBS=-L$(OPENSSL_DIR)  -lssleay32  -leay32 
+OPENSSL_LIBS=-L$(OPENSSL_DIR) -L./ -lssleay32  -leay32 
 #-lssleay32  -leay32 
 OPENSSL_LDFLAGS= $(OPENSSL_LIBS)
 

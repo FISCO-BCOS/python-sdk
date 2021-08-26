@@ -1,4 +1,13 @@
 /*
+  This lib is a tls client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  This lib is free software: you can redistribute it and/or modify it under the
+  terms of the MIT License as published by the Free Software Foundation. This project is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  @author: kentzhang
+  @date: 2021-03
+*/
+/*
 pure c api的函数指针类型定义，在加载dll/so时需要用到这些函数指针类型
 */
 #ifndef ECHO_NONE

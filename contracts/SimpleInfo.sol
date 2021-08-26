@@ -52,7 +52,7 @@ contract SimpleInfo{
 		emit on_set(0,n,b,a,"info set");
 		emit on_change(0,name,balance,addr,"on_set_change");
 		emit on_sender(0,n,b,msg.sender,"change by sender");
-		return 0;
+		return 100;
     }
 	function add(uint256 b) public returns(uint256){
 		balance = balance +b;

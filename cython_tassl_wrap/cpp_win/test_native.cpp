@@ -1,4 +1,12 @@
-
+/*
+  This lib is a tls client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  This lib is free software: you can redistribute it and/or modify it under the
+  terms of the MIT License as published by the Free Software Foundation. This project is
+  distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  @author: kentzhang
+  @date: 2021-03
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,6 +64,7 @@ int main(int argc, char **argv)
 	int retval = 0;
 	pfn_set_echo_mode(p_ssock, ECHO_PRINTF);
 	pfn_init(p_ssock,"sdk/gmca.crt","sdk/gmsdk.crt","sdk/gmsdk.key","sdk/gmensdk.crt","sdk/gmensdk.key");
+	//pfn_init(p_ssock,"sdk/ca.crt","sdk/sdk.crt","sdk/sdk.key","","");
 	printf("ssock init ret %d\n",retval);
 	char ip[1024]="127.0.0.1";
 	int port = 20200;
@@ -86,7 +95,7 @@ int main(int argc, char **argv)
 			break;
 
 		}
-		Sleep(100);
+		Sleep(200);
 	}
 	
 	pfn_finish(p_ssock);

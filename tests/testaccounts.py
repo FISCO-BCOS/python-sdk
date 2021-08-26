@@ -117,6 +117,10 @@ def test_sign():
     print("hex recover result", encode_hex(recoverres))
 
 
-test_p12()
+#test_p12()
 # test_pem()
-test_sign()
+#test_sign()
+ac1 = Account.from_key("6eb7d91a86ee378defd30ef8abb9b72499845c05846a2d408583f0e1a4903f5d")
+print(ac1.address)
+print(encode_hex(ac1.key))
+print(ac1.publickey)

@@ -1,6 +1,6 @@
 /*
-  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
+  This lib is a tls client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  This lib is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -31,7 +31,7 @@
 
 using namespace fisco_tassl_sock_wrap;
 
-int g_eode_mode = ECHO_NONE;
+int g_echo_mode = ECHO_NONE;
 void altprint(const int echo_mode,const char *fmt,...)
 {
 	
@@ -43,7 +43,7 @@ void altprint(const int echo_mode,const char *fmt,...)
 		fflush(stdout);
 	}
 	if(echo_mode & ECHO_LOG ){ 
-		printf("LOGGING:\n");
+		//printf("LOGGING:\n");
 		vprintf(fmt,arg); 
 		fflush(stdout);
 	}
@@ -117,8 +117,9 @@ TasslSockWrap::~TasslSockWrap()
 }
 void TasslSockWrap::set_echo_mode(int mode_)
 {
+    //printf("echo mode input : %d\n",mode_);
 	echo_mode = mode_;
-	g_eode_mode = mode_;
+	g_echo_mode = mode_;
 	
 }
 
@@ -147,28 +148,41 @@ int init_socket()
 	if(WSAStartup(sockVersion, &data) != 0)
 	{
 		get_socket_last_error_msg(WSAGetLastError(),msgbuf,sizeof(msgbuf));
-		altprint(g_eode_mode,"init_socket error %s\n",msgbuf);
+		altprint(g_echo_mode,"init_socket error %s\n",msgbuf);
 		return -1;
 	}
 	return 0;
  
 }
+static HANDLE hMutex = CreateMutex(NULL,FALSE,NULL);
+static bool g_is_ssl_init = false;
 int  init_openssl()
 {
+    if( g_is_ssl_init ){
+        altprint(g_echo_mode,"[in cpp wrap -->] openssl has been init ,return\n");
+        return 0;
+     }
+    WaitForSingleObject(hMutex, INFINITE);
+    if( g_is_ssl_init ){
+        altprint(g_echo_mode    ,"[in cpp wrap -->] openssl has been init,release lock and return\n");
+        ReleaseMutex(hMutex);
+        return 0;
+     }
+
+    //SSL_library_init不可重入，这个方法要加锁，
     int retval = SSL_library_init();
-    if (!retval)
+      altprint(g_echo_mode    ,"[in cpp wrap -->] init openssl (NOT THREAD SAFE) ret %d\n",retval);
+    if (retval == 1)
 	{
-		
-		return -1;
+		//载入所有SSL算法
+    	OpenSSL_add_ssl_algorithms ();
+        //载入所有错误信息
+        SSL_load_error_strings();
+	    ERR_load_crypto_strings();
+        g_is_ssl_init = true;
 	}
-	//载入所有SSL算法
-	OpenSSL_add_ssl_algorithms ();
-
-	//载入所有错误信息
-    SSL_load_error_strings();
-	ERR_load_crypto_strings();
-
-	return 0;
+	ReleaseMutex(hMutex);
+	return retval;
 }
 
 
@@ -176,7 +190,10 @@ int TasslSockWrap::load_ca_files()
 {
 	
 	int retval;
-	
+	//如果客户端开启SSL_CTX_set_verify，则代表客户端需要严格验证服务端的身份，所以客户端需要加载ca来验证对端。服务器端是默认开启。
+	SSL_CTX_set_verify(ctx,SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,NULL);
+	SSL_CTX_set_verify_depth(ctx,10);
+
 	//加载ca证书
 	retval = SSL_CTX_load_verify_locations(ctx,ca_crt_file,NULL); 
 	altprint(echo_mode,"[in cpp wrap -->] SSL_CTX_load_verify_locations %d , %s\n",retval,ca_crt_file);
@@ -208,33 +225,6 @@ int TasslSockWrap::load_ca_files()
 		fflush(stderr);
 		return -103;
 	}
-	
-	
-	//加载sdk en加密证书 
-	 
-	retval = SSL_CTX_use_certificate_file(ctx, en_crt_file, SSL_FILETYPE_PEM);
-	altprint(echo_mode,"[in cpp wrap -->] SSL_CTX_use_certificate_file res =  %d,file: %s\n",retval,en_crt_file);
-	if (retval <= 0)
-	{
-		ERR_print_errors_fp(stderr);
-		fflush(stderr);
-		return -104;
-	}
-	
-	//加载sdk en加密key
-	retval = SSL_CTX_use_enc_PrivateKey_file(ctx, en_key_file, SSL_FILETYPE_PEM);
-	altprint(echo_mode,"[in cpp wrap -->] SSL_CTX_use_enc_PrivateKey_file res =  %d,file: %s\n",retval,en_key_file);
-	if (retval <= 0)
-	{
-		ERR_print_errors_fp(stderr);
-		fflush(stderr);
-		return -105;
-	}
-		
-	//如果客户端开启SSL_CTX_set_verify，则代表客户端需要严格验证服务端的身份，所以客户端需要加载ca来验证对端。服务器端是默认开启。
-	SSL_CTX_set_verify(ctx,SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,NULL);
-	SSL_CTX_set_verify_depth(ctx,10); 
-		
 	//检查证书和key
 	if (!SSL_CTX_check_private_key(ctx))
 	{
@@ -242,14 +232,42 @@ int TasslSockWrap::load_ca_files()
 		return -106;
 	}
 
+
 	
-	//检查en证书和key
-	if (!SSL_CTX_check_enc_private_key(ctx))
+	//加载sdk en加密证书 
+	if(strlen(en_key_file) > 0 && strlen(en_crt_file) > 0)
 	{
-		altprint(echo_mode,"[in cpp wrap -->] Private key does not match the certificate public key/n");
-		return -107;
+
+        retval = SSL_CTX_use_certificate_file(ctx, en_crt_file, SSL_FILETYPE_PEM);
+        altprint(echo_mode,"[in cpp wrap -->] SSL_CTX_use_certificate_file res =  %d,file: %s\n",retval,en_crt_file);
+        if (retval <= 0)
+        {
+            ERR_print_errors_fp(stderr);
+            fflush(stderr);
+            return -104;
+        }
+
+	    //加载sdk en加密key
+	    retval = SSL_CTX_use_enc_PrivateKey_file(ctx, en_key_file, SSL_FILETYPE_PEM);
+	    altprint(echo_mode,"[in cpp wrap -->] SSL_CTX_use_enc_PrivateKey_file res =  %d,file: %s\n",retval,en_key_file);
+	    if (retval <= 0)
+	    {
+		ERR_print_errors_fp(stderr);
+		fflush(stderr);
+		return -105;
+	    }
+        //检查en证书和key
+        if (!SSL_CTX_check_enc_private_key(ctx))
+        {
+            altprint(echo_mode,"[in cpp wrap -->] Private key does not match the certificate public key/n");
+            return -107;
+        }
+
 	}
-	
+
+
+
+
 	return 0;
 	
 }
@@ -266,13 +284,14 @@ int TasslSockWrap::init(const char *ca_crt_file_,
 				const char * en_key_file_
 					)
 {
+    altprint(echo_mode,"[in cpp wrap -->] TasslSockWrap:init %s,%s,%s,%s,%s\n",ca_crt_file_,sign_crt_file_,sign_key_file_,en_crt_file_,en_key_file_);
 	strcpy(ca_crt_file,ca_crt_file_);
 	strcpy(sign_crt_file,sign_crt_file_);
 	strcpy(sign_key_file,sign_key_file_);
 	strcpy(en_crt_file,en_crt_file_);
 	strcpy(en_key_file,en_key_file_);		
 	int retval = 0; 
-	altprint(echo_mode,"[in cpp wrap -->] TasslSockWrap init\n");
+	//altprint(echo_mode,"[in cpp wrap -->] TasslSockWrap init\n");
 	ctx = NULL;
 	ssl = NULL;
 	retval = init_socket();
@@ -281,12 +300,13 @@ int TasslSockWrap::init(const char *ca_crt_file_,
 		altprint(echo_mode,"[in cpp wrap -->] Error of init_socketCTX!\n");
 		return -1;	
 	}
-	
+	//altprint(echo_mode,"[in cpp wrap -->] init_openssl\n");
 	retval = init_openssl()	;
 	if (retval < 0 )
 	{
 		return retval;
 	}
+	//altprint(echo_mode,"[in cpp wrap -->] SSL_CTX_new\n");
 	ctx = SSL_CTX_new(TLSv1_2_client_method());
 	if(ctx == NULL)
 	{
@@ -299,6 +319,7 @@ int TasslSockWrap::init(const char *ca_crt_file_,
 	SSL_CTX_set_mode (ctx, SSL_MODE_AUTO_RETRY);
 	
 	retval = load_ca_files();
+	//altprint(echo_mode,"[in cpp wrap -->] SSL_new\n");
 	ssl = SSL_new (ctx);
 	//altprint(echo_mode,"[in cpp wrap -->] after init ctx %d, ssl %d\n",ctx,ssl);
 	return retval;
@@ -592,7 +613,7 @@ int TasslSockWrap::send(const char * buffer,const int len)
 		}
 		else{ 
 			//错误　
-			altprint(echo_mode,"[in cpp wrap -->] send SSL_connect retval = %d, sslerror=%d\n",retval,sslerr);
+			altprint(echo_mode,"[in cpp wrap -->] send SSL_write retval = %d, sslerror=%d\n",retval,sslerr);
 		}
 	}
 	return retval;	
@@ -600,7 +621,7 @@ int TasslSockWrap::send(const char * buffer,const int len)
 
 int TasslSockWrap::recv(char *buffer, const int buffersize)
 { 
-	altprint(echo_mode,buffer,buffersize,"[in cpp wrap -->] on recv ,buffersize %d ",buffersize);
+	altprint(echo_mode,"[in cpp wrap -->] on recv ,buffersize %d \n",buffersize);
 	int retval = 0;
 	if (ssl==NULL || sock == 0)
 	{

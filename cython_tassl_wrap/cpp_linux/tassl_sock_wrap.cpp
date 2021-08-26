@@ -1,6 +1,6 @@
 /*
-  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
+  This lib is a tls client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  This lib is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -32,6 +32,7 @@
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
+#include <pthread.h>
 #include "tassl_sock_wrap.h"
 
 using namespace fisco_tassl_sock_wrap;
@@ -47,7 +48,7 @@ void altprint(const int echo_mode,const char *fmt,...)
 		vprintf(fmt,arg);
 	}
 	if(echo_mode & ECHO_LOG ){ 
-		printf("LOGGING:\n");
+		//printf("LOGGING:\n");
 		vprintf(fmt,arg); 
 	}
 	va_end(arg);
@@ -119,27 +120,43 @@ TasslSockWrap::~TasslSockWrap()
     finish();
 	
 }
+static int g_echo_mode;
 void TasslSockWrap::set_echo_mode(int mode_)
 {
 	echo_mode = mode_;
+	g_echo_mode = mode_;
 }
+
+bool g_is_ssl_init = false;
+pthread_mutex_t lock;//创建锁
 
 int  TasslSockWrap::init_openssl()
 {
-	
+	 if( g_is_ssl_init ){
+        altprint(g_echo_mode,"[in cpp wrap -->] openssl has been init ,return\n");
+        return 0;
+     }
+	pthread_mutex_lock(&lock);
+	 if( g_is_ssl_init ){
+        altprint(g_echo_mode,"[in cpp wrap -->] openssl has been init ,release lock and return\n");
+        pthread_mutex_unlock(&lock);
+        return 0;
+     }
+
 	//printf("init 0000 this->en_crt_file %s,keyfile %s\n", en_crt_file,en_key_file);
     int retval = SSL_library_init();
-    if (!retval)
+    altprint(g_echo_mode ,"[in cpp wrap -->] init openssl (NOT THREAD SAFE) ret %d\n",retval);
+    if (retval == 1)
 	{
-		
-		return -1;
+    	//载入所有SSL算法
+	    OpenSSL_add_ssl_algorithms ();
+	    //载入所有错误信息
+        SSL_load_error_strings();
+	    ERR_load_crypto_strings();
+	    g_is_ssl_init = true;
 	}
-	//载入所有SSL算法
-	OpenSSL_add_ssl_algorithms ();
-	//载入所有错误信息
-    SSL_load_error_strings();
-	ERR_load_crypto_strings();
-	return 0;
+	pthread_mutex_unlock(&lock);
+	return retval;
 }
 
 
@@ -572,7 +589,7 @@ int TasslSockWrap::send(const char * buffer,const int len)
 
 int TasslSockWrap::recv(char *buffer, const int buffersize)
 { 
-	altprint(echo_mode,buffer,buffersize,"[in cpp wrap -->] on recv ,buffersize %d ",buffersize);
+	altprint(echo_mode,"[in cpp wrap -->] on recv ,buffersize %d \n",buffersize);
 	int retval = 0;
 	int err;
 	if (ssl==NULL || sock == 0)

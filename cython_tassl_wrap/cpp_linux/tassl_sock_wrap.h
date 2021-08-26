@@ -1,6 +1,6 @@
 /*
-  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
+  This lib is a tls client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  This lib is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 

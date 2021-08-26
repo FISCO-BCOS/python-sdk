@@ -25,7 +25,7 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 支持国密(SM2,SM3,SM4算法)。如需支持国密SSL通信需要独立编译组件，参见 [cython_tassl_wrap的README](./cython_tassl_wrap)
 - 支持event回调监听
 - 支持liquid智能合约。需要采用[liquid开发环境](https://liquid-doc.readthedocs.io/)编译wasm合约。使用python-sdk部署和调用liquid合约时，合约名带上.wasm后缀，以和sol合约区别。
-
+- 控制台支持Struct参数，数组等复杂数据结构，SDK调用方法参见[tests/teststructclient.py](tests/teststructclient.py)
 
 ## 部署Python SDK
 
@@ -180,8 +180,7 @@ channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk�
 **国密支持**
  -  支持国密版本的非对称加密、签名验签(SM2), HASH算法(SM3),对称加解密(SM4)
  -  国密版本在使用上和非国密版本基本一致，主要是配置差异。
- -  国密版本sdk同一套代码可以连接国密和非国密的节点，需要根据不同的节点配置相应的IP端口
- -  截止2021.02版本，连接国密节点需使用非国密节点和SDK证书（节点生成非国密连接证书，参见节点的build_chain.sh和企业版搭链等文档），TLS国密认证实现中
+ -  国密版本sdk同一套代码可以连接国密和非国密的节点，需要根据不同的节点配置相应的IP端口和证书
  -  因为当前版本的实现里，账户文件格式有差异，所以国密的账户文件和ECDSA的账户文件采用不同的配置
  -  国密SSL目前需要手动编译，配置，方法参见 [cython_tassl_wrap的README](./cython_tassl_wrap)
 
@@ -307,6 +306,46 @@ INFO >> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67
 INFO >> call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
 INFO >> call result:  'Hello, FISCO!'
 ```
+
+## 控制台输入复杂数据类型概要说明
+
+**数组**
+
+合约数组如uint256[3] nums，那么在python层面，其参数构造可以是 [1,2,3],同理，字符串数组对应['a','b','c']
+
+在控制台输入时，数组参数需要加上中括号，比如[1, 2, 3]，数组中是字符串或字节类型，加双引号或单引号，例如[“alice”, ”bob”]，注意数组参数中不要有空格；布尔类型为true或者false。
+
+**结构体**
+
+合约结构体如
+```
+    struct User {
+        string name;
+        uint256 age;
+     }
+```
+对应python的tuple类型，如 ('alice',23)
+
+如果是结构体数组 User[] _users, 则对应tuple数组如[('alice',23),('bob',28)]
+
+在控制台输入时，按以上格式输入即可。举例
+```
+单个结构体参数
+python console.py sendtx TestStruct latest addUser ('alice',23)
+
+两个参数，第二个参数是结构体
+python console.py sendtx TestStruct latest addbyname alice ('alice',23)
+
+结构体数组参数
+python console.py sendtx TestStruct latest addUsers [('alice',23),('bob',28)]
+
+查询，返回的是结构体
+python console.py call TestStruct latest getUser alice
+```
+
+在控制台输入时，不支持复杂的嵌套(数组套结构体套数组等)，也不完整支持复杂转义字符，仅供一般体验使用。
+
+开发时，可参见[tests/teststructclient.py](tests/teststructclient.py)里的实现,复杂的数据结构，按abi接口定义结合python的数据结构（array,tuple等）进行组合构造。
 
 ## 开启命令行自动补全
 
