@@ -78,13 +78,13 @@ def split_param(inputparam:str):
                 status = 1 #status =1意思是这一段字符串必须到配对的stopchar才结束
             item = item + c
             continue
-        if status == 1:
+        if status == 1: #遇到配对的停止符才允许分割，在中间的,不做为分隔符
             item = item + c
             if c==stopchar:
                 stopchar=''
                 status = 0
             continue
-        if status == 2:
+        if status == 2: #转义符后面的一个字符直接加入
             status = oldstatus
             item = item + c
             continue
