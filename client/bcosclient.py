@@ -29,15 +29,17 @@ from client.common import transaction_status_code
 from client.signer_impl import Signer_GM, Signer_ECDSA, Signer_Impl
 from client.signtransaction import SignTx
 from client.stattool import StatTool
+from client.bcoskeypair import BcosKeyPair
 from client_config import client_config
-from eth_abi import decode_single
 from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
 from eth_utils.hexadecimal import decode_hex, encode_hex
-from utils.abi import itertools, get_fn_abi_types_single, get_abi_output_types
+from utils.abi import itertools, get_abi_output_types
 from utils.contracts import encode_transaction_data
 from utils.contracts import get_aligned_function_data
 from utils.contracts import get_function_info
 from eth_abi import decode_abi
+from eth_utils.hexadecimal import decode_hex, encode_hex
+from eth_account.account import Account
 
 class BcosClient:
 
@@ -86,6 +88,38 @@ class BcosClient:
                                            client_config.account_keyfile)
             self.default_from_account_signer = Signer_ECDSA.from_key_file(
                 self.key_file, client_config.account_password)
+
+    def set_account_by_privkey(self, privkey):
+        # 根据私钥切换身份
+        self.ecdsa_account = Account.from_key(privkey)
+        keypair = BcosKeyPair()
+        keypair.private_key = self.ecdsa_account.privateKey
+        keypair.public_key = self.ecdsa_account.publickey
+        keypair.address = self.ecdsa_account.address
+        self.keypair = keypair
+
+    def set_account_by_keystorefile(self, account_keyfile):
+        # 根据私钥文件切换身份
+        try:
+            self.keystore_file = "{}/{}".format(client_config.account_keyfile_path,
+                                                account_keyfile)
+            if os.path.exists(self.keystore_file) is False:
+                raise BcosException(("keystore file {} doesn't exist, "
+                                     "please check client_config.py again "
+                                     "and make sure this account exist")
+                                    .format(self.keystore_file))
+            with open(self.keystore_file, "r") as dump_f:
+                keytext = json.load(dump_f)
+                privkey = keytext["privateKey"]
+                self.ecdsa_account = Account.from_key(privkey)
+                keypair = BcosKeyPair()
+                keypair.private_key = self.ecdsa_account.privateKey
+                keypair.public_key = self.ecdsa_account.publickey
+                keypair.address = self.ecdsa_account.address
+                self.keypair = keypair
+        except Exception as e:
+            raise BcosException("load account from {} failed, reason: {}"
+                                .format(self.keystore_file, e))
 
     def init(self):
         try:

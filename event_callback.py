@@ -12,26 +12,16 @@
   @date: 2019-06
 '''
 import sys
-from client.bcosclient import BcosClient
-import os
-from client_config import client_config
-from client.stattool import StatTool
-from client.datatype_parser import DatatypeParser
-from client.common.compiler import Compiler
-from client_config import client_config
-from client.bcoserror import BcosException, BcosError
-from client.contractnote import ContractNote
-from eth_utils import encode_hex, decode_hex
 import uuid
-from eth_utils.crypto import keccak
 import json
-import struct
-from utils.encoding import FriendlyJsonSerde
-from client.bcoserror import BcosError, ChannelException
-from eth_utils import (to_text, to_bytes)
+
+from client.bcosclient import BcosClient
+from client.datatype_parser import DatatypeParser
+from client.contractnote import ContractNote
 from client.channel_push_dispatcher import ChannelPushHandler
 from client.channelpack import ChannelPack
 
+from utils.encoding import FriendlyJsonSerde
 
 def usage():
     usagetext = 'params: [contractname] [address(可以为last)] [event_name] [indexed value(根据event定义，可以为多个)]\n\n'
