@@ -19,7 +19,6 @@ import json
 import os
 import time
 
-import utils.rpc
 from client import clientlogger
 from client.bcoserror import BcosError, ArgumentsError, BcosException
 from client.channelhandler import ChannelHandler
@@ -31,13 +30,13 @@ from client.signtransaction import SignTx
 from client.stattool import StatTool
 from client.bcoskeypair import BcosKeyPair
 from client_config import client_config
-from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
-from eth_utils.hexadecimal import decode_hex, encode_hex
+import utils.rpc
 from utils.abi import itertools, get_abi_output_types
 from utils.contracts import encode_transaction_data
 from utils.contracts import get_aligned_function_data
 from utils.contracts import get_function_info
 from eth_abi import decode_abi
+from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
 from eth_utils.hexadecimal import decode_hex, encode_hex
 from eth_account.account import Account
 
