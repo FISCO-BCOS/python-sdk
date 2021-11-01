@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+"""
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -12,11 +12,13 @@
   @function:
   @author: yujiechen
   @date: 2019-07
-'''
+"""
 from client.bcosclient import BcosClient
 from client.bcoserror import ArgumentsError
 from eth_utils import to_checksum_address
 from client.common import common
+from client.contractnote import ContractNote
+import os
 
 
 class RPCConsole:
@@ -30,6 +32,10 @@ class RPCConsole:
         self.params = params
         self.contract_path = contract_path
         RPCConsole.define_commands()
+
+    @staticmethod
+    def usage():
+        RPCConsole.print_rpc_usage()
 
     @staticmethod
     def print_rpc_usage():
@@ -108,11 +114,18 @@ class RPCConsole:
         """
         parse the result
         """
+
+        if "blockNumber" in result:
+            blocknum = result["blockNumber"]
+            if blocknum.startswith("0x"):
+                blocknum = int(blocknum, 16)
+            print("transaction in block number :", blocknum)
+
         if cmd in self.functions["parse_in"]:
             decode_result = common.parse_input(result["input"],
                                                contract_name,
                                                self.contract_path)
-            common.print_info("input of transaction: {}", decode_result)
+            common.print_info("transaction input", decode_result)
         if cmd in self.functions["parse_out"]:
             common.print_output_and_input(result["logs"], result["output"], result["input"],
                                           contract_name, self.contract_path)
@@ -166,6 +179,55 @@ class RPCConsole:
         number = common.check_int_range(params[0])
         self.exec_command(cmd, [number])
 
+    def parse_tx_and_receipt(self, result, cmd, params):
+        if result is None:
+            return
+        # decode output
+        contractname = None
+        # print(params)
+        to_addr = None
+        if "to" in result:
+            to_addr = result["to"]
+        deploy_addr = None
+        is_deploy = False
+        if to_addr is None or to_addr == "0x0000000000000000000000000000000000000000":
+            is_deploy = True
+            if "contractAddress" in result:
+                # transaction 结构体并没有contractAddress字段
+                deploy_addr = result["contractAddress"]
+
+        if len(params) >= 2:
+            contractname = params[-1]
+            # 試一下是否存在這個合約
+            abi_path = os.path.join(self.contract_path, contractname + ".abi")
+            if not os.path.exists(abi_path):
+                contractname = None
+
+        # 从参数获取不到，则从地址去检索历史记录，尝试获取
+
+        if contractname is None:
+            # 如果是部署合约，则to是空的，要获取address
+            to_addr = result["to"]
+            if is_deploy and deploy_addr is not None:
+                abi_contract_addr = deploy_addr
+            else:
+                abi_contract_addr = to_addr
+            hisdetail = ContractNote.get_address_history(abi_contract_addr)
+            if hisdetail is not None:
+                contractname = hisdetail["name"]
+                print(
+                    "histroy transaction to contract : {} [{}] (deploy time: {})".format(
+                        contractname,
+                        abi_contract_addr,
+                        hisdetail["timestr"]))
+
+        if is_deploy and deploy_addr is not None:
+            print("\nis [DEPLOY] transaction,result address : {}\n"
+                  .format(deploy_addr))
+        if contractname is None:
+            return
+        self.parse_output(cmd, contractname, result)
+
     def exec_cmd_with_hash_param(self, cmd, params):
         """
         execute cmd with one hash param
@@ -190,9 +252,7 @@ class RPCConsole:
             # check hash
             common.check_hash(params[0])
             result = self.exec_command(cmd, [params[0]])
-            if len(params) < 2 or result is None:
-                return
-            self.parse_output(cmd, params[1], result)
+            self.parse_tx_and_receipt(result, cmd, params)
 
     def exec_cmd_with_two_param(self, cmd, params):
         """
@@ -213,10 +273,18 @@ class RPCConsole:
         if cmd == "getTransactionByBlockNumberAndIndex":
             number = common.check_int_range(params[0])
             result = self.exec_command(cmd, [number, index])
-        # decode input
-        if len(params) < 3 or result is None:
-            return
-        self.parse_output(cmd, params[2], result)
+        self.parse_tx_and_receipt(result, cmd, params)
+
+    def convertHexToDec(self, cmd, json_str):
+        if cmd == "getTotalTransactionCount":
+            json_str["blockNumber"] = int(json_str["blockNumber"], 16)
+            json_str["failedTxSum"] = int(json_str["failedTxSum"], 16)
+            json_str["txSum"] = int(json_str["txSum"], 16)
+        elif cmd == "getPendingTxSize" or cmd == "getPbftView":
+            if isinstance(json_str, int):
+                return json_str
+            json_str = int(json_str, 16)
+        return json_str
 
     def convertHexToDec(self, cmd, json_str):
         if cmd == "getTotalTransactionCount":
@@ -233,7 +301,8 @@ class RPCConsole:
         """
         exec_command
         """
-        self.client = BcosClient()
+        self.client: BcosClient = BcosClient()
+        print("INFO >> BcosClient: ", self.client.getinfo())
         function_name = self.get_func_name(cmd)
         # execute function
         ret_json = eval(function_name)(*params)

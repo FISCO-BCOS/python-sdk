@@ -1,6 +1,6 @@
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -25,6 +25,7 @@ from utils.contracts import get_function_info
 from utils.abi import get_fn_abi_types_single
 from client.bcoserror import ArgumentsError, BcosException
 from eth_abi import decode_single
+from eth_utils.hexadecimal import bytesToHex
 
 
 def backup_file(file_name):
@@ -47,9 +48,13 @@ def backup_file(file_name):
     if(forcewrite):
         filestat = os.stat(file_name)
         filetime = time.strftime("%Y%m%d%H%M%S", time.localtime(filestat.st_ctime))
-        backupfile = "{}.{}".format(file_name, filetime)
+        filepath, shortname = os.path.split(file_name)
+        backuppath = "{}/{}".format(filepath, "backup")
+        if not os.path.exists(backuppath):
+            os.mkdir(backuppath)
+        backupfile = "{}/{}.{}".format(backuppath, shortname, filetime)
         print("backup [{}] to [{}]".format(file_name, backupfile))
-        shutil.move(file_name, backupfile)
+        shutil.copyfile(file_name, backupfile)
     return forcewrite
 
 
@@ -57,7 +62,7 @@ def print_info(level, cmd):
     """
     print information
     """
-    print("{} >> {}".format(level, cmd))
+    print("{} : {}".format(level, cmd))
 
 
 def print_result(ret):
@@ -133,10 +138,10 @@ def check_int_range(number_str, limit=max_block_number):
         if number > limit or number < 0:
             raise ArgumentsError(("invalid input: {},"
                                   " must between 0 and {}").
-                                 format(number, limit))
+                                 format(number_str, limit))
         return number
     except Exception as e:
-        raise ArgumentsError("invalid input:{}, error info: {}".format(number, e))
+        raise ArgumentsError("invalid input:{}, error info: {}".format(number_str, e))
 
 
 def check_and_trans_to_bool(param):
@@ -236,17 +241,15 @@ def print_output_and_input(logs, output, txinput, contract_name, contract_path):
         dataParser = DatatypeParser(abi_path)
         # parse txinput
         input_result = dataParser.parse_transaction_input(txinput)
-        if input_result is None:
-            print_info("WARN", "parsed txinput is None")
-            return
-        print_info("txinput result", input_result)
-        # get function name
-        fn_name = input_result["name"]
-        output_result = dataParser.parse_receipt_output(fn_name, output)
-        if output_result is None:
-            print_info("INFO", "empty return, output: {}".format(output))
-            return
-        print_info("output result", output_result)
+        if input_result is not None:
+            print_info("txinput result", input_result)
+            # get function name
+            fn_name = input_result["name"]
+            output_result = dataParser.parse_receipt_output(fn_name, output)
+            if output_result is None:
+                print_info("INFO", "empty return, output: {}".format(output))
+                return
+            print_info("output result", output_result)
         log_result = dataParser.parse_event_logs(logs)
         print_receipt_logs(log_result)
         # print_info("log result", log_result)
@@ -270,3 +273,23 @@ def parse_input(txinput, contract_name, contract_path):
     except Exception as e:
         raise BcosException("parse txinput failed for reason: {}"
                             .format(e))
+
+
+def print_tx_result(outputresults):
+    """
+    print result of call or sendtx
+    """
+    for result in outputresults:
+        if isinstance(result, bytes):
+            print("{}, ".format(bytesToHex(result)))
+            continue
+        print("reuslt: {}, ".format(result))
+
+
+def check_result(result):
+    if isinstance(result, dict) and "status" in result.keys():
+        status = result["status"]
+        if int(status, 16) != 0:
+            print("{}".format(result))
+            return False
+    return True

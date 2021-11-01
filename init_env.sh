@@ -8,6 +8,14 @@ BASH="/bin/bash"
 ZSHRC="${HOME}/.zshrc"
 BASHRC="${HOME}/.bashrc"
 
+SOLC_LINUX_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-linux.tar.gz"
+SOLC_MAC_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-mac.tar.gz"
+SOLC_LINUX_GM_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-linux-gm.tar.gz"
+SOLC_MAC_GM_URL="https://github.com/FISCO-BCOS/solidity/releases/download/v0.4.25/solc-mac-gm.tar.gz"
+SOLC_DIR="bin/solc/v0.4.25"
+SOLC_PATH="${SOLC_DIR}/solc"
+SOLC_GM_PATH="${SOLC_DIR}/solc-gm"
+OS_TYPE="Linux"
 
 LOG_WARN()
 {
@@ -79,11 +87,11 @@ install_pyenv()
         return
     fi
     # export env
-    execute_cmd "echo 'export PATH=~/.pyenv/bin:\$PATH' >> ${shell_rc}"
+    execute_cmd "echo 'export PATH=\"\$PATH:~/.pyenv/bin\"' >> ${shell_rc}"
     execute_cmd "echo 'export PYENV_ROOT=~/.pyenv' >> ${shell_rc}"
     execute_cmd "echo 'eval \"\$(pyenv init -)\"' >> ${shell_rc}"
-	source ${shell_rc}
-    execute_cmd "echo 'eval \"\$(pyenv virtualenv-init -)\"' >> ~/.bash_profile"
+    execute_cmd "echo 'eval \"\$(pyenv virtualenv-init -)\"' >> ${shell_rc}"
+	eval "$(cat ${shell_rc} | tail -n +10)"
     LOG_INFO "init pyenv succeed!"
 }
 
@@ -98,26 +106,27 @@ install_python3()
 	if [ -z "${python_versions}" ];then
 	    execute_cmd "pyenv virtualenv ${version} python-sdk"
 	fi
+	LOG_INFO "install python3 succeed!"
 }
 
+install_solc()
+{
+    mkdir -p ${SOLC_DIR}
+    LOG_INFO "Download and install solc into ${SOLC_PATH}..."
+    bash tools/download_solc.sh
+    mv solc-0.4.25 ${SOLC_DIR}/solc
+    bash tools/download_solc.sh -g
+    mv solc-0.4.25-gm ${SOLC_DIR}/solc-gm
+}
 init_config()
 {
 	if [ ! -f "client_config.py" ];then
         LOG_INFO "copy config file..."
         execute_cmd "cp client_config.py.template client_config.py"
 	fi
-    solc_path=".py-solc/solc-v0.4.25/bin/solc"
-    if [ ! -f "${solc_path}" ];then
-        LOG_INFO "install solc v0.4.25..."
-        python -m solc.install v0.4.25
-        if [ $? -eq 1 ];then
-            if [ -d "${HOME}/.py-solc/solc-v0.4.25/" ];then
-                execute_cmd "rm -rf ~/.py-solc/solc-v0.4.25/"
-            fi
-            LOG_INFO "install solc v0.4.25 failed, try to install slocjs"
-            execute_cmd "npm install solc@0.4.25"
-        fi
-    fi
+    solc_path="bin/solc/v0.4.25"
+    LOG_INFO "install solc v0.4.25..."
+    install_solc
 }
 
 python_init()
@@ -145,7 +154,8 @@ python_init()
     fi
     
     install_pyenv
-    source ${shell_rc}
+	eval "$(cat ${shell_rc} | tail -n +10)"
+    LOG_INFO "begin install python ${version}..."
     install_python3
     LOG_INFO "install python ${version} success, please activate with command: pyenv activate python-sdk"
   else
@@ -166,6 +176,7 @@ EOF
 
 main()
 {
+    OS_TYPE=$(uname)
     while getopts "pih" option; do
         case ${option} in
         p) python_init

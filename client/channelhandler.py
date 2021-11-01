@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -24,26 +24,28 @@ import time
 import itertools
 import ssl
 import json
-import socket
 from client.channelpack import ChannelPack
 from utils.encoding import FriendlyJsonSerde
 from client.bcoserror import BcosError, ChannelException
 from eth_utils import (to_text, to_bytes)
+from client.channel_push_dispatcher import ChannelPushDispatcher
+from client.ssl_sock_wrap import CommonSSLSockWrap, SSLSockWrap
 
 
 class ChannelHandler(threading.Thread):
     context = None
-    CA_File = None
-    node_crt_file = None
-    node_key_file = None
-    ECDH_curve = "secp256k1"
-    ssock = None
+
+    ssock: CommonSSLSockWrap = None
+
     host = None
     port = None
     request_counter = itertools.count()
     logger = None
     recvThread = None
     sendThread = None
+    keepWorking = False
+    socketClosed = False
+    pushDispacher = None
 
     def __init__(self, max_timeout=10, name="channelHandler"):
         self.timeout = max_timeout
@@ -56,31 +58,52 @@ class ChannelHandler(threading.Thread):
         self.getResultPrefix = "getResult"
         self.lock = threading.RLock()
 
-    def initTLSContext(self, ca_file, node_crt_file, node_key_file,
+    def initTLSContext(self, ssl_type, ca_file, node_crt_file, node_key_file,
+                       en_crt_file=None,  # for gmssl
+                       en_key_file=None,  # for gmssl
                        protocol=ssl.PROTOCOL_TLSv1_2,
                        verify_mode=ssl.CERT_REQUIRED):
-        try:
-            context = ssl.SSLContext(protocol)
-            context.check_hostname = False
-            context.load_verify_locations(ca_file)
-            context.load_cert_chain(node_crt_file, node_key_file)
-            # print(context.get_ca_certs())
-            context.set_ecdh_curve(self.ECDH_curve)
-            context.verify_mode = verify_mode
-            self.context = context
-        except Exception as e:
-            raise ChannelException(("init ssl context failed,"
-                                    " please check the certificatsreason: {}").
-                                   format(e))
+        if ssl_type.upper() != "GM":
+            self.ssock = SSLSockWrap()
+            self.ssock.logger = self.logger
+        else:
+            from client.tassl_sock_wrap_impl import TasslSockWrap
+            self.ssock = TasslSockWrap()
+        self.ssock.init(ca_file, node_crt_file, node_key_file,
+                        en_crt_file=en_crt_file,
+                        en_key_file=en_key_file,
+                        protocol=protocol,
+                        verify_mode=verify_mode)
 
     def __del__(self):
         self.finish()
 
+    def disconnect(self):
+        self.lock.acquire()
+        if self.ssock is not None and self.socketClosed is False:
+
+            self.socketClosed = True
+            self.ssock.finish()
+            self.logger.info(
+                "disconnect for read/write error, host: {}, port: {}".format(self.host, self.port))
+        self.lock.release()
+
+    def reconnect(self):
+        if self.socketClosed is True:
+            self.lock.acquire()
+            self.logger.info("reconnect, host: {}, port: {}".format(self.host, self.port))
+            try:
+                self.start_connect()
+                self.socketClosed = False
+                self.logger.info(
+                    "reconnect success, host: {}, port: {}".format(self.host, self.port))
+            except Exception as e:
+                self.logger.error("reconnect failed, error: {}".format(e))
+            self.lock.release()
+
     def finish(self):
-        if self.ssock is not None:
-            self.ssock.shutdown(socket.SHUT_RDWR)
-            self.ssock.close()
-            self.ssock = None
+        self.disconnect()
+        self.ssock = None
         if self.keepWorking is True:
             self.keepWorking = False
             self.join(timeout=1)
@@ -90,6 +113,8 @@ class ChannelHandler(threading.Thread):
         if self.sendThread is not None:
             self.sendThread.finish()
             self.sendThread.join(timeout=2)
+        if self.pushDispacher is not None:
+            self.pushDispacher.finish()
 
     def run(self):
         try:
@@ -97,6 +122,8 @@ class ChannelHandler(threading.Thread):
             self.logger.debug(self.name + ":start thread-->")
             while self.keepWorking:
                 try:
+                    # try to reconnect
+                    self.reconnect()
                     responsepack = self.recvThread.recvQueue.get_nowait()  # pop msg from queue
                     if responsepack is None and self.keepWorking:
                         time.sleep(0.001)
@@ -107,6 +134,11 @@ class ChannelHandler(threading.Thread):
                         self.lock.acquire()
                         self.callbackEmitter.emit(emitter_str, responsepack)
                         self.lock.release()
+                    else:
+                        # 并非客户端指定的等待接受的来自节点的包，可能是push来的消息，包括amop，event push等
+                        # 独立接口处理
+                       # print("push  type ",hex(responsepack.type) )
+                        self.pushDispacher.push(responsepack)
                 except Empty:
                     time.sleep(0.001)
         except Exception as e:
@@ -115,20 +147,29 @@ class ChannelHandler(threading.Thread):
             self.logger.debug("{}:thread finished ,keepWorking = {}".format(
                 self.name, self.keepWorking))
 
+    def start_connect(self):
+        self.ssock.try_connect(self.host, self.port)
+        self.socketClosed = False
+
     def start_channel(self, host, port):
         try:
+            self.socketClosed = False
             self.keepWorking = False
             self.host = host
             self.port = port
-            sock = socket.create_connection((host, port))
-            self.logger.debug("connect {}:{},as socket {}".format(host, port, sock))
-            # 将socket打包成SSL socket
-            ssock = self.context.wrap_socket(sock)
-            self.ssock = ssock
-            self.recvThread = ChannelRecvThread(self)
-            self.recvThread.start()
+            self.start_connect()
+            # print("start send thread")
             self.sendThread = ChannelSendThread(self)
+            self.sendThread.setDaemon(True)
+            # print("start read thread")
+            self.recvThread = ChannelRecvThread(self)
+            self.recvThread.setDaemon(True)
+            self.recvThread.start()
+
             self.sendThread.start()
+            self.pushDispacher = ChannelPushDispatcher()
+            self.pushDispacher.setDaemon(True)
+            self.pushDispacher.start()
             super().start()
         except Exception as e:
             raise ChannelException(("start channelHandler Failed for {},"
@@ -162,12 +203,10 @@ class ChannelHandler(threading.Thread):
     errorMsg[101] = "sdk unreachable"
     errorMsg[102] = "timeout"
 
-    def make_request(self, method, params, packet_type=ChannelPack.TYPE_RPC,
-                     response_type=ChannelPack.TYPE_RPC):
-        rpc_data = self.encode_rpc_request(method, params)
-        self.logger.debug("request rpc_data : {}".format(rpc_data))
+    def make_channel_request(self, data, packet_type,
+                             response_type=None):
         seq = ChannelPack.make_seq32()
-        request_pack = ChannelPack(packet_type, seq, 0, rpc_data)
+        request_pack = ChannelPack(packet_type, seq, 0, data)
         self.send_pack(request_pack)
         onresponse_emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                               seq, response_type)
@@ -180,16 +219,16 @@ class ChannelHandler(threading.Thread):
         # register onResponse emitter of RPC
         rpc_onresponse_emitter_str = None
         rpc_result_emitter_str = None
-        if response_type is ChannelPack.TYPE_TX_COMMITTED:
+        if response_type is ChannelPack.TYPE_TX_COMMITTED \
+                or response_type is ChannelPack.CLIENT_REGISTER_EVENT_LOG:
             rpc_onresponse_emitter_str = ChannelHandler.getEmitterStr(self.onResponsePrefix,
-                                                                      seq, ChannelPack.TYPE_RPC)
+                                                                      seq, packet_type)
             self.requests.append(rpc_onresponse_emitter_str)
             rpc_result_emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
-                                                                  seq, ChannelPack.TYPE_RPC)
+                                                                  seq, packet_type)
             self.lock.acquire()
             self.callbackEmitter.on(rpc_onresponse_emitter_str, self.onResponse)
             self.lock.release()
-
         emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
                                                    seq, response_type)
 
@@ -211,11 +250,16 @@ class ChannelHandler(threading.Thread):
                      resolve(result) and self.requests.remove(onresponse_emitter_str)
                      if is_error is True else self.requests.remove(rpc_onresponse_emitter_str)
                      if self.requests.count(rpc_onresponse_emitter_str) else None))
-
             self.lock.release()
         p = Promise(resolve_promise)
         # default timeout is 60s
         return p.get(60)
+
+    def make_channel_rpc_request(self, method, params, packet_type=ChannelPack.TYPE_RPC,
+                                 response_type=ChannelPack.TYPE_RPC):
+        rpc_data = self.encode_rpc_request(method, params)
+        #self.logger.debug("request rpc_data : {}".format(rpc_data))
+        return self.make_channel_request(rpc_data, packet_type, response_type)
 
     def setBlockNumber(self, blockNumber):
         """
@@ -254,7 +298,7 @@ class ChannelHandler(threading.Thread):
         # get onResponse emitter
         onresponse_emitter = ChannelHandler.getEmitterStr(self.onResponsePrefix,
                                                           responsepack.seq, responsepack.type)
-        if onresponse_emitter in self.requests:
+        if onresponse_emitter in self.requests and responsepack.type != ChannelPack.TYPE_TX_BLOCKNUM:
             self.requests.remove(onresponse_emitter)
 
         emitter_str = ChannelHandler.getEmitterStr(self.getResultPrefix,
@@ -288,11 +332,18 @@ class ChannelHandler(threading.Thread):
             # block notify
             elif responsepack.type == ChannelPack.TYPE_TX_BLOCKNUM:
                 number = int(data.split(',')[1], 10)
-                self.logger.debug("receive block notify: seq: {} type:{}".
-                                  format(responsepack.seq, responsepack.type))
+                self.logger.debug("receive block notify: seq: {} type:{}, data:{}".
+                                  format(responsepack.seq, responsepack.type, data))
                 if self.blockNumber < number:
                     self.blockNumber = number
                 self.logger.debug("currentBlockNumber: {}".format(self.blockNumber))
+            elif responsepack.type == ChannelPack.CLIENT_REGISTER_EVENT_LOG:
+                self.logger.debug("receive event register result: seq: {} type:{}".
+                                  format(responsepack.seq, responsepack.type))
+                #print("receive event register result: seq: {} type:{}".format(responsepack.seq, responsepack.type))
+                self.callbackEmitter.emit(emitter_str, responsepack.data, 0)
+            elif responsepack.type == ChannelPack.EVENT_LOG_PUSH:
+                print("event log push:", responsepack.data)
         except Exception as e:
             self.logger.error("decode response failed, seq:{}, type:{}, error info: {}"
                               .format(responsepack.seq, responsepack.type, e))
@@ -342,7 +393,8 @@ class ChannelRecvThread(threading.Thread):
                 return 0
         except Exception as e:
             self.logger.error("{}:ssock read error {}".format(self.name, e))
-            return -1
+            # print("{}:ssock read error {}".format(self.name, e))
+            return -2
         self.respbuffer += msg
         # if no enough data even for header ,continue to read
         if len(self.respbuffer) < ChannelPack.getheaderlen():
@@ -353,6 +405,7 @@ class ChannelRecvThread(threading.Thread):
         # -1 means no enough bytes for decode, should break to  continue read and wait
         while code != -1:
             (code, decodelen, responsePack) = ChannelPack.unpack(bytes(self.respbuffer))
+            # print("respbuffer:",self.respbuffer)
             if decodelen > 0:
                 # cut the buffer from last decode  pos
                 self.respbuffer = self.respbuffer[decodelen:]
@@ -382,15 +435,19 @@ class ChannelRecvThread(threading.Thread):
             self.keepWorking = True
             self.logger.debug(self.name + ":start thread-->")
             while self.keepWorking:
+                if self.channelHandler.socketClosed is True or self.channelHandler.ssock is None:
+                    time.sleep(0.001)
                 bytesread = self.read_channel()
                 if self.keepWorking is False:
                     break
                 if bytesread == 0:  # if async read, maybe return 0
-                    time.sleep(0.1)
-                if bytesread < 0:  # error accord when read
-                    time.sleep(1)
+                    time.sleep(0.01)
+                if bytesread < 0 and self.keepWorking is True:  # error accord when read
+                    self.channelHandler.disconnect()
         except Exception as e:
             self.logger.error("{} recv error {}".format(self.name, e))
+            if self.keepWorking is True:
+                self.channelHandler.disconnect()
 
         finally:
             self.logger.debug("{}:thread finished ,keepWorking = {}".format(
@@ -447,6 +504,8 @@ class ChannelSendThread(threading.Thread):
             self.keepWorking = True
             self.logger.debug(self.name + ":start thread-->")
             while self.keepWorking:
+                if self.channelHandler.socketClosed is True or self.channelHandler.ssock is None:
+                    time.sleep(0.001)
                 try:
                     pack = self.packQueue.get(block=True, timeout=0.2)
                 except Empty:
@@ -458,10 +517,14 @@ class ChannelSendThread(threading.Thread):
                 buffer = pack.pack()
                 try:
                     res = self.channelHandler.ssock.send(buffer)
-                    if res < 0:
-                        self.logger.error("{}:ssock send error {}".format(self.name, res))
+                    if res < 0 and self.keepWorking is True:
+                        self.logger.error(
+                            "{}:ssock send error {}, disconnect".format(self.name, res))
+                        self.channelHandler.disconnect()
                 except Exception as e:
                     self.logger.error("{}:ssock send error {}".format(self.name, e))
+                    if self.keepWorking is True:
+                        self.channelHandler.disconnect()
 
         except Exception as e:
             self.logger.error("{}:ssock send error {}".format(self.name, e))

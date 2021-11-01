@@ -1,6 +1,6 @@
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -64,6 +64,8 @@ class PermissionService:
         """
         i = 0
         if result is None:
+            return
+        if common.check_result(result) is False:
             return
         result_list = list(result)
         if result_list is None or len(result_list) < 1:

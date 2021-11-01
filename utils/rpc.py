@@ -90,7 +90,7 @@ class HTTPProvider(JSONBaseProvider):
     def make_request(self, method, params):
 
         request_data = self.encode_rpc_request(method, params)
-        # print("request", request_data)
+        #print("request", request_data)
         stat = StatTool.begin()
         self.logger.debug("request: %s, %s,data: %s",
                           self.endpoint_uri, method, request_data)

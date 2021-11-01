@@ -5,12 +5,15 @@ cytoolz
 lru-dict
 parsimonious
 pycryptodome
+cryptography>=3.3.1
 requests
 toolz
 
 hypothesis>=3.6.1
 argcomplete
-py-solc
 pymitter
 asyncio
 promise
+rsa
+ecdsa
+pyOpenSSL

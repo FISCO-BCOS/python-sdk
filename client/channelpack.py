@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -14,6 +14,7 @@
 import uuid
 import struct
 from client import clientlogger
+from eth_utils import (to_text, to_bytes)
 '''
 channel protocol ref:
 https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/protocol_description.html#channelmessage
@@ -23,12 +24,15 @@ https://fisco-bcos-documentation.readthedocs.io/zh_CN/release-2.0/docs/design/pr
 class ChannelPack:
     TYPE_RPC = 0x12
     TYPE_HEATBEAT = 0x13
+    CLIENT_HANDSHAKE = 0x14
+    CLIENT_REGISTER_EVENT_LOG = 0x15
     TYPE_AMOP_REQ = 0x30
     TYPE_AMOP_RESP = 0x31
     TYPE_TOPIC_REPORT = 0x32
     TYPE_TOPIC_MULTICAST = 0x35
     TYPE_TX_COMMITTED = 0x1000
     TYPE_TX_BLOCKNUM = 0x1001
+    EVENT_LOG_PUSH = 0x1002
 
     headerfmt = "!IH32sI"
     headerlen = 0
@@ -57,7 +61,8 @@ class ChannelPack:
     @staticmethod
     def make_seq32():
         seq = uuid.uuid1()
-        seq32 = "".join(str(seq).split("-")).upper()
+        seq32 = seq.hex
+        #seq32 = "".join(str(seq).split("-")).upper()
         seq32bytes = bytes(seq32, encoding='utf-8')
         return seq32bytes
 
@@ -105,6 +110,29 @@ class ChannelPack:
         cp = ChannelPack(type, seq, result, data)
         cp.totallen = totallen
         return (0, totallen, cp)
+
+    @staticmethod
+    def unpack_amop_topic_message(data):
+        (headerlen,) = struct.unpack_from("!B", data, 0)
+        if headerlen > 1:
+            fmt = "%ds" % (headerlen - 1)
+            (topic,) = struct.unpack_from(fmt, data, 1)
+        else:
+            topic = ""
+        fmt = "%ds" % (len(data) - headerlen)
+        (content,) = struct.unpack_from(fmt, data, headerlen)
+        return (topic, content)
+
+    @staticmethod
+    def pack_amop_topic_message(topic, data):
+        if isinstance(data, str):
+            data = to_bytes(text=data)
+        if isinstance(topic, str):
+            topic = to_bytes(text=topic)
+        fmt = "!b%ds%ds" % (len(topic), len(data))
+        headerlen = len(topic) + 1
+        resbytes = struct.pack(fmt, headerlen, topic, data)
+        return resbytes
 
 
 '''

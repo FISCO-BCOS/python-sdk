@@ -1,6 +1,6 @@
 '''
-  bcosliteclientpy is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
-  bcosliteclientpy is free software: you can redistribute it and/or modify it under the
+  FISCO BCOS/Python-SDK is a python client for FISCO BCOS2.0 (https://github.com/FISCO-BCOS/)
+  FISCO BCOS/Python-SDK is free software: you can redistribute it and/or modify it under the
   terms of the MIT License as published by the Free Software Foundation. This project is
   distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Thanks for
@@ -16,6 +16,7 @@ from client.common import transaction_common
 from client.precompile.crud.condition import Condition
 from client.precompile.common import PrecompileCommon
 from client.bcoserror import PrecompileError
+from client.common import common
 
 
 class Entry:
@@ -129,20 +130,55 @@ class CRUDService:
         insert(string tableName, string key, string entry,
                string optional)
         """
+        key_value = self.get_value_for_key(table, entry)
         self.check_key_length(table.get_table_key())
         fn_name = "insert"
-        fn_args = [table.get_table_name(), table.get_table_key(), json.dump(entry.get_fields())]
+        fn_args = [table.get_table_name(), key_value, json.dumps(
+            entry.get_fields()), table.get_optional()]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
+
+    def get_key_value_from_condition(self, table, condition):
+        """
+        get key value from the condition
+        """
+        condition_map = condition.get_conditions().get(table.get_table_key())
+        if condition_map is None:
+            raise Exception('''Must set condition for the primary key {}'''.format(
+                table.get_table_key()))
+        key_value = ""
+        if len(condition_map.keys()) == 0:
+            raise Exception('''Must set one condition for the primary key {}'''.format(
+                table.get_table_key()))
+        if len(condition_map.keys()) > 1:
+            raise Exception('''Only support set one condition for the primary key {}'''.format(
+                table.get_table_key()))
+        for key, value in condition_map.items():
+            key_value = value
+            break
+        return key_value
+
+    def get_value_for_key(self, table, entry):
+        """
+        get value for the key
+        """
+        if table.get_table_key() is None:
+            raise Exception('''Must provide the table key''')
+        key = entry.get(table.get_table_key())
+        if key is None:
+            raise Exception('''Must provide value for the table key {}'''.format(
+                table.get_table_key()))
+        return key
 
     def update(self, table, entry, condition):
         """
         function update(string tableName, string key, string entry,
                 string condition, string optional) public returns(int);
         """
-        self.check_key_length(table.get_table_key())
+        key_value = self.get_key_value_from_condition(table, condition)
+        self.check_key_length(key_value)
         fn_name = "update"
-        fn_args = [table.get_table_name(), table.get_table_key(),
-                   json.dump(entry.get_fields()), json.dumps(condition.get_conditions()),
+        fn_args = [table.get_table_name(), key_value,
+                   json.dumps(entry.get_fields()), json.dumps(condition.get_conditions()),
                    table.get_optional()]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
@@ -151,9 +187,10 @@ class CRUDService:
         function remove(string tableName, string key,
                     string condition, string optional) public returns(int);
         """
-        self.check_key_length(table.get_table_key())
+        key_value = self.get_key_value_from_condition(table, condition)
+        self.check_key_length(key_value)
         fn_name = "remove"
-        fn_args = [table.get_table_name(), table.get_table_key(),
+        fn_args = [table.get_table_name(), key_value,
                    json.dumps(condition.get_conditions()), table.get_optional()]
         return self.client.send_transaction_getReceipt(fn_name, fn_args, self.gasPrice)
 
@@ -162,18 +199,24 @@ class CRUDService:
         function select(string tableName, string key, string condition,
                  string optional) public constant returns(string)
         """
-        self.check_key_length(table.get_table_key())
+        key_value = self.get_key_value_from_condition(table, condition)
+
+        self.check_key_length(key_value)
         fn_name = "select"
-        fn_args = [table.get_table_name(), table.get_table_key(), json.dumps(
+        fn_args = [table.get_table_name(), key_value, json.dumps(
             condition.get_conditions()), table.get_optional()]
         return self.client.call_and_decode(fn_name, fn_args)
 
     def desc(self, table_name):
         self.check_key_length(table_name)
+        selected_user_table = PrecompileCommon.USER_TABLE_PREFIX + table_name
         table = Table(PrecompileCommon.SYS_TABLE,
-                      PrecompileCommon.USER_TABLE_PREFIX + table_name, "")
+                      PrecompileCommon.SYS_TABLE_KEY, "")
         condition = table.get_condition()
+        condition.eq(PrecompileCommon.SYS_TABLE_KEY, selected_user_table)
         user_table = self.select(table, condition)
+        if common.check_result(user_table) is False:
+            return
         if user_table is not None:
             user_table_list = list(user_table)
             if user_table_list is None:

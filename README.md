@@ -18,8 +18,12 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 - 可基于[Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/protocol_description.html#channelmessage)与FISCO BCOS进行通信，保证节点与SDK安全加密通信的同时，可接收节点推送的消息。
 - 支持交易解析功能：包括交易输入、交易输出、Event Log等ABI数据的拼装和解析。
 - 支持合约编译，将`sol`合约编译成`abi`和`bin`文件。
-- 支持基于keystore的账户管理。
-- 支持合约历史查询。
+- 支持基于keystore的账户管理。支持从pem文件加载ECDSA算法的私钥，以便和其他私钥管理模块互通。
+- 支持本地的合约部署历史查询 (不支持链上所有部署的合约查询)。
+- 支持国密(SM2,SM3,SM4算法)。如需支持国密SSL通信需要独立编译组件，参见 [cython_tassl_wrap的README](./cython_tassl_wrap)
+- 支持event回调监听
+- 支持liquid智能合约。需要采用[liquid开发环境](https://liquid-doc.readthedocs.io/)编译wasm合约。使用python-sdk部署和调用liquid合约时，合约名带上.wasm后缀，以和sol合约区别。
+- 控制台支持Struct参数，数组等复杂数据结构，SDK调用方法参见[tests/teststructclient.py](tests/teststructclient.py)
 
 ## 部署Python SDK
 
@@ -107,7 +111,7 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
 ```bash
 # 该脚本执行操作如下：
-# 1. 拷贝client_config.py.template->client_config.py
+# 1. 拷贝client_config.py.template -> client_config.py
 # 2. 安装solc编译器
 bash init_env.sh -i
 ```
@@ -171,12 +175,55 @@ channel_node_cert = "bin/node.crt"  # 采用channel协议时，需要设置sdk�
 channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk私钥,如采用rpc协议通信，这里可以留空
 ```
 
+**国密支持**
+ -  支持国密版本的非对称加密、签名验签(SM2), HASH算法(SM3),对称加解密(SM4)
+ -  国密版本在使用上和非国密版本基本一致，主要是配置差异。
+ -  国密版本sdk同一套代码可以连接国密和非国密的节点，需要根据不同的节点配置相应的IP端口和证书
+ -  因为当前版本的实现里，账户文件格式有差异，所以国密的账户文件和ECDSA的账户文件采用不同的配置
+ -  国密SSL目前需要手动编译，配置，方法参见 [cython_tassl_wrap的README](./cython_tassl_wrap)
+
+连接国密节点时，有以下相关的配置项需要修改和确认，IP端口也需要确认是指向国密版本节点
+```bash
+crypto_type = "GM" 	#密码算法选择: 大小写不敏感："GM" 标识国密, "ECDSA" 或其他是椭圆曲线默认实现。
+ssl_type = "GM" # 和节点tls通信方式，如设为gm，则使用国密证书认证和加密
+gm_account_keyfile = "gm_account.json"  #国密账号的存储文件，可以加密存储,如果留空则不加载
+gm_account_password = "123456" 		#如果不设密码，置为None或""则不加密
+gm_solc_path = "./bin/solc/v0.4.25/solc-gm" #合约编译器配置，通过执行bash init_env.sh -i命令下载
+以及5个证书配置
+```
+
+
 **使用Channel协议访问节点**
 
 ```bash
 # 获取FISCO BCOS节点版本号
 ./console.py getNodeVersion
 ```
+
+**Event事件回调**
+ -  针对已经部署在链上某个地址的合约，先注册要监听的事件，当合约被交易调用，且生成事件时，节点可以向客户端推送相应的事件
+ -  事件定义如有indexed类型的输入，可以指定监听某个特定值作为过滤，如事件定义为 on_set(string name,int indexed value),可以增加一个针对value的topic监听，只监听value=5的事件
+ -  具体实现参考demo_event_callback.py,使用的命令行为：
+```bash
+params: contractname address event_name indexed
+        1. contractname :       合约的文件名,不需要带sol后缀,默认在当前目录的contracts目录下
+        2. address :    十六进制的合约地址,或者可以为:last,表示采用bin/contract.ini里的记录
+        3. event_name : 可选,如不设置监听所有事件
+        4. indexed :    可选,根据event定义里的indexed字段,作为过滤条件)
+
+        eg: for contract sample [contracts/HelloEvent.sol], use cmdline:
+
+        python demo_event_callback.py HelloEvent last
+        --listen all event at all indexed ：
+
+        python demo_event_callback.py HelloEvent last on_set
+        --listen event on_set(string newname) （no indexed）：
+
+        python demo_event_callback.py HelloEvent last on_number 5
+        --listen event on_number(string name,int indexed age), age ONLY  5 ：
+
+```
+
 
 ## SDK使用示例
 
@@ -194,9 +241,9 @@ channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk�
 
 **部署HelloWorld合约**
 ```bash
-$ ./console.py deploy HelloWorld save 
+$ ./console.py deploy HelloWorld  
 
-INFO >> user input : ['deploy', 'HelloWorld', 'save']
+INFO >> user input : ['deploy', 'HelloWorld']
 
 backup [contracts/HelloWorld.abi] to [contracts/HelloWorld.abi.20190807102912]
 backup [contracts/HelloWorld.bin] to [contracts/HelloWorld.bin.20190807102912]
@@ -257,6 +304,46 @@ INFO >> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67
 INFO >> call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
 INFO >> call result:  'Hello, FISCO!'
 ```
+
+## 控制台输入复杂数据类型概要说明
+
+**数组**
+
+合约数组如uint256[3] nums，那么在python层面，其参数构造可以是 [1,2,3],同理，字符串数组对应['a','b','c']
+
+在控制台输入时，数组参数需要加上中括号，比如[1, 2, 3]，数组中是字符串或字节类型，加双引号或单引号，例如[“alice”, ”bob”]，注意数组参数中不要有空格；布尔类型为true或者false。
+
+**结构体**
+
+合约结构体如
+```
+    struct User {
+        string name;
+        uint256 age;
+     }
+```
+对应python的tuple类型，如 ('alice',23)
+
+如果是结构体数组 User[] _users, 则对应tuple数组如[('alice',23),('bob',28)]
+
+在控制台输入时，按以上格式输入即可。举例
+```
+单个结构体参数
+python console.py sendtx TestStruct latest addUser ('alice',23)
+
+两个参数，第二个参数是结构体
+python console.py sendtx TestStruct latest addbyname alice ('alice',23)
+
+结构体数组参数
+python console.py sendtx TestStruct latest addUsers [('alice',23),('bob',28)]
+
+查询，返回的是结构体
+python console.py call TestStruct latest getUser alice
+```
+
+在控制台输入时，不支持复杂的嵌套(数组套结构体套数组等)，也不完整支持复杂转义字符，仅供一般体验使用。
+
+开发时，可参见[tests/teststructclient.py](tests/teststructclient.py)里的实现,复杂的数据结构，按abi接口定义结合python的数据结构（array,tuple等）进行组合构造。
 
 ## 开启命令行自动补全
 
