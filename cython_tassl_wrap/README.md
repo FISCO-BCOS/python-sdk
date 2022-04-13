@@ -149,7 +149,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:[python-sdk或运行目录下能找到cy
 >
 >升级核心包: pacman -S --needed filesystem msys2-runtime bash libreadline libiconv libarchive libgpgme libcurl pacman ncurses libintl, 之后需要关闭所有 MSYS2 shell，然后运行 autorebase.bat
 
->进入msys2环境后，进入python sdk项目目录，编译步骤和命令同上一节linux的说明
+>进入msys2环境后，进入python sdk项目目录，编译步骤和命令同上一节的说明
 
 * 谨建议对linux风格有偏好的使用，考虑兼容和稳定性，建议安装配置MSVC开发环境，并将cpp_win下的各代码加入到MSVC的项目，参考Makefile进行编译设置。
 * 本项目全程在msys+mingw64下编译开发，暂时不另外提供MSVC工程，欢迎开源贡献.
