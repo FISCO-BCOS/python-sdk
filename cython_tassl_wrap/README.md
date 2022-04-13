@@ -1,6 +1,8 @@
 # python_tassl_wrap
 为python语言包装国密的tls/ssl实现，包括cpp动态库，cython封装，测试代码等
 
+*注，如为Centos7/8 ,ubuntu，windows等环境，可直接跳到本文的"deploy_tool"小节，使用已经编译好的底层so/dll动态库，无需重新编译。如dll库平台不兼容，则按本文档介绍的架构和编译步骤，进行本地编译和部署动态库
+
 ### 总体结构说明
 
 最底层依赖TASSL库，用c风格在不同操作系统平台上封装，代码差异主要在对socket编程上，linux平台和windows平台的socket编程略有不同。
