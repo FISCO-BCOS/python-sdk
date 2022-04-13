@@ -107,9 +107,11 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:[python-sdk或运行目录下能找到cy
 
 ### 编译安装cython_tassl_sock_wrap封装库
 
-1: 运行./build_all.sh, 编译cpp_linux或cpp_win目录下的c++代码，生成测试程序和动态库。可用./run_tassl.sh运行测试
+1: 运行./build_all.sh, 编译cpp_linux或cpp_win目录下的c++代码，生成测试程序和动态库。
 
 2: 本地模式:将生成libtassl_sock_wrap.so/dll复制到python_sdk的运行目录,进入cpp_linux或cpp_win：cp [*so/dll] ../../
+
+3：可用./run_tassl.sh运行测试
 
 即可回到python_sdk目录，运行控制台等
 
@@ -121,11 +123,11 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:[python-sdk或运行目录下能找到cy
 >
 > 确认 crypto_type = "GM"和ssl_type="GM"，代表采国密通信模式
 
-3: 安装模式，参考setup_*.py文件，[todolist]
+
 
 --------------------------------------------
 
-### msys2环境搭建
+### windows 上 msys2环境搭建
 在windows环境上，MSYS2是MSYS的一个升级版,集成了pacman和Mingw-w64的Cygwin升级版, 
 提供了bash shell等linux环境（仿真）、版本控制软件（git/hg）和MinGW-w64 工具链（来自[百度百科](https://baike.baidu.com/item/MSYS2/17190550))
 
@@ -146,6 +148,8 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:[python-sdk或运行目录下能找到cy
 >pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-pkg-config 
 >
 >升级核心包: pacman -S --needed filesystem msys2-runtime bash libreadline libiconv libarchive libgpgme libcurl pacman ncurses libintl, 之后需要关闭所有 MSYS2 shell，然后运行 autorebase.bat
+
+>进入msys2环境后，进入python sdk项目目录，编译步骤和命令同上一节linux的说明
 
 * 谨建议对linux风格有偏好的使用，考虑兼容和稳定性，建议安装配置MSVC开发环境，并将cpp_win下的各代码加入到MSVC的项目，参考Makefile进行编译设置。
 * 本项目全程在msys+mingw64下编译开发，暂时不另外提供MSVC工程，欢迎开源贡献.
