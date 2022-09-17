@@ -195,7 +195,7 @@ class DatatypeParser:
     def get_function_outputs_abi(self, fn_name):
         fn_abi = self.get_function_abi(fn_name)
         if fn_abi is not None:
-            return fn_name["outputs"]
+            return fn_abi["outputs"]
         return None
 
     def get_func_signature(self, name):
