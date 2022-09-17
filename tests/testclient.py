@@ -15,14 +15,14 @@ from client.datatype_parser import DatatypeParser
 from eth_utils import decode_hex,encode_hex
 
 value = "abcd"
-print(encode_hex(keccak(bytes(value, "utf-8")))[2:]);
+print(encode_hex(keccak(bytes(value, "utf-8")))[2:])
 sys.exit(0)
 client = BcosClient()
 info = client.init()
 print(info)
-#bindata = encode_hex("abcdefg中国".encode('utf-8'));
-bindata = b'abcdefg;';
-to_address = "";
+#bindata = encode_hex("abcdefg中国".encode('utf-8'))
+bindata = b'abcdefg;'
+to_address = ""
 res = client.sendRawTransactionGetReceipt(to_address,contract_abi=None,fn_name=None,bin_data = bindata)
 print("sendRawTransactionGetReceipt data ",res)
 print("status ",res["status"])
@@ -38,7 +38,7 @@ print(res)
 data = res["input"]
 print("input ",data)
 print("input ",decode_hex(data))
-d = decode_hex(data);
+d = decode_hex(data)
 
 
 

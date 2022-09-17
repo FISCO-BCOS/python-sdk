@@ -11,6 +11,6 @@ print("privkey:",privkey)
 print("public key:",ac.publickey)
 print("address:",ac.address)
 
-signer = Signer_ECDSA(ac);
+signer = Signer_ECDSA(ac)
 sign_res =signer.sign(hashres)
 print("sign:",sign_res)

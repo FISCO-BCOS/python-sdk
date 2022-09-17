@@ -24,13 +24,13 @@ def test_gmaccount_spec():
     #sigdata= sm2_crypt.combine_signed_R_S(r,s)
     print("sigdata :",sigdata)
     vres = sm2_crypt.verify(sigdata[0:128],data)
-    print("verify result : {}",vres);
+    print("verify result : {}",vres)
 
     r = int( "49889ee5e24e9fac262e04e82aab58aa0a2d29368e0a105913b20e96d0df6e1d",16)
     s = int( "887b8200d1d23052eae96419e21675cc579c759335226a16726f9d480f06b83f",16)
     sigdata = sm2_crypt.combine_signed_R_S(r, s)
     vres = sm2_crypt.verify(sigdata,data)
-    print("verify result 2: {}",vres);
+    print("verify result 2: {}",vres)
 
 
 

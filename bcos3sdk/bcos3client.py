@@ -145,13 +145,13 @@ class Bcos3Client:
         if type(result) is str:
             try:
                 result = json.loads(result)  # 有几个接口被转成了str返回，实际上是json对象
-            except:
+            except Exception as e:
                 # 有的result里直接就是str值，无需转json，比如getBlockHashByNumber
                 pass
         return result
     
     def getBlockNumber(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, f"{sys._getframe().f_code.co_name}");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, f"{sys._getframe().f_code.co_name}")
         self.bcossdk.bcos_rpc_get_block_number(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                                byref(cbfuture.context))
         
@@ -160,53 +160,53 @@ class Bcos3Client:
         return num
     
     def getPbftView(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_pbft_view(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                             byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getSealerList(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_sealer_list(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                               byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getObserverList(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_observer_list(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                                 byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getConsensusStatus(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_consensus_status(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                                    byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getSyncStatus(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_sync_status(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                               byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getPeers(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_peers(self.bcossdk.sdk, cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getGroupPeers(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_group_peers(self.bcossdk.sdk, s2b(self.group), cbfuture.callback,
                                               byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getGroupList(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_group_list(self.bcossdk.sdk, cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getBlockByHash(self, block_hash, only_header=0, only_tx_hash=0):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_block_by_hash(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                 s2b(block_hash),
                                                 only_header,
@@ -215,7 +215,7 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getBlockByNumber(self, num, only_header=0, only_tx_hash=0):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_block_by_number(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                   num,
                                                   only_header,
@@ -224,14 +224,14 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getBlockHashByNumber(self, num):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_block_hash_by_number(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                        num,
                                                        cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getTransactionByHash(self, hash, proof=0):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                               s2b(hash),
                                               proof,
@@ -239,7 +239,7 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getTransactionReceipt(self, hash, proof=0):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_transaction_receipt(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                       s2b(hash),
                                                       proof,
@@ -247,26 +247,26 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getPendingTxSize(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_pending_tx_size(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                   cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getCode(self, address):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_code(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                        s2b(address),
                                        cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getTotalTransactionCount(self):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_total_transaction_count(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                           cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getSystemConfigByKey(self, key):
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_system_config_by_key(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                        s2b(key),
                                                        cbfuture.callback, byref(cbfuture.context))
@@ -290,10 +290,10 @@ class Bcos3Client:
         
         self.load_default_account()
         functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_call(self.bcossdk.sdk, s2b(self.group), s2b(self.node), s2b(to_address),
                                    s2b(functiondata),
-                                   cbfuture.callback, byref(cbfuture.context));
+                                   cbfuture.callback, byref(cbfuture.context))
         response = self.wait_result(cbfuture)
         
         if "status" in response.keys():
@@ -310,7 +310,7 @@ class Bcos3Client:
                 fn_name, contract_abi, None, args, None,
             )
             
-            fn_output_types = get_abi_output_types(fn_abi);
+            fn_output_types = get_abi_output_types(fn_abi)
             try:
                 outputresult = decode_abi(fn_output_types, decode_hex(outputdata))
                 return outputresult
@@ -355,9 +355,9 @@ class Bcos3Client:
                                                         self.getBlocklimit(), 0,
                                                         p_txhash, p_signed_tx)
         
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "");
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_send_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
-                                               p_signed_tx.value, 0, cbfuture.callback, byref(cbfuture.context));
+                                               p_signed_tx.value, 0, cbfuture.callback, byref(cbfuture.context))
         
         #must free buffer alloc by bcos_sdk_create_signed_transaction * todo:check memory leak (?)
         self.bcossdk.bcos_sdk_c_free(p_signed_tx)
