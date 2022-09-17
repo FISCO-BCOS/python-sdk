@@ -14,6 +14,7 @@
 '''
 import compileall
 import json
+import os
 import sys
 import traceback
 
@@ -66,27 +67,45 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         """deploy abi bin file"""
         paramtypes = [("contractname",str,None),("args",list,[])]
         (contractname,fn_args) = match_input_params(inputparams,paramtypes)
-        contractfile=f"{client_config.contract_dir}/{contractname}.sol"
-        contract_abi_file = f"{client_config.contract_dir}/{contractname}.abi"
-        contract_bin_file=f"{client_config.contract_dir}/{contractname}.bin"
+
+        (fname, extname) = os.path.splitext(contractname)
+        if extname.endswith("wasm"):
+            contractfile = ""
+            contract_abi_file = f"{client_config.contract_dir}/{fname}.abi"
+            contract_bin_file = f"{client_config.contract_dir}/{fname}.wasm"
+        else:
+            contract_abi_file = f"{client_config.contract_dir}/{fname}.abi"
+            contractfile = f"{client_config.contract_dir}/{fname}.sol"
+            contract_bin_file = f"{client_config.contract_dir}/{fname}.bin"
+            
         common.backup_file(contract_abi_file)
         common.backup_file(contract_bin_file)
-        Compiler.compile_file(contractfile)
+        if contractfile.endswith(".sol"):
+            Compiler.compile_file(contractfile)
         try:
             tx_client = Bcos3Client()
-            contractbinfile = f"{client_config.contract_dir}/{contractname}.bin"
-            print(f"Deploy bin file: {contractbinfile}")
+            print(f"Deploy bin file: {contract_bin_file}")
             abiparser = DatatypeParser(contract_abi_file)
             (contract_abi,args) = abiparser.format_abi_args(None,fn_args)
-            receipt = tx_client.deployFromFile(contractbinfile=contractbinfile, fn_args=args)
+            receipt = tx_client.deployFromFile(contractbinfile=contract_bin_file, fn_args=args)
             print("INFO >> client info: {}".format(tx_client.getinfo()))
             print(
                 "deploy result  for [{}] is:\n {}".format(
                     contractname, json.dumps(receipt, indent=4)
                 )
             )
-
+            if receipt["status"] !=0  :
+                if 'errorMessage' in receipt:
+                    msg = receipt['errorMessage']
+                print(f"Deploy Error, status: {receipt['status']},msg: {msg}")
+                return
             address = receipt["contractAddress"]
+            if address is None or len(address) == 0 :
+                if 'errorMessage' in receipt:
+                    msg = receipt['errorMessage']
+                print(f"Deploy Error,address is empty， status: {receipt['status']},msg: {msg}")
+                return
+            
             blocknum = receipt["blockNumber"]
             txhash = receipt["transactionHash"]
             name = f"{contractname}-{tx_client.get_id()}"

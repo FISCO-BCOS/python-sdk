@@ -30,7 +30,7 @@ from client.common import transaction_status_code
 from client.signer_impl import Signer_GM, Signer_ECDSA, Signer_Impl
 from eth_abi import decode_abi
 from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA, set_crypto_type
-from eth_utils.hexadecimal import decode_hex
+from eth_utils.hexadecimal import decode_hex, encode_hex
 from utils.abi import get_abi_output_types
 from utils.contracts import encode_transaction_data
 from utils.contracts import get_aligned_function_data
@@ -378,8 +378,15 @@ class Bcos3Client:
             contractbinfile,
             contract_abi=None,
             fn_args=None):
-        with open(contractbinfile, "r") as f:
+
+        with open(contractbinfile, "rb") as f:
             contractbin = f.read()
             f.close()
+        if contractbinfile.endswith("wasm"):
+            #wasm文件存的是二进制，所以读的时候要rb，读出来后要encode
+            contractbin = encode_hex(contractbin)
+        else:
+            contractbin = bytes.decode(contractbin, "utf-8")
+            
         result = self.deploy(contractbin, contract_abi, fn_args)
         return result
