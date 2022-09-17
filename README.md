@@ -11,9 +11,11 @@
 
 Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)提供Python API，使用FISCO BCOS Python SDK可以简单快捷的基于FISCO-BCOS进行区块链应用开发。
 
-- 2022.09版本同时支持FISCO BCOS 2.x / 3.x。代码都在此项目里，相关差异参见下文相关文字介绍。 也可参见 [FISCO BCOS 3.x 开发介绍](./README_bcos3.md)
+2022.09版本同时支持FISCO BCOS 2.x / 3.x。与3.x相关的技术说明参见 [FISCO BCOS 3.x 开发介绍](./README_bcos3.md)
 
-**Python SDK定位为开发版本，持续迭代，其实现可供参考。企业级应用推荐 Java SDK**
+**Python SDK定位为开发版本，持续迭代，供使用Python语言开发FISCO BCOS应用的开发者参考。企业级应用推荐使用 Java SDK**
+
+
 
 如需将Python SDK用于正式环境，请认真阅读和理解代码，掌握相关知识点，按自己的需求进行二次开发并**严谨测试**后上线。
 
@@ -168,11 +170,22 @@ FISCO BCOS 3.x相关配置也在client_config.py文件里，大部分和2.x的�
     group = "group0"
 ```
 
-由于FISCO BCOS 3.x提供了SDK的C语言库，诸多细节封装在库里，也引入了独立的配置文件，即上面配置里的bcos3_config_file。包括
+由于FISCO BCOS 3.x提供了SDK的C语言库，诸多细节封装在库里，并引入了独立的配置文件，即上面配置里的bcos3_config_file字段。
 
-默认放在 bcos3sdklib目录(可参照上方的配置项修改) **bcos3_sdk_config.ini**,节点证书、SDK证书、节点IP端口等信息在该文件里配置
+**即对于FISCO BCOS 3.x版本，要修改两个配置文件:** 
 
-默认放在当前目录下的 **clog.ini**，供sdk打日志配置使用
+1) client_config.py,可参考client_config.py.template创建后缀为ini的配置文件,字段说明参见文件里的注释
+
+2) bcos3_sdk_config.ini,可参考bcos3sdklib/bcos3_sdk_config.ini.template创建后缀为ini的配置文件，并将其路径配置到client_config.py** 
+
+建议详细查看bcos3_sdk_config.ini,[字段的说明参见此连接](https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/config.html)
+
+bcos3_sdk_config.ini配置文件可以和库文件等一起放在 bcos3sdklib目录(可参照上方的配置项修改) **bcos3_sdk_config.ini**,节点证书、SDK证书、节点IP端口等信息在该文件里配置。
+
+节点证书，SDK证书等文件，到FISCO BCOS3.x的安装目录下的sdk子目录里获取，本地存放的路径与bcos3_sdk_config.ini里配置的保持一致
+
+**clog.ini** 默认放在当前目录下 ，sdk的C语言库打日志使用此配置
+
 
 **重要:**
 

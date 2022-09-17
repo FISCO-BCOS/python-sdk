@@ -18,29 +18,6 @@
 - 面向通信的协议编解码采用开源tars框架协议，不再适用2.x的RLP。由底层库实现，在python层无需关注细节。
 
 
-## FISCO BCOS 3.x 配置和库文件下载
-
-FISCO BCOS 3.x相关配置也在client_config.py文件里，大部分和2.x的一致。
-
-只需要关注以下几个字段：
-```bash
-    # FISCO BCOS3.0的配置段，如连接FISCO BCOS2.0版本，无需关心此段
-    # FISCO BCOS3.0 c底层sdk的配置，都在bcos3_config_file里，无需配置在此文件
-    bcos3_lib_path ="./bcos3sdklib"
-    bcos3_config_file ="./bcos3sdklib/bcos3_sdk_config.ini"
-    group = "group0"
-```
-
-由于FISCO BCOS 3.x提供了SDK的C语言库，诸多细节封装在库里，也引入了独立的配置文件，即上面配置里的bcos3_config_file。包括
-
-默认放在 bcos3sdklib目录(可参照上方的配置项修改) **bcos3_sdk_config.ini**,节点证书、SDK证书、节点IP端口等信息在该文件里配置
-
-默认放在当前目录下的 **clog.ini**，供sdk打日志配置使用
-
-**重要:**
-
-最新版本的C语言的SDK库文件可到[文件下载连接](https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/dylibs.html),下载相应操作系统的库文件。
-
-建议下载后放到当前目录的 ./bcos3sdklib 目录下，供python代码调用。
+配置说明参见 [README.md](./README.md) 里的相关段落
 
  
