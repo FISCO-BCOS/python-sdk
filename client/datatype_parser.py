@@ -14,6 +14,9 @@
 
 # codec for abi,block,transaction,receipt,logs
 import json
+from typing import Iterable
+
+from client.format_param_by_abi import format_args_by_function_abi
 from eth_abi import decode_single, decode_abi
 from eth_utils import (
     function_signature_to_4byte_selector,
@@ -26,7 +29,8 @@ from utils.abi import (
     filter_by_type,
     abi_to_signature,
     get_fn_abi_types_single,
-    exclude_indexed_event_inputs_to_single, exclude_indexed_event_inputs_to_abi)
+    exclude_indexed_event_inputs_to_single, exclude_indexed_event_inputs_to_abi, get_constructor_abi)
+from utils.contracts import encode_transaction_data
 
 
 class DatatypeParser:
@@ -83,9 +87,13 @@ class DatatypeParser:
     def parse_event_logs(self, logs):
         # print(self.event_abi_map)
         for log in logs:
-            if(len(log["topics"]) == 0):  # 匿名event
+            if "topics" not in log:
+                loglist= log["topic"]
+            else:
+                loglist = log["topics"]
+            if(len(loglist) == 0):  # 匿名event
                 continue
-            topic = log["topics"][0]
+            topic = loglist[0]
             if topic not in self.event_topic_map:
                 continue
             eventabi = self.event_topic_map[topic]
@@ -124,9 +132,7 @@ class DatatypeParser:
         result['signature'] = abi_to_signature(func_abi)
         return result
 
-    # 用于receipt，解析合约接口的返回值
-    # 取决于接口定义
-    def parse_receipt_output(self, name, outputdata):
+    def parse_output(self,name,outputdata):
         if name not in self.func_abi_map_by_name:
             return None
         func_abi = self.func_abi_map_by_name[name]
@@ -134,6 +140,11 @@ class DatatypeParser:
         # print(output_args)
         result = decode_single(output_args, decode_hex(outputdata))
         return result
+
+    # 用于receipt，解析合约接口的返回值
+    # 取决于接口定义
+    def parse_receipt_output(self, name, outputdata):
+        return self.parse_output(name,outputdata)
 
     def get_function_abi(self, fn_name):
         if fn_name not in self.func_abi_map_by_name:
@@ -244,3 +255,37 @@ class DatatypeParser:
         if intype == 'bool':
             topic = DatatypeParser.topic_from_boolean(v)
         return topic
+
+    def encode_function_data(self,func_name,inputparams):
+        functiondata = encode_transaction_data(func_name ,self.contract_abi, None, inputparams)
+        return functiondata
+
+
+    def format_abi_args(self, fn_name :str, fn_args):
+        """
+        format args
+        """
+        
+        contract_abi = self.contract_abi
+        self.dataparser = self
+        args = None
+        if fn_args is None:
+            return (contract_abi, fn_args)
+        if fn_name in self.func_abi_map_by_name.keys() is None:
+            raise Exception("invalid function: {}, the right function list:"
+                                .format(fn_name,
+                                        ''.join(self.func_abi_map_by_name.keys())))
+        if fn_name is not None:
+            fn_abi = self.func_abi_map_by_name[fn_name]
+            inputabi = self.get_function_inputs_abi(fn_name)
+            #inputabi = data_parser.get_function_abi(fn_name)
+
+            args = format_args_by_function_abi(fn_args, inputabi)
+            #print("args after format:",args)
+        # the constructor with params
+        elif fn_args is not None and contract_abi is not None:
+            abidata = get_constructor_abi(contract_abi)
+            if abidata is not None:
+                inputabi = abidata["inputs"]
+                args = format_args_by_function_abi(fn_args, inputabi)
+        return (contract_abi, args)

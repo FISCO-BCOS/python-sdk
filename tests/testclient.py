@@ -2,19 +2,55 @@
   @author: kentzhang
   @date: 2019-06
 '''
+import sys
+
 from client.contractnote import ContractNote
 from client.bcosclient import (
     BcosClient,
     BcosError
 )
 import os
-from eth_utils import to_checksum_address
+from eth_utils import to_checksum_address, keccak
 from client.datatype_parser import DatatypeParser
+from eth_utils import decode_hex,encode_hex
 
+value = "abcd"
+print(encode_hex(keccak(bytes(value, "utf-8")))[2:])
+sys.exit(0)
 client = BcosClient()
 info = client.init()
 print(info)
+#bindata = encode_hex("abcdefg中国".encode('utf-8'))
+bindata = b'abcdefg;'
+to_address = ""
+res = client.sendRawTransactionGetReceipt(to_address,contract_abi=None,fn_name=None,bin_data = bindata)
+print("sendRawTransactionGetReceipt data ",res)
+print("status ",res["status"])
+txhash = res["transactionHash"]
+print(txhash)
+code = client.getCode(res["contractAddress"])
+print("code = [{}]".format(code))
 
+
+res = client.getTransactionByHash(txhash)
+print(res)
+
+data = res["input"]
+print("input ",data)
+print("input ",decode_hex(data))
+d = decode_hex(data)
+
+
+
+
+print(d)
+
+i = 1
+for n in range(0,10):
+    i = i*0.7
+    print("第{}天)i={:.3f}".format(n+1,i))
+
+sys.exit(0)
 
 # 从文件加载abi定义
 contractFile = r"sample\SimpleInfo.abi"

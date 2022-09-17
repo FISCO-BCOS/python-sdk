@@ -12,9 +12,11 @@
   @author: kentzhang
   @date: 2020-10
 '''
-import os
 import json
+import os
 import sys
+
+
 from client.bcoserror import (
     BcosException,
 )
@@ -22,17 +24,18 @@ from client.common import common
 from client.gm_account import GM_Account
 from client.signer_impl import Signer_ECDSA
 from client.stattool import StatTool
-from eth_account.account import Account
-from eth_utils.hexadecimal import encode_hex
-from eth_utils.crypto import CRYPTO_TYPE_GM
 from client_config import client_config
 from console_utils.console_common import list_files
-from ecdsa import SigningKey
+from eth_account.account import Account
+from eth_utils.crypto import CRYPTO_TYPE_GM
+from eth_utils.hexadecimal import encode_hex
 
 
 class CmdAccount:
     client = None
-
+    account_keyfile_path = client_config.account_keyfile_path
+    crypto_type = client_config.crypto_type
+    
     @staticmethod
     def make_usage():
         usagemsg = []
@@ -53,14 +56,14 @@ class CmdAccount:
 *国密版本仅支持json格式的导入导出。
 """)
         return usagemsg
-
+    
     def create_gm_account(self, name, password):
-        keyfile = "{}/{}.json".format(client_config.account_keyfile_path, name)
+        keyfile = "{}/{}.json".format(self.account_keyfile_path, name)
         if not os.path.exists(keyfile):  # 如果默认文件不存在，直接写
             forcewrite = True
         else:
             forcewrite = common.backup_file(keyfile)  # 如果备份失败，不要覆盖写
-
+        
         account = GM_Account()
         account.create()
         if forcewrite:
@@ -69,18 +72,18 @@ class CmdAccount:
         print(account.getdetail())
         if forcewrite:
             print("account save to :", keyfile)
-
+    
     def create_ecdsa_account(self, name, password):
         ac = Account.create(password)
         print("new address :\t", ac.address)
         print("new privkey :\t", encode_hex(ac.key))
         print("new pubkey :\t", ac.publickey)
-
+        
         stat = StatTool.begin()
         kf = Account.encrypt(ac.privateKey, password)
         stat.done()
         print("encrypt use time : %.3f s" % (stat.time_used))
-        keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+        keyfile = "{}/{}.keystore".format(self.account_keyfile_path, name)
         print("save to file : [{}]".format(keyfile))
         if not os.access(keyfile, os.F_OK):  # 默认的账号文件不存在，就强行存一个
             forcewrite = True
@@ -110,13 +113,13 @@ class CmdAccount:
             print("\naccount store in file: [{}]".format(keyfile))
             print("\n**** please remember your password !!! *****")
             dump_f.close()
-
+    
     @staticmethod
     def usage():
         msg = CmdAccount.make_usage()
         for m in msg:
             print(m)
-
+    
     def newaccount(self, inputparams):
         name = inputparams[0]
         max_account_len = 240
@@ -131,34 +134,33 @@ class CmdAccount:
         if len(inputparams) == 3 and inputparams[2] == "save":
             forcewrite = True
         print("starting : {} {}  , if save:{}".format(name, password, forcewrite))
-        if client_config.crypto_type == CRYPTO_TYPE_GM:
+        if self.crypto_type == CRYPTO_TYPE_GM:
             self.create_gm_account(name, password)
         else:
             self.create_ecdsa_account(name, password)
-
+    
     def show_gm_account(self, name, password):
-
         account = GM_Account()
-        keyfile = "{}/{}.json".format(client_config.account_keyfile_path, name)
+        keyfile = "{}/{}.json".format(self.account_keyfile_path, name)
         account.load_from_file(keyfile, password)
         print("load account from file: ", keyfile)
         print(account.getdetail())
-
+    
     def show_ecdsa_account(self, name, password):
-        keyfile = "{}/{}".format(client_config.account_keyfile_path, name)
+        keyfile = "{}/{}".format(self.account_keyfile_path, name)
         if os.path.exists(keyfile) is False:
-            keyfile = "{}/{}.keystore".format(client_config.account_keyfile_path, name)
+            keyfile = "{}/{}.keystore".format(self.account_keyfile_path, name)
             if os.path.exists(keyfile) is True and password is None:
                 raise BcosException(
                     "When loading an account file in keystore format, a password must be provided")
         # the keystore doesn't exists,try pem
         if os.path.exists(keyfile) is False:
-            keyfile = "{}/{}.pem".format(client_config.account_keyfile_path, name)
+            keyfile = "{}/{}.pem".format(self.account_keyfile_path, name)
         print("keyfile", keyfile)
         if os.path.exists(keyfile) is False:
             raise BcosException(
                 "account {} doesn't exists in path:{}".format(
-                    name, client_config.account_keyfile_path))
+                    name, self.account_keyfile_path))
         # go to load from file
         print(
             "show account : {}, keyname:{} ,password {}  ".format(
@@ -181,7 +183,7 @@ class CmdAccount:
                     name, e
                 )
             )
-
+    
     def listaccount(self, inputparams):
         accountlist = list_files("bin/accounts/*.keystore")
         for name in accountlist:
@@ -192,13 +194,13 @@ class CmdAccount:
         accountlist = list_files("bin/accounts/*.json")
         for name in accountlist:
             print(name)
-
+    
     def showaccount(self, inputparams):
         name = inputparams[0]
         in_pwd = None
         if len(inputparams) > 1:
             in_pwd = inputparams[1]
-        if client_config.crypto_type == CRYPTO_TYPE_GM:
+        if self.crypto_type == CRYPTO_TYPE_GM:
             self.show_gm_account(name, in_pwd)
         else:
             self.show_ecdsa_account(name, in_pwd)

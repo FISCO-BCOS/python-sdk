@@ -86,7 +86,8 @@ class CommandParser:
         """
         list all accounts
         """
-        return CommandParser.filter_files_by_file_pattern(client_config.account_keyfile_path + "/*.keystore")
+        account_keyfile_path = client_config.account_keyfile_path
+        return CommandParser.filter_files_by_file_pattern(account_keyfile_path + "/*.keystore")
 
     def completion(self, prefix, parsed_args, **kwargs):
         """

@@ -16,4 +16,4 @@ asyncio
 promise
 rsa
 ecdsa
-pyOpenSSL
+pyOpenSSL==20.0.0

@@ -27,4 +27,4 @@ def make_post_request(endpoint_uri, method, params, data, *args, **kwargs):
     response = session.post(endpoint_uri, data=data, *args, **kwargs)
     response.raise_for_status()
 
-    return response.content
+    return response.cb_context

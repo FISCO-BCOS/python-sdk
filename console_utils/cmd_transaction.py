@@ -52,8 +52,9 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             print(m)
 
     def deploy(self, inputparams):
-        print(inputparams)
+        print("user input",inputparams)
         if len(inputparams) == 0:
+            print(">> Without contractname , try these:")
             sols = list_files(contracts_dir + "/*.sol")
             for sol in sols:
                 print(sol + ".sol")
