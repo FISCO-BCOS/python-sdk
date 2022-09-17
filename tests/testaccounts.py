@@ -120,7 +120,9 @@ def test_sign():
 #test_p12()
 # test_pem()
 #test_sign()
-ac1 = Account.from_key("6eb7d91a86ee378defd30ef8abb9b72499845c05846a2d408583f0e1a4903f5d")
+key = "7a94d9793bcc38f533c6e15d8ef9c557e8ead2d3f86e9ac1178ce56b2815f86b"
+#key = "6eb7d91a86ee378defd30ef8abb9b72499845c05846a2d408583f0e1a4903f5d"
+ac1 = Account.from_key(key)
 print(ac1.address)
 print(encode_hex(ac1.key))
 print(ac1.publickey)

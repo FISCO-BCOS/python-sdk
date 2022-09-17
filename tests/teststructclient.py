@@ -6,7 +6,7 @@ from client.bcosclient import (
     BcosError
 )
 import os
-from eth_utils import to_checksum_address
+from eth_utils import to_checksum_address, decode_hex, keccak
 from client.datatype_parser import DatatypeParser
 from console_utils.console_common import print_receipt_logs_and_txoutput
 client = BcosClient()
@@ -46,4 +46,11 @@ print_receipt_logs_and_txoutput(client,res,contractname)
 
 res = client.call(address,contract_abi,"getUser",["yark"])
 print ("call:",res)
+
+print("address is",address)
+b = keccak(bytes(address, "utf-8"))
+print(b)
+args = ["name123",b]
+res = client.sendRawTransactionGetReceipt(address,contract_abi,"putbytes",args)
+print_receipt_logs_and_txoutput(client,res,contractname)
 

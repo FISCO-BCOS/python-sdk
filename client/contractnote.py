@@ -11,40 +11,41 @@
   @author: kentzhang
   @date: 2019-06
 '''
-from client_config import client_config
-from configobj import ConfigObj
-import time
+
 import os
+import time
+
+from configobj import ConfigObj
 
 
 class ContractNote:
-
+    
     @staticmethod
-    def get_last_contracts():
-        config = ConfigObj(client_config.contract_info_file, encoding='UTF8')
+    def get_last_contracts(contract_info_file="bin/contract.ini"):
+        config = ConfigObj(contract_info_file, encoding='UTF8')
         if "address" not in config:
             return None
         return config["address"]
-
+    
     @staticmethod
-    def get_history_list():
-        config = ConfigObj(client_config.contract_info_file, encoding='UTF8')
+    def get_history_list(contract_info_file="bin/contract.ini"):
+        config = ConfigObj(contract_info_file, encoding='UTF8')
         if "history" not in config:
             return None
         return config["history"]
-
+    
     @staticmethod
-    def get_last(name):
-        config = ConfigObj(client_config.contract_info_file, encoding='UTF8')
+    def get_last(name, contract_info_file="bin/contract.ini"):
+        config = ConfigObj(contract_info_file, encoding='UTF8')
         if name in config["address"]:
             address = config["address"][name]
         else:
             address = None
         return address
-
+    
     @staticmethod
-    def get_address_history(address):
-        config = ConfigObj(client_config.contract_info_file,
+    def get_address_history(address, contract_info_file="bin/contract.ini"):
+        config = ConfigObj(contract_info_file,
                            encoding='UTF8')
         try:
             if address in config["history"]:
@@ -62,11 +63,11 @@ class ContractNote:
             traceback.print_exc()
             return None
         return None
-
+    
     @staticmethod
-    def save_address_to_contract_note(contractname, newaddress):
+    def save_address_to_contract_note(contractname, newaddress, contract_info_file="bin/contract.ini"):
         # write to file
-        config = ConfigObj(client_config.contract_info_file,
+        config = ConfigObj(contract_info_file,
                            encoding='UTF8')
         if 'address' not in config:
             # print("address not in config",config)
@@ -74,11 +75,11 @@ class ContractNote:
         print("save new address {} -> {}".format(contractname, newaddress))
         config['address'][contractname] = newaddress
         config.write()
-
+    
     @staticmethod
-    def save_history(contractname, newaddress, blocknum=None, txhash=None):
+    def save_history(contractname, newaddress, blocknum=None, txhash=None, contract_info_file="bin/contract.ini"):
         # print (config)
-        config = ConfigObj(client_config.contract_info_file,
+        config = ConfigObj(contract_info_file,
                            encoding='UTF8')
         if blocknum is not None:
             if "history" not in config:
@@ -91,7 +92,7 @@ class ContractNote:
             detail = "{} | {} | {} | {}".format(contractname, timestr, blocknum, txhash)
             config["history"][newaddress] = detail
         config.write()
-
+    
     @staticmethod
     def save_contract_address(contract_name, newadddress):
         """
@@ -104,7 +105,7 @@ class ContractNote:
         fp = open(cache_file, 'a')
         fp.write(newadddress + "\n")
         fp.close()
-
+    
     @staticmethod
     def get_contract_addresses(contract_name):
         """

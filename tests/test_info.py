@@ -1,3 +1,5 @@
+
+
 import platform
 print("python_version", platform.python_version())
 print("java_ver", platform.java_ver())

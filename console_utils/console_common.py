@@ -14,6 +14,7 @@
 '''
 import importlib
 import glob
+from inspect import signature
 
 from client.datatype_parser import DatatypeParser
 from client.common import common
@@ -82,7 +83,11 @@ def console_run(obj, cmd, inputparams):
 
     func = getfunction(obj, func_name)
     if func is not None and callable(func):
-        func(inputparams)
+        sig = signature(func)
+        if len(sig.parameters) ==0:
+            func()
+        else:
+            func(inputparams)
         return 0, ''
     else:
         return try_usage(obj)
@@ -153,3 +158,35 @@ def fill_params(params, paramsname):
         result[name] = params[index]
         index += 1
     return result
+
+
+'''
+如要求的參數是 func(name,number,colors),其中color是數組
+命令行輸入的是个字符串数组,如inputparams = ["alice", "3", "red", "blue", "gree"]
+定义 paramtypes = [("name",str,None),("number",int,3),("colors",list,[])]
+即  (名字,类型,默认值),即可从命令行输入的字符串数组中match出所需的参数
+类型目前仅支持int,str,list，list一定要在最后
+如果默认值为None，则表示一定要有输入，否则会异常
+
+用法：
+(name,number,colors)=match_input_params(inputparams,paramtypes)
+* 虽然很简单而且有通用的库，但写一个作为helper也非常顺手
+'''
+def match_input_params(inputparams, valtypes):
+    n = 0
+    result = []
+    for (param_name,paramtype, defaultvalue) in valtypes:
+        if n < len(inputparams):
+            if paramtype is list:
+                param = inputparams[n:]
+            else:
+                param = inputparams[n]
+        else:
+            param = defaultvalue
+            if param is None:
+                raise Exception(f"param [{param_name}] must input but None")
+        if paramtype is int:
+            param = int(param)
+        result.append(param)
+        n = n + 1
+    return tuple(result)
