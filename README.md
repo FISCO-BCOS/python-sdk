@@ -145,7 +145,7 @@ npm install solc@v0.4.25
  -  国密版本sdk同一套代码可以连接国密和非国密的节点，需要根据不同的节点配置相应的IP端口和证书
  -  因为当前版本的实现里，账户文件格式有差异，所以国密的账户文件和ECDSA的账户文件采用不同的配置
  -  FISCO BCOS 2.x国密SSL目前需要手动编译，配置，方法参见 [cython_tassl_wrap的README](./cython_tassl_wrap)
- -  FISCO BCOS 3.x的国密同样由底层库支持，lib库下载已经提供，参见相关章节
+ -  FISCO BCOS 3.x的国密同样由底层库支持，lib库下载已经在CDN下载提供，参见[相关连接](https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/dylibs.html)
 
 连接国密节点时，有以下相关的配置项需要修改和确认，IP端口也需要确认是指向国密版本节点
 ```bash
@@ -180,7 +180,7 @@ FISCO BCOS 3.x相关配置也在client_config.py文件里，大部分和2.x的�
 
 建议详细查看bcos3_sdk_config.ini,[字段的说明参见此连接](https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/config.html)
 
-bcos3_sdk_config.ini配置文件可以和库文件等一起放在 bcos3sdklib目录(可参照上方的配置项修改) **bcos3_sdk_config.ini**,节点证书、SDK证书、节点IP端口等信息在该文件里配置。
+bcos3_sdk_config.ini配置文件可以和库文件等一起放在 bcos3sdklib目录(可参照上方的配置项修改) 。节点证书、SDK证书等文件路径、节点IP端口等信息在该文件里配置。
 
 节点证书，SDK证书等文件，到FISCO BCOS3.x的安装目录下的sdk子目录里获取，本地存放的路径与bcos3_sdk_config.ini里配置的保持一致
 
@@ -191,7 +191,16 @@ bcos3_sdk_config.ini配置文件可以和库文件等一起放在 bcos3sdklib目
 
 最新版本的C语言的SDK库文件可到[文件下载连接](https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/dylibs.html),下载相应操作系统的库文件。
 
-建议下载后放到当前目录的 ./bcos3sdklib 目录下，供python代码调用。
+如windows平台上的bcos-c-sdk.dll,linux平台上的libbcos-c-sdk.so等。
+
+建议下载后放到当前目录的 ./bcos3sdklib 目录下（参照client_config.py里的bcos3_lib_path字段，可根据自己的部署环境实际路径修改），供python代码调用。
+
+如库名发生修改，或者带上了版本号等，有可能导致文件指向差异，可以到bcos3sdk/bcos3sdk_wrap.py里，修改libname
+```bash
+class NativeBcos3sdk:
+    libname = "bcos-c-sdk"
+```
+总之，一定要能加载C语言的SDK库，才能连接FISCO BCOS3.0的节点
 
 ## FISCO BCOS 2.x 配置Channel通信协议 （连接FISCO BCOS 3.x 无需关注这一段）
 
