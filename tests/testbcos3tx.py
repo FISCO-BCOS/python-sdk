@@ -1,14 +1,15 @@
 import ctypes
 import datetime
 import sys
-
+import os
 # sys.path.append("../")
-from client.datatype_parser import DatatypeParser
 
+print("CWD: ",os.getcwd())
 sys.path.append("./")
 import json
 from ctypes import *
 import time
+from client.datatype_parser import DatatypeParser
 from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk, BCOS_CALLBACK_FUNC, BcosReqContext, BcosCallbackFuture
 
 ##---------------------------------------------------------

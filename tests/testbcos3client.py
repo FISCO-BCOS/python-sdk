@@ -1,3 +1,5 @@
+import sys
+sys.path.append("./")
 from datetime import datetime
 
 from bcos3sdk.bcos3client import Bcos3Client

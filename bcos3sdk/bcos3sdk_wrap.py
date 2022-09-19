@@ -2,10 +2,13 @@ import ctypes
 import json
 import queue
 from ctypes import *
-#动态库下载CDN连接
-#https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/dylibs.html
+#----------------------------
+# C语言sdk文档：https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/index.html
+# C语言SDK接口:https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/api.html
+# 动态库下载CDN连接
+# https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/dylibs.html
+#-----------------------------
 
-# https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/index.html
 # 自定义回调上下文结构体，可以在里面再塞一些有需要的上下文内容
 from client.local_lib_helper import LocalLibHelper
 
@@ -76,7 +79,7 @@ def s2b(input):
 
 def b2s(input):
     if type(input) is bytes:
-        return str(input,"UTF-8")
+        return str(input, "UTF-8")
     return input
 
 
@@ -114,6 +117,7 @@ class BcosCallbackFuture:
         self.context_callback = resp.contents.get_context()
         # print(f"context_callback {self.context_callback.detail()}")
         self.queue.put_nowait(1)
+        #print(f"--->QSIZE::{self.queue.qsize()}------<<<<",)
     
     def wait(self, timeout=5):
         self.is_timeout = False
@@ -160,10 +164,10 @@ class NativeBcos3sdk:
     # libpath_linux = "bcos3sdklib"
     nativelib = None
     
-    def __init__(self,cfgfile="bcos3_sdk_config.ini",libpath="bcos3sdklib"):
-        self.init_sdk(cfgfile,libpath)
+    def __init__(self, cfgfile="bcos3_sdk_config.ini", libpath="bcos3sdklib"):
+        self.init_sdk(cfgfile, libpath)
     
-    def init_sdk(self, cfgfile="bcos3_sdk_config.ini",libpath="bcos3sdklib"):
+    def init_sdk(self, cfgfile="bcos3_sdk_config.ini", libpath="bcos3sdklib"):
         self.libpath = libpath
         self.configfile = cfgfile
         locallib = LocalLibHelper(self.libname, self.libpath)
@@ -373,6 +377,7 @@ class NativeBcos3sdk:
         
         # --------------------------------------------------
         # EventSub系列接口
+        # tech ref: https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/java_sdk/event_sub.html
         # const char* bcos_event_sub_subscribe_event(void* sdk, const char* group, const char* params,bcos_sdk_c_struct_response_cb callback, void* context)
         self.nativelib.bcos_event_sub_subscribe_event.argtypes = [c_void_p, c_char_p, c_char_p, BCOS_CALLBACK_FUNC,
                                                                   c_void_p]
@@ -381,6 +386,19 @@ class NativeBcos3sdk:
         # void bcos_event_sub_unsubscribe_event(void* sdk, const char* id)
         self.nativelib.bcos_event_sub_unsubscribe_event.argtypes = [c_void_p, c_char_p]
         self.bcos_event_sub_unsubscribe_event = self.nativelib.bcos_event_sub_unsubscribe_event
+        ''' [sample for event sub params:]
+            event_param = dict()
+            event_param["fromBlock"]=0
+            event_param["toBlock"]=10000000
+            event_param["address"]=["44a8a3cf7e5f2ba1555152968ec536d2a15817faq;:q"] #sample helloWorld address
+            event_param["topics"]=[]
+            parser = DatatypeParser("contracts/HelloWorld.abi")
+            event_name = "onset"
+            eventtopic = parser.topic_from_event_name(event_name)
+            event_param["topics"].append(eventtopic)
+            event_param_json = json.dumps(event_param)
+            l = bcossdk.bcos_event_sub_subscribe_event(bcossdk.sdk, group_id,s2b(event_param_str), cb_func, byref(cb_context))
+        '''
         
         # -----------------------------------------------------------------------
         # KeyPair 接口
