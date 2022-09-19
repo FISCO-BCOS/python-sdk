@@ -87,8 +87,15 @@ G_SEQ = 0
 
 
 # 模拟一个Future对象，用于接收回调，提供一个wait方法，把异步变成同步
+# 采用queue来模拟wait，原因是一个future里有可能多次被回调,回调的消息put到queue里，应用端可以用wait方法依次将消息pop出来
+# 注意，在此版本里，建议对bcossdk的一次接口调用，就用一个单独的CallbackFuture,不要混用
+# 否则sdk并发时，回调的消息会复用callback入口,导致返回的消息不对应刚才发送的req,或者需要用消息唯一序列号来对应是哪个请求包
+# 所以，一次调用一个future，基本能保证返回的消息，对应的是发送的消息，代码读起来也比较简单
+#todo: 可以扩展一些特性，比如，收到sdk回调后，立刻再递归回调应用层设置的callback，
+# 在event监听场景比较有意义，目前先统一用wait，参见tests/testbcos3event.py
+
 class BcosCallbackFuture:
-    queue = queue.Queue(1)
+    queue = queue.Queue(100)
     context: BcosReqContext = None
     is_timeout: False
     
@@ -107,7 +114,7 @@ class BcosCallbackFuture:
         return G_SEQ
     
     def bcos_callback(self, resp):
-        # print(resp)
+        #print("bcos_callback-->",resp)
         self.size = resp.contents.get_size()
         pool = create_string_buffer(resp.contents.size)
         memmove(pool, resp.contents.data, resp.contents.size)
@@ -120,8 +127,8 @@ class BcosCallbackFuture:
         #print(f"--->QSIZE::{self.queue.qsize()}------<<<<",)
     
     def wait(self, timeout=5):
-        self.is_timeout = False
         try:
+            self.is_timeout = False
             self.queue.get(True, timeout)
         except:
             self.is_timeout = True
