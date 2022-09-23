@@ -20,7 +20,7 @@ import sys
 import time
 from ctypes import byref, c_char_p
 
-import client_config
+from client_config import client_config
 from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk, BcosCallbackFuture, \
     s2b, b2s
 from client import clientlogger
@@ -38,6 +38,7 @@ from utils.contracts import get_function_info
 
 
 class Bcos3Client:
+    name = "bcos3"
     default_from_account_signer: Signer_Impl = None
     chainid = ""
     group = ""
@@ -45,12 +46,11 @@ class Bcos3Client:
     keypair = None
     bcos3sdk = None
     logger = clientlogger.logger  # logging.getLogger("BcosClient")
-    client_config = None
+    config = None
     
-    def __init__(self, inifile=None):
+    def __init__(self, client_config_instance=client_config):
         self.lastblocklimittime = 0
-        # 当不传入配置文件名时，默认是"./bcos3_client_config.ini"
-        self.init(inifile)
+        self.init(client_config_instance)
     
     def __del__(self):
         """
@@ -58,14 +58,14 @@ class Bcos3Client:
         """
         self.finish()
     
-    def init(self, inifile=None):
-        self.client_config = client_config.client_config;
+    def init(self,client_config_instance=client_config):
+        self.config = client_config_instance ;
         self.crypto_enum = 0  # 0 for ECDSA 1 for GM
-        if self.client_config.crypto_type.upper() == "GM":
+        if self.config.crypto_type.upper() == "GM":
             self.crypto_enum = 1
-        set_crypto_type(self.client_config.crypto_type)  # 使其全局生效
+        set_crypto_type(self.config.crypto_type)  # 使其全局生效
         self.blockLimit = 500
-        self.group = self.client_config.group
+        self.group = self.config.bcos3_group
         self.init_sdk()
         return self
     
@@ -73,8 +73,8 @@ class Bcos3Client:
         self.seq = 0
         self.bcossdk = NativeBcos3sdk()
         self.load_default_account()
-        # print("init_sdk: {self.client_config.bcos3lib_config_file}")
-        res = self.bcossdk.init_sdk(self.client_config.bcos3_config_file, self.client_config.bcos3_lib_path)
+        # print("init_sdk: {self.config.bcos3lib_config_file}")
+        res = self.bcossdk.init_sdk(self.config.bcos3_config_file, self.config.bcos3_lib_path)
         if res != 0:
             msg = self.bcossdk.bcos_sdk_get_last_error_msg()
             raise BcosException(f"START SDK error res:{res},[{msg}]")
@@ -89,18 +89,18 @@ class Bcos3Client:
         if self.default_from_account_signer is not None:
             return  # 不需要重复加载
         # 默认的 ecdsa 账号
-        if self.client_config.crypto_type == CRYPTO_TYPE_ECDSA:
-            self.account_file = "{}/{}".format(self.client_config.account_keyfile_path,
-                                               self.client_config.account_keyfile)
+        if self.config.crypto_type == CRYPTO_TYPE_ECDSA:
+            self.account_file = "{}/{}".format(self.config.account_keyfile_path,
+                                               self.config.account_keyfile)
             self.default_from_account_signer = Signer_ECDSA.from_key_file(
-                self.account_file, self.client_config.account_password)
+                self.account_file, self.config.account_password)
             
         # 加载默认国密账号
-        if self.client_config.crypto_type == CRYPTO_TYPE_GM:
-            self.account_file = "{}/{}".format(self.client_config.account_keyfile_path,
-                                               self.client_config.gm_account_keyfile)
+        if self.config.crypto_type == CRYPTO_TYPE_GM:
+            self.account_file = "{}/{}".format(self.config.account_keyfile_path,
+                                               self.config.gm_account_keyfile)
             self.default_from_account_signer = Signer_GM.from_key_file(
-                self.account_file, self.client_config.account_password)
+                self.account_file, self.config.account_password)
 
     
     def finish(self):
@@ -109,17 +109,18 @@ class Bcos3Client:
             self.bcossdk.bcos_sdk_destroy_keypair(self.keypair)
             self.keypair = None
         self.bcossdk.finish()
-    
-    def get_id(self):
+
+    # 返回能完整标识此客户端的字符串，先简单点，可以根据场景扩展，比如增加ip地址端口等
+    def get_full_name(self):
         #id 由 chainid 和group组成，对应一个账本，以便区分部署的合约地址
-        id = f"{b2s(self.chainid)}-{b2s(self.group)}"
-        return id
+        fullname = f"{self.name}-{b2s(self.chainid)}-{b2s(self.group)}"
+        return fullname
     
     def getinfo(self):
         info = ""
         info += "chain :[{}];".format(b2s(self.chainid))
         info += "group :[{}];".format(self.group)
-        info += "crypto type: [{}];".format(self.client_config.crypto_type)
+        info += "crypto type: [{}];".format(self.config.crypto_type)
         address = self.bcossdk.bcos_sdk_get_keypair_address(self.keypair)
         info += f"keypair address: [{b2s(address)}]"
         info = f"{info}\nNative SDK Version : {b2s(self.bcossdk.bcos_sdk_version())}"

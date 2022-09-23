@@ -21,35 +21,43 @@ from configobj import ConfigObj
 class ContractNote:
     
     @staticmethod
-    def get_last_contracts(contract_info_file="bin/contract.ini"):
+    def get_last_contracts(segment,contract_info_file="bin/contract.ini"):
         config = ConfigObj(contract_info_file, encoding='UTF8')
-        if "address" not in config:
+        key = f"address.{segment}"
+        if key not in config:
             return None
-        return config["address"]
+        return config[key]
     
     @staticmethod
-    def get_history_list(contract_info_file="bin/contract.ini"):
+    def get_history_list(segment,contract_info_file="bin/contract.ini"):
         config = ConfigObj(contract_info_file, encoding='UTF8')
-        if "history" not in config:
+        key = f"history.{segment}"
+        if  key not in config:
             return None
-        return config["history"]
+        return config[key]
     
     @staticmethod
-    def get_last(name, contract_info_file="bin/contract.ini"):
+    def get_last(segment,name, contract_info_file="bin/contract.ini"):
         config = ConfigObj(contract_info_file, encoding='UTF8')
-        if name in config["address"]:
-            address = config["address"][name]
+        key = f"address.{segment}"
+        if key not in config:
+            return None
+        if name in config[key]:
+            address = config[key][name]
         else:
             address = None
         return address
     
     @staticmethod
-    def get_address_history(address, contract_info_file="bin/contract.ini"):
+    def get_address_history(segment,address, contract_info_file="bin/contract.ini"):
         config = ConfigObj(contract_info_file,
                            encoding='UTF8')
         try:
-            if address in config["history"]:
-                historystr = config["history"][address]
+            key = f"history.{segment}"
+            if key not in config:
+                return None
+            if address in config[key]:
+                historystr = config[key][address]
                 res = historystr.split("|")
                 detail = {}
                 detail["name"] = res[0].strip()
@@ -65,32 +73,34 @@ class ContractNote:
         return None
     
     @staticmethod
-    def save_address_to_contract_note(contractname, newaddress, contract_info_file="bin/contract.ini"):
+    def save_address_to_contract_note(segment,contractname, newaddress, contract_info_file="bin/contract.ini"):
         # write to file
         config = ConfigObj(contract_info_file,
                            encoding='UTF8')
-        if 'address' not in config:
+        key = f"address.{segment}"
+        if key not in config:
             # print("address not in config",config)
-            config['address'] = {}
+            config[key] = {}
         print("save new address {} -> {}".format(contractname, newaddress))
-        config['address'][contractname] = newaddress
+        config[key][contractname] = newaddress
         config.write()
     
     @staticmethod
-    def save_history(contractname, newaddress, blocknum=None, txhash=None, contract_info_file="bin/contract.ini"):
+    def save_history(segment,contractname, newaddress, blocknum=None, txhash=None, contract_info_file="bin/contract.ini"):
         # print (config)
         config = ConfigObj(contract_info_file,
                            encoding='UTF8')
+        key = f"history.{segment}"
         if blocknum is not None:
-            if "history" not in config:
-                config["history"] = {}
+            if key not in config:
+                config[key] = {}
             timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             if blocknum is None:
                 blocknum = "-1"  # -1 means unknown
             if txhash is None:
                 txhash = ""
             detail = "{} | {} | {} | {}".format(contractname, timestr, blocknum, txhash)
-            config["history"][newaddress] = detail
+            config[key][newaddress] = detail
         config.write()
     
     @staticmethod

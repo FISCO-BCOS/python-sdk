@@ -160,8 +160,10 @@ def main(argv):
         print("usage input {},{},{},{}".format(contractname, address, event_name, indexed_value))
         if address == "last":
             cn = ContractNote()
-            address = cn.get_last(contractname)
+            bcosclient = BcosClient()
+            address = cn.get_last(bcosclient.get_full_name(),contractname)
             print("hex address :", address)
+            bcosclient.finish()
         abifile = "contracts/" + contractname + ".abi"
         parser = DatatypeParser(abifile)
         client = BcosClient()

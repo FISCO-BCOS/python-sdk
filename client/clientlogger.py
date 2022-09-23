@@ -18,10 +18,10 @@ from logging import handlers
 import os
 
 from client_config import client_config
-
+log_config = client_config
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.DEBUG)
-logdir = client_config.logdir
+logdir = log_config.logdir
 logfile = logdir + "/client.log"
 if os.path.exists(logdir) is False:
     os.mkdir(logdir)

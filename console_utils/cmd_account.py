@@ -32,10 +32,14 @@ from eth_utils.hexadecimal import encode_hex
 
 
 class CmdAccount:
+    account_config = client_config
     client = None
-    account_keyfile_path = client_config.account_keyfile_path
-    crypto_type = client_config.crypto_type
-    
+
+    account_keyfile_path = account_config.account_keyfile_path
+    crypto_type = account_config.crypto_type
+
+    def __init__(self,config_instance=client_config):
+        self.account_config = config_instance
     @staticmethod
     def make_usage():
         usagemsg = []

@@ -23,7 +23,9 @@ from client_config import client_config
 import sys
 import traceback
 # 从文件加载abi定义
-if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
+demo_config = client_config
+
+if os.path.isfile(demo_config.solc_path) or os.path.isfile(demo_config.solcjs_path):
     Compiler.compile_file("contracts/HelloWorld.sol")
     Compiler.compile_file("contracts/SimpleInfo.sol")
 abi_file = "contracts/SimpleInfo.abi"

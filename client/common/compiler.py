@@ -22,18 +22,22 @@ from eth_utils.crypto import CRYPTO_TYPE_GM, CRYPTO_TYPE_ECDSA
 
 
 class Compiler:
+    
+    compile_config = client_config
+    def set_compile_config(config_instance):
+        Compiler.compile_config = config_instance
     """
     compile sol into bin and abi
     """
     _env_key_ = "SOLC_BINARY"
-    if client_config.crypto_type == CRYPTO_TYPE_ECDSA:
-        compiler_path = client_config.solc_path
-    elif client_config.crypto_type == CRYPTO_TYPE_GM:
-        compiler_path = client_config.gm_solc_path
+    if compile_config.crypto_type == CRYPTO_TYPE_ECDSA:
+        compiler_path = compile_config.solc_path
+    elif compile_config.crypto_type == CRYPTO_TYPE_GM:
+        compiler_path = compile_config.gm_solc_path
     else:
-        raise CompileError("crypto_type: {} is not supported".format(client_config.crypto_type))
+        raise CompileError("crypto_type: {} is not supported".format(compile_config.crypto_type))
 
-    js_compiler_path = client_config.solcjs_path
+    js_compiler_path = compile_config.solcjs_path
 
     @staticmethod
     def compile_with_js(sol_path, contract_name, output_path="contracts"):

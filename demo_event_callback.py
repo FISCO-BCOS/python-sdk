@@ -8,7 +8,7 @@ from client.channel_push_dispatcher import ChannelPushHandler
 from client.event_callback import BcosEventCallback
 from client.event_callback import EventCallbackHandler
 from client_config import client_config
-
+demo_config = client_config
 
 def usage():
     usagetext = '\nUsage:\nparams: contractname address event_name indexed\n' \
@@ -73,8 +73,8 @@ def main(argv):
         indexed_value = argv[3:]
     try:
         bcos_event = BcosEventCallback()
-        if client_config.client_protocol is not client_config.PROTOCOL_CHANNEL:
-            print("** using event callback, client prototol MUST be client_config.PROTOCOL_CHANNEL!!")
+        if demo_config.client_protocol is not demo_config.PROTOCOL_CHANNEL:
+            print("** using event callback, client prototol MUST be demo_config.PROTOCOL_CHANNEL!!")
             print("** please check the configure file")
             sys.exit(-1)
 
@@ -85,7 +85,7 @@ def main(argv):
         print(address)
         if address == "last" or address == "latest":
             cn = ContractNote()
-            address = cn.get_last(contractname)
+            address = cn.get_last(bcos_event.client.get_full_name(),contractname)
             print("hex address :", address)
         abifile = "contracts/" + contractname + ".abi"
         abiparser = DatatypeParser(abifile)

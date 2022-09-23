@@ -33,6 +33,9 @@ contracts_dir = "contracts"
 
 
 class CmdBcos3Transaction:
+    cmd_config=client_config
+    def __init__(self,config_instance=client_config):
+       self.cmd_config = config_instance
     @staticmethod
     def make_usage():
         usagemsg = []
@@ -58,6 +61,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
     def deploy(self, inputparams):
         print("BCOS3 Deploy start------------->")
         print("user input:",inputparams)
+        tx_client = Bcos3Client()
         if len(inputparams) == 0:
             print(">> Without contractname , try these:")
             sols = list_files(contracts_dir + "/*.sol")
@@ -71,19 +75,19 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         (fname, extname) = os.path.splitext(contractname)
         if extname.endswith("wasm"):
             contractfile = ""
-            contract_abi_file = f"{client_config.contract_dir}/{fname}.abi"
-            contract_bin_file = f"{client_config.contract_dir}/{fname}.wasm"
+            contract_abi_file = f"{tx_client.config.contract_dir}/{fname}.abi"
+            contract_bin_file = f"{tx_client.config.contract_dir}/{fname}.wasm"
         else:
-            contract_abi_file = f"{client_config.contract_dir}/{fname}.abi"
-            contractfile = f"{client_config.contract_dir}/{fname}.sol"
-            contract_bin_file = f"{client_config.contract_dir}/{fname}.bin"
+            contract_abi_file = f"{tx_client.config.contract_dir}/{fname}.abi"
+            contractfile = f"{tx_client.config.contract_dir}/{fname}.sol"
+            contract_bin_file = f"{tx_client.config.contract_dir}/{fname}.bin"
             
         common.backup_file(contract_abi_file)
         common.backup_file(contract_bin_file)
         if contractfile.endswith(".sol"):
             Compiler.compile_file(contractfile)
         try:
-            tx_client = Bcos3Client()
+            
             print(f"Deploy bin file: {contract_bin_file}")
             abiparser = DatatypeParser(contract_abi_file)
             (contract_abi,args) = abiparser.format_abi_args(None,fn_args)
@@ -108,14 +112,13 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             
             blocknum = receipt["blockNumber"]
             txhash = receipt["transactionHash"]
-            name = f"{contractname}-{tx_client.get_id()}"
-            ContractNote.save_contract_address(name, address)
+
             print("on block : {},address: {} ".format(blocknum, address))
-            ContractNote.save_address_to_contract_note(name, address)
-            print("address save to file: ", tx_client.client_config.contract_info_file)
-            ContractNote.save_history(name, address, blocknum, txhash,
-                                      contract_info_file=tx_client.client_config.contract_info_file)
-            # contractabi = f"{tx_client.client_config.contract_dir}/{contractname}.abi"
+            ContractNote.save_address_to_contract_note(tx_client.get_full_name(),contractname, address)
+            print("address save to file: ", tx_client.config.contract_info_file)
+            ContractNote.save_history(tx_client.get_full_name(),contractname,  address, blocknum, txhash,
+                                      contract_info_file=tx_client.config.contract_info_file)
+            # contractabi = f"{tx_client.config.contract_dir}/{contractname}.abi"
             # data_parser = DatatypeParser(contractabi)
             # 解析receipt里的log 和 相关的tx ,output
             # print_receipt_logs_and_txoutput(tx_client, receipt, "", data_parser)
@@ -138,14 +141,13 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
 
         tx_client = Bcos3Client()
         if address == "last" or address == "latest":
-            name = f"{contractname}-{tx_client.get_id()}"
-            address = ContractNote.get_last(name)
+            address = ContractNote.get_last(tx_client.get_full_name(),contractname)
             if address is None:
                 sys.exit(
                     "can not get last address for [{}],break;".format(contractname)
                 )
 
-        abiparser = DatatypeParser(f"{tx_client.client_config.contract_dir}/{contractname}.abi")
+        abiparser = DatatypeParser(f"{tx_client.config.contract_dir}/{contractname}.abi")
         
         print("INFO>> client info: {}".format(tx_client.getinfo()))
         print(
@@ -174,8 +176,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         (contractname,address,fn_name,fn_args) = match_input_params(inputparams,paramtypes)
         tx_client = Bcos3Client()
         if address == "last" or address == "latest":
-            name = f"{contractname}-{tx_client.get_id()}"
-            address = ContractNote.get_last(name)
+            address = ContractNote.get_last(tx_client.get_full_name(),contractname)
             if address is None:
                 sys.exit(
                     "can not get last address for [{}],break;".format(contractname)
@@ -187,7 +188,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             )
         )
         try:
-            abiparser = DatatypeParser(f"{tx_client.client_config.contract_dir}/{contractname}.abi")
+            abiparser = DatatypeParser(f"{tx_client.config.contract_dir}/{contractname}.abi")
             (contract_abi,args) = abiparser.format_abi_args(fn_name,fn_args)
             print("sendtx:",args)
             result = tx_client.sendRawTransaction(address, abiparser.contract_abi, fn_name, args)
@@ -208,19 +209,19 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             common.print_error_msg("sendtx", e)
     
     def deploylast(self):
-        contracts = ContractNote.get_last_contracts(contract_info_file=client_config.contract_info_file)
+        contracts = ContractNote.get_last_contracts(contract_info_file=self.cmd_config.contract_info_file)
         for name in contracts:
             print("{} -> {}".format(name, contracts[name]))
     
     def deploylog(self):
-        historys = ContractNote.get_history_list(contract_info_file=client_config.contract_info_file)
+        historys = ContractNote.get_history_list(contract_info_file=self.cmd_config.contract_info_file)
         for address in historys:
             print("{} -> {} ".format(address, historys[address]))
 
     def abi(self,inputparams):
         paramtypes = [("contractname",str,None),("detail",int,0)]
         (contractname,detail) = match_input_params(inputparams,paramtypes)
-        abifile = f"{client_config.contract_dir}/{contractname}.abi"
+        abifile = f"{self.cmd_config.contract_dir}/{contractname}.abi"
         parser = DatatypeParser(abifile)
         print(f"functions in con"f"tract [{contractname}] --> ")
         n = 0
