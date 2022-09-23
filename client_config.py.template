@@ -42,7 +42,7 @@ class client_config:
     # FISCO BCOS3.0 c底层sdk的配置，都在bcos3_config_file里，无需配置在此文件
     bcos3_lib_path = "./bcos3sdklib"
     bcos3_config_file = "./bcos3sdklib/bcos3_sdk_config.ini"
-    group = "group0"
+    bcos3_group = "group0"
     # -------------------FISCO BCOS3.0 End-----------------------------------------
     
     # --------------------------------------

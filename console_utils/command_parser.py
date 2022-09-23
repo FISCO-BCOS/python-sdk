@@ -27,12 +27,15 @@ class CommandParser:
     """
     command parser
     """
+    parser_config = client_config
+    
 
-    def __init__(self, supported_cmds):
+    def __init__(self, supported_cmds,config_instance=client_config):
         """
         init supported cmds
         """
         self.supported_cmds = supported_cmds
+        self.parser_config = config_instance
 
     def parse_commands(self, argv):
         # 首先创建一个ArgumentParser对象
@@ -86,7 +89,7 @@ class CommandParser:
         """
         list all accounts
         """
-        account_keyfile_path = client_config.account_keyfile_path
+        account_keyfile_path = CommandParser.parser_config.account_keyfile_path
         return CommandParser.filter_files_by_file_pattern(account_keyfile_path + "/*.keystore")
 
     def completion(self, prefix, parsed_args, **kwargs):

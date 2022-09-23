@@ -40,9 +40,8 @@ from utils.contracts import get_function_info
 from eth_abi import decode_abi
 
 class BcosClient:
-
+    name = "bcos2"
     default_from_account_signer: Signer_Impl = None
-
     rpc = None
     channel_handler = None
     fiscoChainId = None
@@ -53,11 +52,23 @@ class BcosClient:
     max_chain_id = pow(2, 63) - 1
     protocol_list = ["rpc", "channel"]
     sysconfig_keys = ["tx_count_limit", "tx_gas_limit"]
+    bcosconfig = None
 
-    def __init__(self):
-        self.init()
+    #修改为可以传入client_config实例，
+    # 此版本采用py文件作为客户端的配置，不参与ini
+    # 如果每个客户端采用不同的client_client_config,copy一份client_config.py文件，将里面的client_config改个名，修改里面的配置
+    # 并将其实例传入初始化入口即可
+    # 开发者需要保证配置化的py文件必须有效
+    # 默认传入client_config.py里的client_config
+    def __init__(self,client_config_instance=client_config):
+        #print("------->>>>>>>>>",client_config_instance)
+        self.init(client_config_instance)
         self.lastblocknum = 0
         self.lastblocklimittime = 0
+
+    #返回能完整标识此客户端的字符串，先简单点，可以根据场景扩展，比如增加ip地址端口等
+    def get_full_name(self):
+        return f"{self.name}-{self.groupid}"
 
     def __del__(self):
         """
@@ -71,84 +82,86 @@ class BcosClient:
         if self.default_from_account_signer is not None:
             return  # 不需要重复加载
 
-        if client_config.crypto_type == CRYPTO_TYPE_GM:
+        if self.bcosconfig.crypto_type == CRYPTO_TYPE_GM:
             # 加载默认国密账号
-            self.gm_account_file = "{}/{}".format(client_config.account_keyfile_path,
-                                                  client_config.gm_account_keyfile)
+            self.gm_account_file = "{}/{}".format(self.bcosconfig.account_keyfile_path,
+                                                  self.bcosconfig.gm_account_keyfile)
             self.default_from_account_signer = Signer_GM.from_key_file(
-                self.gm_account_file, client_config.gm_account_password)
+                self.gm_account_file, self.bcosconfig.gm_account_password)
             return
 
         # 默认的 ecdsa 账号
         # check account keyfile
-        if client_config.crypto_type == CRYPTO_TYPE_ECDSA:
-            self.key_file = "{}/{}".format(client_config.account_keyfile_path,
-                                           client_config.account_keyfile)
+        if self.bcosconfig.crypto_type == CRYPTO_TYPE_ECDSA:
+            self.key_file = "{}/{}".format(self.bcosconfig.account_keyfile_path,
+                                           self.bcosconfig.account_keyfile)
             self.default_from_account_signer = Signer_ECDSA.from_key_file(
-                self.key_file, client_config.account_password)
+                self.key_file, self.bcosconfig.account_password)
 
-    def init(self):
+   
+    def init(self,client_config_instance = client_config):
         try:
+            self.bcosconfig = client_config_instance
             self.blockLimit = 500
             # check chainID
-            common.check_int_range(client_config.groupid, BcosClient.max_group_id)
+            common.check_int_range(self.bcosconfig.groupid, BcosClient.max_group_id)
             # check group id
-            common.check_int_range(client_config.fiscoChainId, BcosClient.max_chain_id)
+            common.check_int_range(self.bcosconfig.fiscoChainId, BcosClient.max_chain_id)
             # check protocol
-            if client_config.client_protocol.lower() not in BcosClient.protocol_list:
+            if self.bcosconfig.client_protocol.lower() not in BcosClient.protocol_list:
                 raise BcosException("invalid configuration, must be: {}".
                                     format(''.join(BcosClient.protocol_list)))
 
-            self.fiscoChainId = client_config.fiscoChainId
-            self.groupid = client_config.groupid
+            self.fiscoChainId = self.bcosconfig.fiscoChainId
+            self.groupid = self.bcosconfig.groupid
 
-            if client_config.client_protocol == client_config.PROTOCOL_RPC \
-                    and client_config.remote_rpcurl is not None:
-                self.rpc = utils.rpc.HTTPProvider(client_config.remote_rpcurl)
+            if self.bcosconfig.client_protocol == self.bcosconfig.PROTOCOL_RPC \
+                    and self.bcosconfig.remote_rpcurl is not None:
+                self.rpc = utils.rpc.HTTPProvider(self.bcosconfig.remote_rpcurl)
                 self.rpc.logger = self.logger
 
-            if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
-                if os.path.exists(client_config.channel_node_cert) is False:
-                    raise BcosException("{} not found!".format(client_config.channel_node_cert))
-                if os.path.exists(client_config.channel_node_key) is False:
-                    raise BcosException("{} not found!".format(client_config.channel_node_key))
+            if self.bcosconfig.client_protocol == self.bcosconfig.PROTOCOL_CHANNEL:
+                if os.path.exists(self.bcosconfig.channel_node_cert) is False:
+                    raise BcosException("{} not found!".format(self.bcosconfig.channel_node_cert))
+                if os.path.exists(self.bcosconfig.channel_node_key) is False:
+                    raise BcosException("{} not found!".format(self.bcosconfig.channel_node_key))
 
                 self.channel_handler = ChannelHandler()
                 self.channel_handler.setDaemon(True)
                 self.channel_handler.logger = self.logger
                 self.channel_handler.initTLSContext(
-                                                    client_config.ssl_type,
-                                                    client_config.channel_ca,
-                                                    client_config.channel_node_cert,
-                                                    client_config.channel_node_key,
-                                                    client_config.channel_en_crt,
-                                                    client_config.channel_en_key
+                                                    self.bcosconfig.ssl_type,
+                                                    self.bcosconfig.channel_ca,
+                                                    self.bcosconfig.channel_node_cert,
+                                                    self.bcosconfig.channel_node_key,
+                                                    self.bcosconfig.channel_en_crt,
+                                                    self.bcosconfig.channel_en_key
                                                     )
                 self.channel_handler.start_channel(
-                    client_config.channel_host, client_config.channel_port)
+                    self.bcosconfig.channel_host, self.bcosconfig.channel_port)
                 blockNumber = self.getBlockNumber()
                 self.channel_handler.setBlockNumber(blockNumber)
                 self.channel_handler.getBlockNumber(self.groupid)
 
-            self.logger.info("using protocol " + client_config.client_protocol)
+            self.logger.info("using protocol " + self.bcosconfig.client_protocol)
             return self.getinfo()
         except Exception as e:
             raise BcosException("init bcosclient failed, reason: {}".format(e))
 
     def finish(self):
-        if client_config.client_protocol == client_config.PROTOCOL_CHANNEL \
+        if self.bcosconfig.client_protocol == self.bcosconfig.PROTOCOL_CHANNEL \
            and self.channel_handler is not None:
             self.channel_handler.finish()
 
     def getinfo(self):
         info = ""
-        if client_config.client_protocol == client_config.PROTOCOL_RPC:
+        if self.bcosconfig.client_protocol == self.bcosconfig.PROTOCOL_RPC:
             info = "rpc:{}\n".format(self.rpc)
-        if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
+        if self.bcosconfig.client_protocol == self.bcosconfig.PROTOCOL_CHANNEL:
             info = "channel {}:{}".format(self.channel_handler.host, self.channel_handler.port)
         info += ",groupid :{}".format(self.groupid)
-        info += ",crypto type:{}".format(client_config.crypto_type)
-        info += ",ssl type:{}".format(client_config.ssl_type)
+        info += ",crypto type:{}".format(self.bcosconfig.crypto_type)
+        info += ",ssl type:{}".format(self.bcosconfig.ssl_type)
         return info
 
     def is_error_response(self, response):
@@ -170,9 +183,9 @@ class BcosClient:
         try:
             next(self.request_counter)
             stat = StatTool.begin()
-            if client_config.client_protocol == client_config.PROTOCOL_RPC:
+            if self.bcosconfig.client_protocol == self.bcosconfig.PROTOCOL_RPC:
                 response = self.rpc.make_request(cmd, params)
-            if client_config.client_protocol == client_config.PROTOCOL_CHANNEL:
+            if self.bcosconfig.client_protocol == self.bcosconfig.PROTOCOL_CHANNEL:
                 response = self.channel_handler.make_channel_rpc_request(
                     cmd, params, ChannelPack.TYPE_RPC, packet_type)
             self.is_error_response(response)
@@ -422,7 +435,7 @@ class BcosClient:
         callmap["value"] = 0
 
         # send transaction to the given group
-        params = [client_config.groupid, callmap]
+        params = [self.bcosconfig.groupid, callmap]
         # 发送
         response = self.common_request(cmd, params)
         #print("response : ",response)

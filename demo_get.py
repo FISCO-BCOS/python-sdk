@@ -12,7 +12,6 @@
   @author: kentzhang
   @date: 2019-06
 """
-
 from client.bcosclient import BcosClient
 import os
 from client.stattool import StatTool
@@ -23,7 +22,8 @@ from client.bcoserror import BcosException, BcosError
 import traceback
 import json
 # 从文件加载abi定义
-if os.path.isfile(client_config.solc_path) or os.path.isfile(client_config.solcjs_path):
+demo_config = client_config
+if os.path.isfile(demo_config.solc_path) or os.path.isfile(demo_config.solcjs_path):
     Compiler.compile_file("contracts/HelloWorld.sol")
     Compiler.compile_file("contracts/SimpleInfo.sol")
 abi_file = "contracts/SimpleInfo.abi"
@@ -39,6 +39,7 @@ hex(num)  : int -> hex
 """
 try:
     client = BcosClient()
+    
     info = client.getinfo()
     print("client info:", info)
     stat = StatTool.begin()

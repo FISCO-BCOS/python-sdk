@@ -27,6 +27,11 @@ from client.bcoserror import ArgumentsError, BcosException
 from eth_abi import decode_single
 from eth_utils.hexadecimal import bytesToHex
 
+g_common_config = client_config
+
+def set_common_config(config_instance):
+    global g_common_config
+    g_common_config = config_instance
 
 def backup_file(file_name):
     """
@@ -36,7 +41,7 @@ def backup_file(file_name):
         return
     forcewrite = True
     option = "y"
-    if client_config.background is False:
+    if g_common_config.background is False:
         option = input("INFO >> file [{}] exist , continue (y/n): ".format(file_name))
     if (option.lower() == "y"):
         forcewrite = True

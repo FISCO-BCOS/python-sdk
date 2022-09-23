@@ -16,6 +16,8 @@ import json
 import sys
 import traceback
 import os
+
+from client.bcosclient import BcosClient
 from client.common import common
 from client.common import transaction_common
 from client.contractnote import ContractNote
@@ -90,14 +92,14 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             ContractNote.save_contract_address(name, address)
             print("on block : {},address: {} ".format(blocknum, address))
             if needSaveAddress is True:
-                ContractNote.save_address_to_contract_note(name, address)
-                print("address save to file: ", client_config.contract_info_file)
+                ContractNote.save_address_to_contract_note(tx_client.get_full_name(),name, address)
+                print("address save to file: ", tx_client.bcosconfig.contract_info_file)
             else:
                 print(
                     """\nNOTE : if want to save new address as last
                     address for (call/sendtx)\nadd 'save' to cmdline and run again"""
                 )
-            ContractNote.save_history(name, address, blocknum, txhash)
+            ContractNote.save_history(tx_client.get_full_name(),name, address, blocknum, txhash)
             contractabi = tx_client.contract_abi_path
             data_parser = DatatypeParser(contractabi)
             # 解析receipt里的log 和 相关的tx ,output
@@ -119,7 +121,9 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         contractname = params["contractname"]
         address = params["address"]
         if address == "last" or address == "latest":
-            address = ContractNote.get_last(contractname)
+            client = BcosClient()
+            address = ContractNote.get_last(client.get_full_name(),contractname)
+            client.finish()
             if address is None:
                 sys.exit(
                     "can not get last address for [{}],break;".format(contractname)
@@ -159,11 +163,13 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         contractname = params["contractname"]
         address = params["address"]
         if address == "last" or address == "latest":
-            address = ContractNote.get_last(contractname)
+            client = BcosClient()
+            address = ContractNote.get_last(client.get_full_name(),contractname)
             if address is None:
                 sys.exit(
                     "can not get last address for [{}],break;".format(contractname)
                 )
+                client.finish()
 
         tx_client = transaction_common.TransactionCommon(
             address, contracts_dir, contractname
