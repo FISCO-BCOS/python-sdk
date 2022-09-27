@@ -14,11 +14,9 @@ from eth_utils import to_checksum_address, keccak
 from client.datatype_parser import DatatypeParser
 from eth_utils import decode_hex,encode_hex
 
-value = "abcd"
-print(encode_hex(keccak(bytes(value, "utf-8")))[2:])
-sys.exit(0)
+
 client = BcosClient()
-info = client.init()
+info = client.getinfo()
 print(info)
 #bindata = encode_hex("abcdefg中国".encode('utf-8'))
 bindata = b'abcdefg;'

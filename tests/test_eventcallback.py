@@ -32,18 +32,18 @@ class TestEventPushHandler(ChannelPushHandler):
         loglist = parser.parse_event_logs(response["logs"])
         print(json.dumps(loglist, indent=4))
 
-
+client = None
+client = BcosClient()
+info = client.getinfo()
+print("client info:", info)
 # 从文件加载abi定义
 abi_file = "contracts/HelloEvent.abi"
 parser = data_parser = DatatypeParser(abi_file)
 contract_abi = data_parser.contract_abi
 contractnode = ContractNote()
-address = contractnode.get_last("HelloEvent")
+address = contractnode.get_last(client.get_full_name(),"HelloEvent")
 print("event contract address is ", address)
-client = None
-client = BcosClient()
-info = client.getinfo()
-print("client info:", info)
+
 params_set = ["aaabbb"]
 params_setnum_5 = ["setnum_ab", 5]
 params_setnum_10 = ["setnum_ab", 10]

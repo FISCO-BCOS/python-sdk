@@ -106,6 +106,7 @@ else:
 
 cb_context = BcosReqContext(n, "send tx", "this is sendtx test")
 inputparams = [f"abcefg:{datetime.datetime.now()}"]
+inputparams = [f"abcdefg"]
 # 第三个参数是方法的abi，可以传入None，encode_transaction_data做了修改，支持通过方法+参数在整个abi里找到对应的方法abi来编码
 functiondata = abi_parser.encode_function_data("set", inputparams)
 # 对交易数据进行签名

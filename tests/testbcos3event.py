@@ -19,7 +19,7 @@ print(f"Current block number {num}")
 
 from client.contractnote import ContractNote
 
-current_address = ContractNote.get_last(f"HelloWorld-{bcos3client.get_id()}")
+current_address = ContractNote.get_last(bcos3client.get_full_name(),"HelloWorld")
 print("Current address:", current_address)
 
 (currpath, currfile) = os.path.split(os.path.realpath(__file__))
@@ -30,7 +30,7 @@ print("-----START: ", cbfuture.context.detail())
 event_param = dict()
 event_param["fromBlock"] = 0  # change this for new event
 event_param["toBlock"] = 1000000  # change this for new event
-event_param["address"] = [current_address]  # sample helloWorld address
+event_param["addresses"] = [current_address]  # sample helloWorld address
 event_param["topics"] = []
 parser = DatatypeParser("contracts/HelloWorld.abi")
 event_name = "onset"
