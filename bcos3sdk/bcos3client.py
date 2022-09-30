@@ -20,6 +20,7 @@ import sys
 import time
 from ctypes import byref, c_char_p
 
+from bcos3sdk.bcos3sdkconfig import Bcos3SDKConfig
 from client_config import client_config
 from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk, BcosCallbackFuture, \
     s2b, b2s
@@ -47,6 +48,8 @@ class Bcos3Client:
     bcos3sdk = None
     logger = clientlogger.logger  # logging.getLogger("BcosClient")
     config = None
+    sdk_version = None
+    
     
     def __init__(self, client_config_instance=client_config):
         self.lastblocklimittime = 0
@@ -57,6 +60,7 @@ class Bcos3Client:
         release the resources
         """
         self.finish()
+
     
     def init(self,client_config_instance=client_config):
         self.config = client_config_instance ;
@@ -67,6 +71,7 @@ class Bcos3Client:
         self.blockLimit = 500
         self.group = self.config.bcos3_group
         self.init_sdk()
+        self.bcos3sdkconfig = Bcos3SDKConfig(self.config.bcos3_config_file)
         return self
     
     def init_sdk(self):
@@ -81,7 +86,7 @@ class Bcos3Client:
         privkey = self.default_from_account_signer.get_keypair().private_key
         if type(privkey) is str:
             privkey = decode_hex(privkey)
-        #print("privatekey:",encode_hex(privkey))
+        #print("privatekey:",privkey)
         self.keypair = self.bcossdk.bcos_sdk_create_keypair_by_private_key(self.crypto_enum, privkey, len(privkey))
         self.chainid = self.bcossdk.bcos_sdk_get_group_chain_id(self.bcossdk.sdk, s2b(self.group))
         return 0
@@ -122,12 +127,15 @@ class Bcos3Client:
     
     def getinfo(self):
         info = ""
-        info += "chain :[{}];".format(b2s(self.chainid))
-        info += "group :[{}];".format(self.group)
-        info += "crypto type: [{}];".format(self.config.crypto_type)
+        info += "chain:[{}];".format(b2s(self.chainid))
+        info += "group:[{}];".format(self.group)
+        info += f"peers:[{self.bcos3sdkconfig.peers}];"
+        info += "crypto: [{}];".format(self.config.crypto_type)
         address = self.bcossdk.bcos_sdk_get_keypair_address(self.keypair)
-        info += f"keypair address: [{b2s(address)}]"
-        info = f"{info}\nNative SDK Version : {b2s(self.bcossdk.bcos_sdk_version())}"
+        info += f"from:[{b2s(address)}];"
+        if self.sdk_version is None:
+            self.sdk_version = b2s(self.bcossdk.bcos_sdk_version())
+        info = f"{info}\nNative SDK Version : {self.sdk_version}"
         return info
     
     def wait_result(self, future: BcosCallbackFuture):
