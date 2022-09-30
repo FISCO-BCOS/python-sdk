@@ -66,6 +66,7 @@ def list_files(file_pattern):
 def console_run_byname(modulename, classname, cmd, inputparams):
     obj = getClassbyName(modulename, classname)
     if obj is None:
+        
         return -1
     return console_run(obj, cmd, inputparams)
 
