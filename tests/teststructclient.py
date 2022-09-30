@@ -10,7 +10,7 @@ from eth_utils import to_checksum_address, decode_hex, keccak
 from client.datatype_parser import DatatypeParser
 from console_utils.console_common import print_receipt_logs_and_txoutput
 client = BcosClient()
-info = client.init()
+info = client.getinfo()
 print(info)
 
 # 从文件加载abi定义
@@ -24,7 +24,7 @@ print(client.getNodeVersion())
 #如合约未部署，用python console.py deploy TestStruct 部署一次
 #或者自行定位链上既有的合约地址
 #address = "0x901250d3fcb6cf282134b12acdd0f1d67f265566"
-address = ContractNote.get_last(contractname)
+address = ContractNote.get_last(client.get_full_name(),contractname)
 print(address)
 
 res = client.call(address,contract_abi,"getUser",["alice"])
