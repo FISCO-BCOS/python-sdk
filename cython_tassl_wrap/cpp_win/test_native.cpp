@@ -29,7 +29,8 @@ int main(int argc, char **argv)
 	if (module == NULL)
 	{
 		printf("load module fail\n");
-		printf("last error %d\n",GetLastError());
+		printf("last error %ld\n",GetLastError());
+		//printf("last error %s\n",GetLastErrorMessage());
 		
 		return -1;
 	}
@@ -60,7 +61,7 @@ int main(int argc, char **argv)
 	}
 	
 	void * p_ssock=pfn_create();
-	printf("dll create return %d\n",p_ssock);
+	printf("dll create return %lld\n",(long long int)p_ssock);
 	int retval = 0;
 	pfn_set_echo_mode(p_ssock, ECHO_PRINTF);
 	pfn_init(p_ssock,"sdk/gmca.crt","sdk/gmsdk.crt","sdk/gmsdk.key","sdk/gmensdk.crt","sdk/gmensdk.key");

@@ -110,6 +110,7 @@ void TasslSockWrap::print_ssl_error(int err,const char *memo)
 TasslSockWrap::TasslSockWrap()
 {
 	 //printf("construct TasslSockWrap %d\n",this);
+
 	 sock = 0;
 	 is_connected = false;
 	 echo_mode = ECHO_NONE;
@@ -222,7 +223,7 @@ int TasslSockWrap::load_ca_files()
 	//检查证书和key
 	if (!SSL_CTX_check_private_key(ctx))
 	{
-		altprint(echo_mode,"[in cpp wrap -->] Private key does not match the certificate public key/n");
+		altprint(echo_mode,"[in cpp wrap -->] SSL_CTX_check_private_key:Private key does not match the certificate public key\n");
 		return -106;
 	}
 
@@ -230,7 +231,7 @@ int TasslSockWrap::load_ca_files()
 	//检查en证书和key
 	if (!SSL_CTX_check_enc_private_key(ctx))
 	{
-		altprint(echo_mode,"[in cpp wrap -->] Private key does not match the certificate public key/n");
+		altprint(echo_mode,"[in cpp wrap -->] SSL_CTX_check_enc_private_key:Private key does not match the certificate public key\n");
 		return -107;
 	}
 	
@@ -251,6 +252,8 @@ int TasslSockWrap::init(
 				const char * en_key_file_
 				)
 {
+    altprint(echo_mode,"[in cpp wrap -->] %s\n",OPENSSL_VERSION_TEXT);
+    altprint(echo_mode,"[in cpp wrap -->] TasslSockWrap:init %s,%s,%s,%s,%s\n",ca_crt_file_,sign_crt_file_,sign_key_file_,en_crt_file_,en_key_file_);
 	strcpy(ca_crt_file,ca_crt_file_);
 	strcpy(sign_crt_file,sign_crt_file_);
 	strcpy(sign_key_file,sign_key_file_);
