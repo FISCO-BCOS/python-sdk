@@ -79,7 +79,9 @@ class Bcos3Client:
             msg = self.bcossdk.bcos_sdk_get_last_error_msg()
             raise BcosException(f"START SDK error res:{res},[{msg}]")
         privkey = self.default_from_account_signer.get_keypair().private_key
-        # print("privatekey:",encode_hex(privkey))
+        if type(privkey) is str:
+            privkey = decode_hex(privkey)
+        #print("privatekey:",encode_hex(privkey))
         self.keypair = self.bcossdk.bcos_sdk_create_keypair_by_private_key(self.crypto_enum, privkey, len(privkey))
         self.chainid = self.bcossdk.bcos_sdk_get_group_chain_id(self.bcossdk.sdk, s2b(self.group))
         return 0
@@ -89,9 +91,11 @@ class Bcos3Client:
         if self.default_from_account_signer is not None:
             return  # 不需要重复加载
         # 默认的 ecdsa 账号
+        
         if self.config.crypto_type == CRYPTO_TYPE_ECDSA:
             self.account_file = "{}/{}".format(self.config.account_keyfile_path,
                                                self.config.account_keyfile)
+            
             self.default_from_account_signer = Signer_ECDSA.from_key_file(
                 self.account_file, self.config.account_password)
             

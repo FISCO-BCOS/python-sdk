@@ -58,7 +58,15 @@ class CmdBcos3RPC:
         return usagemsg
 
     def __init__(self):
-        self.bcos3sdk = Bcos3Client()
+        try:
+            self.bcos3sdk = Bcos3Client()
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print("bcos3 rpc init error",e)
+            
+            
+
     @staticmethod
     def usage():
         usagemsg = CmdBcos3RPC.make_usage()
