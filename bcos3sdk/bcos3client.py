@@ -74,6 +74,7 @@ class Bcos3Client:
         self.bcos3sdkconfig = Bcos3SDKConfig(self.config.bcos3_config_file)
         return self
     
+    
     def init_sdk(self):
         self.seq = 0
         self.bcossdk = NativeBcos3sdk()
@@ -129,10 +130,10 @@ class Bcos3Client:
         info = ""
         info += "chain:[{}];".format(b2s(self.chainid))
         info += "group:[{}];".format(self.group)
-        info += f"peers:[{self.bcos3sdkconfig.peers}];"
         info += "crypto: [{}];".format(self.config.crypto_type)
         address = self.bcossdk.bcos_sdk_get_keypair_address(self.keypair)
-        info += f"from:[{b2s(address)}];"
+        info += f"account:[{b2s(address)}];"
+        info += f"peers:[{self.bcos3sdkconfig.peers}];"
         if self.sdk_version is None:
             self.sdk_version = b2s(self.bcossdk.bcos_sdk_version())
         info = f"{info}\nNative SDK Version : {self.sdk_version}"
@@ -164,6 +165,7 @@ class Bcos3Client:
         return result
     
     def getBlockNumber(self):
+        
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, f"{sys._getframe().f_code.co_name}")
         self.bcossdk.bcos_rpc_get_block_number(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                                byref(cbfuture.context))
