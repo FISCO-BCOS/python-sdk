@@ -200,6 +200,8 @@ class NativeBcos3sdk:
             return err
         self.bcos_sdk_start(self.sdk)
         err = self.bcos_sdk_get_last_error()
+        errmsg = self.bcos_sdk_get_last_error_msg()
+        #print("start sdk error ,",str(errmsg,encoding='GBK'))
         return err
     
     def finish(self):
@@ -409,7 +411,7 @@ class NativeBcos3sdk:
         
         # -----------------------------------------------------------------------
         # KeyPair 接口
-        # void* bcos_sdk_create_keypair(int crypto_type); 1: ecdsa 2: sm
+        # void* bcos_sdk_create_keypair(int crypto_type); 0: ecdsa 1: sm
         self.nativelib.bcos_sdk_create_keypair.argtypes = [c_int]
         self.nativelib.bcos_sdk_create_keypair.restype = c_void_p
         self.bcos_sdk_create_keypair = self.nativelib.bcos_sdk_create_keypair
