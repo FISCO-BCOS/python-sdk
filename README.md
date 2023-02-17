@@ -113,6 +113,10 @@ solc_path = "D:\\open-source\\python-sdk\\bin\\solc.exe"
 cd python-sdk 
 pip install -r requirements.txt
 ```
+注意：目前已知parsimonious库必须采用0.8.1，否则在发交易时出现编码错误(提示信息类似：arg 2 type must be tuple )。如python的site-packages里已经安装了版本高于0.8.1的parsimonious库，请先pip uninstall parsimonious，再pip install parsimonious==0.8.1。
+
+如出现因库版本依赖产生的错误，请在社区群里反馈或提issue。
+
 
 > **若因网络原因，安装依赖失败，可使用清华的pip源下载，安装命令如下：**
 
