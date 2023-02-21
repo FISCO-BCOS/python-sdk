@@ -23,9 +23,12 @@ from cytoolz import (
     partial,
     pipe,
 )
-from eth_rlp.HashableRLP import (
-    HashableRLP
-)
+
+import eth_rlp.HashableRLP as hashRLP
+#from eth_rlp.HashableRLP import (
+#    HashableRLP
+#)
+
 from eth_utils.curried import (
     apply_formatters_to_dict,
     apply_one_of_formatters,
@@ -197,7 +200,7 @@ UNSIGNED_TRANSACTION_FIELDS = (
 )
 
 
-class BcosTransaction(HashableRLP):
+class BcosTransaction(hashRLP.HashableRLP):
     fields = UNSIGNED_TRANSACTION_FIELDS + (
         ('v', big_endian_int),
         ('r', big_endian_int),
@@ -205,7 +208,7 @@ class BcosTransaction(HashableRLP):
     )
 
 
-class BcosUnsignedTransaction(HashableRLP):
+class BcosUnsignedTransaction(hashRLP.HashableRLP):
     fields = UNSIGNED_TRANSACTION_FIELDS
 
 

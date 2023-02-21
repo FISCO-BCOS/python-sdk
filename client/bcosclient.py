@@ -458,9 +458,12 @@ class BcosClient:
             try:
                 #decoderesult = decode_single(fn_output_types, decode_hex(outputdata))
                 #print("fn_output_types",fn_output_types)
+                #outputdata='0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d68656c6c6f2c2079656b61692100000000000000000000000000000000000000'
                 decoderesult = decode_abi(fn_output_types,decode_hex(outputdata))
                 return decoderesult
             except BaseException as e:
+                import traceback
+                traceback.print_exc()
                 return response
         return response
 
