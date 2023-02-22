@@ -15,7 +15,6 @@ exceptiongroup==1.1.0
 hypothesis==6.68.2
 lru_dict==1.1.8
 parsimonious==0.8.1
-pip==21.1.2
 promise==2.3
 pyasn1==0.4.8
 pycparser==2.21
