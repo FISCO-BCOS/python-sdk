@@ -23,6 +23,7 @@ import traceback
 import json
 # 从文件加载abi定义
 demo_config = client_config
+'''
 if os.path.isfile(demo_config.solc_path) or os.path.isfile(demo_config.solcjs_path):
     Compiler.compile_file("contracts/HelloWorld.sol")
     Compiler.compile_file("contracts/SimpleInfo.sol")
@@ -30,7 +31,7 @@ abi_file = "contracts/SimpleInfo.abi"
 data_parser = DatatypeParser()
 data_parser.load_abi_file(abi_file)
 contract_abi = data_parser.contract_abi
-
+'''
 # 以下是查询类的接口，大部分是返回json，可以根据对fisco bcos rpc接口json格式的理解，进行字段获取和转码
 """
 useful helper:

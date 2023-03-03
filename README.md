@@ -299,10 +299,12 @@ params: contractname address event_name indexed
 
 **查看SDK使用方法**
 
-* 注：以下示例不区分2.x和3.x的控制台，如要使用3.x的控制台，把console.py换成console3.py即可。
+* 注：以下示例不区分2.x和3.x的控制台，
+* 如要使用2.x的控制台，把console.py换成console2.py。
+* 如要使用3.x的控制台，把console.py换成console3.py。
 * 屏幕上的少量输入输出差异和版本有关，不做详细分解
 
-> **windows环境下执行console.py请使用`.\console.py`或者`python console.py`**
+> **windows环境下执行console2/3.py请使用`.\console2/3.py`或者`python console2/3.py`**
 
 ```bash
 # 查看SDK使用方法
