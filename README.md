@@ -37,7 +37,9 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 ## 部署Python SDK
 
 ### 环境要求
-- Python环境：python 3.6.3, 3.7.x
+
+- Python环境：python 3.6.3, 3.7.x ,3.8.x ,3.9.x   (python 3.10+的语法对依赖库的要求有较大差异，尚未适配)
+  
 - FISCO BCOS节点：请参考
 
 [FISCO BCOS 2.x节点安装](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html#fisco-bcos)搭建

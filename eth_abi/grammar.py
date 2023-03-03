@@ -2,9 +2,7 @@ import functools
 import re
 
 import parsimonious
-from parsimonious import (
-    expressions,
-)
+from parsimonious import expressions
 
 from eth_abi.exceptions import (
     ABITypeError,

@@ -14,7 +14,7 @@
 
 
 
-from collections import Iterable
+from collections.abc import Iterable
 
 from client.bcoserror import ArgumentsError
 from eth_utils import to_checksum_address
