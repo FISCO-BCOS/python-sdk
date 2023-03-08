@@ -38,7 +38,9 @@ Python SDK为[FISCO BCOS](https://github.com/FISCO-BCOS/FISCO-BCOS/tree/master)�
 
 ### 环境要求
 
-- Python环境：python 3.6.3, 3.7.x ,3.8.x ,3.9.x   (python 3.10+的语法对依赖库的要求有较大差异，尚未适配)
+- Python环境：python 3.6+ ,含 3.9.x , 3.10   
+
+ (python 3.11+的语法，对依赖库有较大兼容性差异,尚未适配,后续跟踪各依赖库的兼容情况后再做适配)
   
 - FISCO BCOS节点：请参考
 
@@ -84,14 +86,17 @@ source ~/.bashrc && pyenv activate python-sdk && pip install --upgrade pip
 
 **安装依赖软件**
 
-- 直接安装[Python-3.7.x](https://www.python.org/downloads/release/python-373/)和[git](https://git-scm.com/download/win)软件  
-> python环境变量配置可参考[这里](https://jingyan.baidu.com/article/b0b63dbff271e24a4830708d.html)
+- 安装[Python](https://www.python.org/downloads/) .目前(2023.03)支持到3.10版本。
+> 建议采用pyenv,virtualenv或其他多环境管理软件，管理不同版本的python以及其依赖库
 
 - [Visual C++ 14.0库](https://visualstudio.microsoft.com/downloads)
 > (注：Microsoft Visual C++ 14.0 is required. Get it with "Microsoft Visual C++ Build Tools"解决方法: https://visualstudio.microsoft.com/downloads （注意选择vs 2005即14.0版）或 https://pan.baidu.com/s/1ZmDUGZjZNgFJ8D14zBu9og 提取码: zrby)
 
-- 下载Windows版本solc, 点击[这里](https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity-windows.zip)下载
-> solc编译器下载成功后，解压，将其中的 solc.exe 文件复制 ${python-sdk}\bin 目录下。若 python-sdk 路为 D:\\open-source\\python-sdk, 则 solc.exe 文件复制路径为D:\\open-source\\python-sdk\\bin\\solc.exe 
+- 下载Windows版本solc,参考[README_SOLC](README_SOLC.md),点击[这里](https://github.com/FISCO-BCOS/solidity/releases)下载
+> 目前支持到0.6.x版本的solidity编译器
+> 
+> solc编译器下载成功后，解压，将其中的 solc.exe 文件复制 ${python-sdk}\bin 目录下。若 python-sdk 路为 D:\\open-source\\python-sdk, 则 solc.exe 文件复制路径为D:\\open-source\\python-sdk\\bin\\solc.exe
+
 
 **拉取源代码**
 
@@ -115,19 +120,27 @@ solc_path = "D:\\open-source\\python-sdk\\bin\\solc.exe"
 cd python-sdk 
 pip install -r requirements.txt
 ```
-注意：目前已知parsimonious库必须采用0.8.1版本，否则在发交易时出现编码错误(提示信息类似：arg 2 type must be tuple )。如python的site-packages里已经安装了版本高于0.8.1的parsimonious库，请先pip uninstall parsimonious，再pip install parsimonious==0.8.1。
-
-（或者无需再安装，因为项目代码目录已经包含了parsimonious==0.8.1的库文件）
-
-如出现因库版本依赖产生的错误，请在社区群里反馈或提issue。
-
-由于Python依赖库升级较快，且版本对齐很重要，非常建议采用virtualenv等多环境工具，为每个python应用单独管理其依赖库环境。
-
-> **若因网络原因，安装依赖失败，可使用清华的pip源下载，安装命令如下：**
+**若因网络原因，安装依赖失败，可使用清华的pip源下载，安装命令如下：**
 
 ```bash
 pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 ```
+
+**注意：目前已知parsimonious库必须采用0.8.1版本，否则在发交易时出现编码错误(提示信息类似：arg 2 type must be tuple )。**
+
+如python的site-packages里已经安装了版本高于0.8.1的parsimonious库，
+请先pip uninstall parsimonious，再pip install parsimonious==0.8.1。
+（项目代码目录已经包含了parsimonious==0.8.1的库文件,无需安装也可以）
+
+同理，**eth_abi/eth_account/eth_hash/eth_keys/eth_rlp/eth_typing/eth_utils/gmssl/hexbytes/rlp**等外部库，
+因有所改动，也在本项目内维护了一份代码，如python环境的libs库里安装了同名不同版本的冲突，同样需卸载，
+以使用本项目里内置的版本。
+
+**如出现因其他库版本依赖产生的错误，请在社区群里反馈或提issue**
+
+
+Python依赖库升级较快，且版本对齐很重要，非常建议采用pyenv,virtualenv等多环境工具，为每个python应用单独管理其依赖库环境。
+
 
 ### 初始化配置(Windows环境可跳过)
 

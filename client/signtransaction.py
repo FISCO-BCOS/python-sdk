@@ -12,7 +12,7 @@
   @date: 2020-01
 '''
 
-from collections import (
+from collections.abc import (
     Mapping,
 )
 

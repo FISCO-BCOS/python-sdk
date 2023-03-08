@@ -12,6 +12,9 @@
   @author: kentzhang
   @date: 2019-06
 """
+import sys
+sys.path.append("./")
+from bcos3sdk.bcos3client import Bcos3Client
 from client.bcosclient import BcosClient
 import os
 from client.stattool import StatTool
@@ -39,15 +42,15 @@ int(num,16)  hex -> int
 hex(num)  : int -> hex
 """
 try:
-    client = BcosClient()
+    client = Bcos3Client()
     
     info = client.getinfo()
     print("client info:", info)
     stat = StatTool.begin()
     print("\n>>---------------------------------------------------------------------")
-    res = client.getNodeVersion()
+    res = client.getinfo()
     print("\n>>---------------------------------------------------------------------")
-    print("getClientVersion", json.dumps(res, indent=4))
+    print("getinfo", json.dumps(res, indent=4))
     print("\n>>---------------------------------------------------------------------")
     try:
         res = client.getBlockNumber()
@@ -73,34 +76,17 @@ try:
         print(
             "\n>>---------------------------------------------------------------------"
         )
-        print(
-            "getTransactionByBlockHashAndIndex",
-            json.dumps(client.getTransactionByBlockHashAndIndex(blockhash, 0)),
-        )
-        print(
-            "\n>>---------------------------------------------------------------------"
-        )
-        print(
-            "getTransactionByBlockNumberAndIndex",
-            client.getTransactionByBlockNumberAndIndex(1, 0),
-        )
-        print(
-            "\n>>---------------------------------------------------------------------"
-        )
+
         print("getTransactionReceipt", json.dumps(client.getTransactionReceipt(txhash)))
         print(
             "\n>>---------------------------------------------------------------------"
         )
-    print("getPendingTransactions", client.getPendingTransactions())
-    print("\n>>---------------------------------------------------------------------")
-    print("getPendingTxSize", client.getPendingTxSize())
-    print("\n>>---------------------------------------------------------------------")
     print("getTotalTransactionCount", client.getTotalTransactionCount())
     print("\n>>---------------------------------------------------------------------")
     print("getSystemConfigByKey", client.getSystemConfigByKey("tx_count_limit"))
     print("\n>>---------------------------------------------------------------------")
 
-    print("getPbftView", int(client.getPbftView(), 16))
+    print("getPbftView", client.getPbftView())
     print("\n>>---------------------------------------------------------------------")
     print("getSealerList", client.getSealerList())
     print("\n>>---------------------------------------------------------------------")
@@ -111,8 +97,7 @@ try:
     print("getSyncStatus", client.getSyncStatus())
     print("\n>>---------------------------------------------------------------------")
     print("getGroupPeers", client.getGroupPeers())
-    print("\n>>---------------------------------------------------------------------")
-    print("getNodeIDList", client.getNodeIDList())
+
     print("\n>>---------------------------------------------------------------------")
     print("getGroupList", client.getGroupList())
     stat.done()
