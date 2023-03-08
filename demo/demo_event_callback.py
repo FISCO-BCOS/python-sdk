@@ -1,4 +1,5 @@
 import sys
+sys.path.append("./")
 from client.bcosclient import BcosClient
 from client.datatype_parser import DatatypeParser
 from client.contractnote import ContractNote

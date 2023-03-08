@@ -15,6 +15,7 @@
   int(num,16)  hex -> int
   hex(num)  : int -> hex
 '''
+import itertools
 import json
 import sys
 import time
@@ -49,7 +50,7 @@ class Bcos3Client:
     logger = clientlogger.logger  # logging.getLogger("BcosClient")
     config = None
     sdk_version = None
-    
+    request_counter = itertools.count()
     
     def __init__(self, client_config_instance=client_config):
         self.lastblocklimittime = 0
@@ -165,7 +166,7 @@ class Bcos3Client:
         return result
     
     def getBlockNumber(self):
-        
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, f"{sys._getframe().f_code.co_name}")
         self.bcossdk.bcos_rpc_get_block_number(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                                byref(cbfuture.context))
@@ -175,12 +176,14 @@ class Bcos3Client:
         return num
     
     def getPbftView(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_pbft_view(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                             byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getSealerList(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_sealer_list(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                               byref(cbfuture.context))
@@ -193,34 +196,40 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getConsensusStatus(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_consensus_status(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                                    byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getSyncStatus(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_sync_status(self.bcossdk.sdk, s2b(self.group), s2b(self.node), cbfuture.callback,
                                               byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getPeers(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_peers(self.bcossdk.sdk, cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getGroupPeers(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_group_peers(self.bcossdk.sdk, s2b(self.group), cbfuture.callback,
                                               byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getGroupList(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_group_list(self.bcossdk.sdk, cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getBlockByHash(self, block_hash, only_header=0, only_tx_hash=0):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_block_by_hash(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                 s2b(block_hash),
@@ -230,6 +239,7 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getBlockByNumber(self, num, only_header=0, only_tx_hash=0):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_block_by_number(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                   num,
@@ -239,6 +249,7 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getBlockHashByNumber(self, num):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_block_hash_by_number(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                        num,
@@ -246,6 +257,7 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getTransactionByHash(self, hash, proof=0):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                               s2b(hash),
@@ -254,6 +266,7 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getTransactionReceipt(self, hash, proof=0):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_transaction_receipt(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                       s2b(hash),
@@ -262,12 +275,14 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getPendingTxSize(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_pending_tx_size(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                   cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getCode(self, address):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_code(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                        s2b(address),
@@ -275,12 +290,14 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getTotalTransactionCount(self):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_total_transaction_count(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                           cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
     def getSystemConfigByKey(self, key):
+        next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_get_system_config_by_key(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                        s2b(key),
@@ -288,10 +305,12 @@ class Bcos3Client:
         return self.wait_result(cbfuture)
     
     def getBlocklimit(self):
+        
         tick = time.time()
         tickstamp = tick - self.lastblocklimittime
         if tickstamp < 30:  # get blocklimit every 100sec
             return self.blockLimit
+        next(self.request_counter)
         new_blockLimit = self.bcossdk.bcos_rpc_get_block_limit(self.bcossdk.sdk, s2b(self.group))
         if new_blockLimit >= self.blockLimit:
             self.blockLimit = new_blockLimit
@@ -299,6 +318,7 @@ class Bcos3Client:
         return self.blockLimit
     
     def call(self, to_address, contract_abi, fn_name, args=None):
+        next(self.request_counter)
         cmd = "call"
         if to_address != "":
             common.check_and_format_address(to_address)
@@ -342,7 +362,7 @@ class Bcos3Client:
     
     def sendRawTransaction(self, to_address, contract_abi, fn_name, args=None,
                            bin_data=None, extra_abi=None):
-
+        next(self.request_counter)
         if to_address is None:
             to_address = ""
         if to_address != "":

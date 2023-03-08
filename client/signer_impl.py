@@ -99,8 +99,9 @@ class Signer_ECDSA(Signer_Impl):
     def set_account(self, account: LocalAccount):
         self.ecdsa_account = account
         self.keypair = BcosKeyPair()
-        self.keypair.private_key = account.privateKey
-        self.keypair.public_key = account.publickey
+        
+        self.keypair.private_key = encode_hex(account.key)
+        #self.keypair.public_key = account.publickey
         self.keypair.address = account.address
 
     def to_eth_v(self, v_raw, chain_id=None):

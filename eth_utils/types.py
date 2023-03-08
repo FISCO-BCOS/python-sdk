@@ -31,11 +31,11 @@ def is_boolean(value: Any) -> bool:
 
 
 def is_dict(obj: Any) -> bool:
-    return isinstance(obj, collections.Mapping)
+    return isinstance(obj, collections.abc.Mapping)
 
 
 def is_list_like(obj: Any) -> bool:
-    return not is_string(obj) and isinstance(obj, collections.Sequence)
+    return not is_string(obj) and isinstance(obj, collections.abc.Sequence)
 
 
 def is_list(obj: Any) -> bool:

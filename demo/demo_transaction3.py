@@ -12,6 +12,10 @@
   @author: kentzhang
   @date: 2019-06
 '''
+import sys
+sys.path.append("./")
+from client.stattool import StatTool
+from bcos3sdk.bcos3client import Bcos3Client
 from client.contractnote import ContractNote
 from client.bcosclient import BcosClient
 import os
@@ -20,25 +24,27 @@ from client.datatype_parser import DatatypeParser
 from client.common.compiler import Compiler
 from client.bcoserror import BcosException, BcosError
 from client_config import client_config
-import sys
+
 import traceback
+
 # 从文件加载abi定义
 demo_config = client_config
 
 if os.path.isfile(demo_config.solc_path) or os.path.isfile(demo_config.solcjs_path):
-    Compiler.compile_file("contracts/HelloWorld.sol")
-    Compiler.compile_file("contracts/SimpleInfo.sol")
-abi_file = "contracts/SimpleInfo.abi"
+    Compiler.compile_file("./contracts/HelloWorld6.sol")
+    Compiler.compile_file("./contracts/SimpleInfo.sol")
+abi_file = "./contracts/SimpleInfo.abi"
 data_parser = DatatypeParser()
 data_parser.load_abi_file(abi_file)
 contract_abi = data_parser.contract_abi
 
 try:
-    client = BcosClient()
+    stat = StatTool.begin()
+    client = Bcos3Client()
     print(client.getinfo())
     # 部署合约
     print("\n>>Deploy:----------------------------------------------------------")
-    with open("contracts/SimpleInfo.bin", 'r') as load_f:
+    with open("./contracts/SimpleInfo.bin", 'r') as load_f:
         contract_bin = load_f.read()
         load_f.close()
     result = client.deploy(contract_bin)
@@ -47,21 +53,21 @@ try:
     contract_name = os.path.splitext(os.path.basename(abi_file))[0]
     memo = "tx:" + result["transactionHash"]
     # 把部署结果存入文件备查
-    ContractNote.save_address_to_contract_note(contract_name,
+    ContractNote.save_address_to_contract_note("demo",contract_name,
                                                result["contractAddress"])
     # 发送交易，调用一个改写数据的接口
     print("\n>>sendRawTransaction:----------------------------------------------------")
     to_address = result['contractAddress']  # use new deploy address
     args = ['simplename', 2024, to_checksum_address('0x7029c502b4F824d19Bd7921E9cb74Ef92392FB1c')]
 
-    receipt = client.sendRawTransactionGetReceipt(to_address, contract_abi, "set", args)
+    receipt = client.sendRawTransaction(to_address, contract_abi, "set", args)
     print("receipt:", receipt)
 
     # 解析receipt里的log
     print("\n>>parse receipt and transaction:--------------------------------------")
     txhash = receipt['transactionHash']
     print("transaction hash: ", txhash)
-    logresult = data_parser.parse_event_logs(receipt["logs"])
+    logresult = data_parser.parse_event_logs(receipt["logEntries"])
     i = 0
     for log in logresult:
         if 'eventname' in log:
@@ -88,8 +94,12 @@ try:
     print("call getname:", res)
     res = client.call(to_address, contract_abi, "getall")
     print("call getall result:", res)
-    print("done,demo_tx,total req {}".format(client.request_counter))
-
+    stat.done()
+    reqcount = next(client.request_counter)
+    print("done,demo_tx,total request {},usedtime {},avgtime:{}".format(
+            reqcount, stat.time_used, (stat.time_used / reqcount)
+        ))
+    
 except BcosException as e:
     print("execute demo_transaction failed ,BcosException for: {}".format(e))
     traceback.print_exc()

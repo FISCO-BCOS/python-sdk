@@ -18,14 +18,14 @@ import json
 import subprocess
 import re
 from client.datatype_parser import DatatypeParser
-from eth_utils.hexadecimal import decode_hex
+from eth_utils.hexadecimal import decode_hex,encode_hex
 from client_config import client_config
 from eth_utils import to_checksum_address
 from utils.contracts import get_function_info
 from utils.abi import get_fn_abi_types_single
 from client.bcoserror import ArgumentsError, BcosException
 from eth_abi import decode_single
-from eth_utils.hexadecimal import bytesToHex
+#from eth_utils.hexadecimal import bytesToHex
 
 g_common_config = client_config
 
@@ -286,7 +286,7 @@ def print_tx_result(outputresults):
     """
     for result in outputresults:
         if isinstance(result, bytes):
-            print("{}, ".format(bytesToHex(result)))
+            print("{}, ".format(encode_hex(result)))
             continue
         print("reuslt: {}, ".format(result))
 

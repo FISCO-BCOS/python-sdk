@@ -29,8 +29,12 @@ class StatTool:
 
     def done(self):
         self.time_end = time.time()
+        return self.till_now()
+        
+    def till_now(self):
         self.time_used = self.time_end - self.time_begin
-
+        return self.time_used
+    
     def make_statmsg(self, msg):
         if self.time_end == 0:
             self.done()

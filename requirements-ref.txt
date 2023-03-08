@@ -1,6 +1,6 @@
-parsimonious==0.8.1
+parsimonious
 attrdict
-bumpversion<1,>=0.5.3
+bumpversion
 configobj
 cytoolz
 lru-dict

@@ -1,9 +1,8 @@
-pragma solidity ^0.4.24;
-
+pragma solidity ^0.6.10;
 contract SimpleInfo{
     string  name = "";
     uint256 balance = 0;
-	address addr =0x0;
+	address addr = address(0);
 	uint256 counter=0;
 	event on_set(int retcode,string name,uint256 balance,address addr,string memo);
 	event on_change(int retcode,string indexed name,uint256 balance,address indexed addr,string memo);
@@ -16,24 +15,24 @@ contract SimpleInfo{
     {
     }
 
-    function getname() constant public returns(string){
+    function getname() view public returns(string memory){
         return name;
     }
-    function getbalance() constant public returns(uint256){
+    function getbalance() view public returns(uint256){
         return balance;
     }
-    function getbalance1(uint256 plus) constant public returns(uint256){
+    function getbalance1(uint256 plus) view public returns(uint256){
         return (balance+plus);
     }
-	function getaddress() constant public returns(address){
+	function getaddress() view public returns(address){
         return addr;
     }
-	function getall() public constant returns(string ,uint256,address)
+	function getall() public view returns(string memory,uint256,address)
     {
          return (name,balance,addr);
     }
 	
-	function getcounter() constant public returns(uint256){
+	function getcounter() view public returns(uint256){
         return counter;
     }
     function setbalance(uint256 b) public {
@@ -45,7 +44,7 @@ contract SimpleInfo{
         emit on_set_empty("empty set");
     }
 
-    function set(string n,uint256 b,address a) public returns(int){
+    function set(string memory n,uint256 b,address a) public returns(int){
     	name = n;
         balance = b;
 		addr = a;
@@ -62,8 +61,9 @@ contract SimpleInfo{
 	function reset() public returns (int){
 		name="";
 		balance = 0;
-		addr = 0x0;
+		addr = address(0);
 		emit on_reset(-100,name);
 	}
-	 function() public { counter = counter+1; }
+
+    fallback()  external{ counter = counter+1; }
 }

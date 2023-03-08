@@ -1,6 +1,6 @@
 argcomplete==2.0.0
 asyncio==3.4.3
-attrdict==2.0.1
+#attrdict==2.0.1
 attrs==22.2.0
 bump2version==1.0.1
 bumpversion==0.6.0
@@ -14,7 +14,7 @@ ecdsa==0.18.0
 exceptiongroup==1.1.0
 hypothesis==6.68.2
 lru_dict==1.1.8
-parsimonious==0.8.1
+#parsimonious==0.8.1
 promise==2.3
 pyasn1==0.4.8
 pycparser==2.21
