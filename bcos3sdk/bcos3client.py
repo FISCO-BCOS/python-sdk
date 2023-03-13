@@ -377,23 +377,42 @@ class Bcos3Client:
             # deploy with params,need contract_abi and args
             fn_data = get_aligned_function_data(contract_abi, None, args)
             functiondata = bin_data + fn_data[2:]
-
+        blocklimit =self.getBlocklimit()
+        # ------------------------------
+        # 这一段是验证多个api组合实现交易签名的，等效于bcos_sdk_create_signed_transaction,这一段仅留作示例
+        #txdataObj 实际上对应的是(bcostars::TransactionData*)这个结构体的指针，不是一段数据，是不能打印和算hash的
+        # 在cpp sdk里TransactionBuilder::createTransactionData时，会使用genRandomUint256生成nonce
+        # 所以每次调用bcos_sdk_create_transaction_data的数据都是不一样的，txdatahash也是不一样的
+        #------------------------------------
+        # txdataObj = self.bcossdk.bcos_sdk_create_transaction_data(s2b(self.group), s2b(self.chainid),s2b(to_address), s2b(functiondata), s2b(extra_abi),
+        #                                                           blocklimit )
+        # txdatahash  =self.bcossdk.bcos_sdk_calc_transaction_data_hash(0, txdataObj)
+        # signres = self.bcossdk.bcos_sdk_sign_transaction_data_hash(self.keypair,txdatahash)
+        # signedtx = self.bcossdk.bcos_sdk_create_signed_transaction_with_signed_data(txdataObj,signres,txdatahash,0)
+        # print(signedtx)
+        # 最后要调用 bcos_sdk_destroy_transaction_data
+        #------------------------------------------
        
         # if to_address is not None and len(to_address) > 0:
         #    from eth_utils import to_checksum_address
         #    to_address = to_checksum_address(to_address)
         p_txhash = c_char_p(0)
         p_signed_tx = c_char_p(0)
-        
         self.bcossdk.bcos_sdk_create_signed_transaction(self.keypair, s2b(self.group), s2b(self.chainid),
                                                         s2b(to_address), s2b(functiondata), s2b(extra_abi),
-                                                        self.getBlocklimit(), 0,
+                                                        blocklimit, 0,
                                                         p_txhash, p_signed_tx)
-        
+
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
-        self.bcossdk.bcos_rpc_send_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
-                                               p_signed_tx.value, 0, cbfuture.callback, byref(cbfuture.context))
+       
         
+        self.bcossdk.bcos_rpc_send_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
+                                               p_signed_tx.value,
+                                               #signedtx,
+                                               0, cbfuture.callback, byref(cbfuture.context))
+
+        
+
         #must free buffer alloc by bcos_sdk_create_signed_transaction * todo:check memory leak (?)
         self.bcossdk.bcos_sdk_c_free(p_signed_tx)
         self.bcossdk.bcos_sdk_c_free(p_txhash)

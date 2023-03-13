@@ -60,7 +60,7 @@ class CmdBcos3RPC:
     def __init__(self):
         try:
             self.bcos3sdk = Bcos3Client()
-            print(self.bcos3sdk.getinfo())
+            #print(self.bcos3sdk.getinfo())
         except Exception as e:
             import traceback
             traceback.print_exc()

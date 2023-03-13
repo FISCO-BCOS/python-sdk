@@ -62,7 +62,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         print("BCOS3 Deploy start------------->")
         print("user input:",inputparams)
         tx_client = Bcos3Client()
-        print(tx_client.getinfo())
+        #print(tx_client.getinfo())
         if len(inputparams) == 0:
             print(">> Without contractname , try these:")
             sols = list_files(contracts_dir + "/*.sol")
@@ -141,7 +141,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         (contractname,address,fn_name,fn_args) = match_input_params(inputparams,paramtypes)
 
         tx_client = Bcos3Client()
-        print(tx_client.getinfo())
+        #print(tx_client.getinfo())
         if address == "last" or address == "latest":
             address = ContractNote.get_last(tx_client.get_full_name(),contractname)
             if address is None:
@@ -177,7 +177,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         paramtypes = [("contractname",str,None),("address",str,None),("fn_name",str,None),("fn_args",list,[])]
         (contractname,address,fn_name,fn_args) = match_input_params(inputparams,paramtypes)
         tx_client = Bcos3Client()
-        print(tx_client.getinfo())
+        #print(tx_client.getinfo())
         if address == "last" or address == "latest":
             address = ContractNote.get_last(tx_client.get_full_name(),contractname)
             if address is None:

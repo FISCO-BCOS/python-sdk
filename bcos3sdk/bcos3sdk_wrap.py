@@ -469,13 +469,29 @@ class NativeBcos3sdk:
         # bcos_sdk_create_signed_transaction相当于下面几个接口功能的组合，创建交易、交易哈希、交易签名流程需要分开处理时，使用下面几个接口
         
         # 部分不是立刻用到的接口先占位，用到的时候实现
-        # void* bcos_sdk_create_transaction_data(const char* group_id, const char* chain_id, const char* to, const char* data, const char* abi, int64_t block_limit)
         # 创建TransactionData对象
+        # void* bcos_sdk_create_transaction_data(const char* group_id, const char* chain_id, const char* to, const char* data, const char* abi, int64_t block_limit)
+        self.nativelib.bcos_sdk_create_transaction_data.argtypes = [c_char_p,c_char_p,c_char_p,c_char_p,c_char_p,c_long]
+        self.nativelib.bcos_sdk_create_transaction_data.restype = c_void_p
+        self.bcos_sdk_create_transaction_data = self.nativelib.bcos_sdk_create_transaction_data
+        
+        #void  bcos_sdk_destroy_transaction_data(void * transaction_data)
+        self.nativelib.bcos_sdk_destroy_transaction_data.argtypes = [c_void_p]
+        self.bcos_sdk_destroy_transaction_data = self.nativelib.bcos_sdk_destroy_transaction_data
         # const char* bcos_sdk_calc_transaction_data_hash(int crypto_type, void* transaction_data)
+        self.nativelib.bcos_sdk_calc_transaction_data_hash.argtypes = [c_int32,c_void_p]
+        self.nativelib.bcos_sdk_calc_transaction_data_hash.restype = c_char_p
+        self.bcos_sdk_calc_transaction_data_hash = self.nativelib.bcos_sdk_calc_transaction_data_hash
         # 计算TransactionData对象哈希
         # const char* bcos_sdk_sign_transaction_data_hash(void* keypair, const char* transcation_hash)
+        self.nativelib.bcos_sdk_sign_transaction_data_hash.argtypes=[c_void_p,c_char_p]
+        self.nativelib.bcos_sdk_sign_transaction_data_hash.restype=c_char_p
+        self.bcos_sdk_sign_transaction_data_hash = self.nativelib.bcos_sdk_sign_transaction_data_hash
         # 交易哈希签名
         # const char* bcos_sdk_create_signed_transaction_with_signed_data(void* transaction_data, const char* signed_transaction_data, const char* transaction_data_hash, int32_t attribute)
+        self.nativelib.bcos_sdk_create_signed_transaction_with_signed_data.argtypes=[c_void_p,c_char_p,c_char_p,c_int32]
+        self.nativelib.bcos_sdk_create_signed_transaction_with_signed_data.restype = c_char_p
+        self.bcos_sdk_create_signed_transaction_with_signed_data = self.nativelib.bcos_sdk_create_signed_transaction_with_signed_data
         # 创建签名的交易
         
         # ------------------------------------------------------------------------------------------------
