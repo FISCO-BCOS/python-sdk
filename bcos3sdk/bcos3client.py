@@ -71,12 +71,45 @@ class Bcos3Client:
         set_crypto_type(self.config.crypto_type)  # 使其全局生效
         self.blockLimit = 500
         self.group = self.config.bcos3_group
-        self.init_sdk()
+        self.init_clib_sdk()
         self.bcos3sdkconfig = Bcos3SDKConfig(self.config.bcos3_config_file)
+        if client_config.bcos3_check_node_version :
+            try:
+                self.check_node_version()
+            except Exception as e:
+                if client_config.bcos3_when_version_mismatch == "WARN":
+                    print(f"!!! [WARN] CHECK NODE VERSION EXCEPTION(But still continue): {e}  \n")
+                else:
+                    raise  e
+            
         return self
     
+
+    def check_node_version(self):
+        majorVersion = client_config.bcos3_major_version
+        maxMinorVersion = client_config.bcos3_max_miner_version
+        groupInfo = self.getGroupInfo()
+        strInfo = ""
+        version = ""
+        # cyber 202303 by kent
+        for node in groupInfo["nodeList"]:
+            try:
+                strInfo = node["iniConfig"]
+                nodeInfo = json.loads(strInfo)
+                version = nodeInfo["binaryInfo"]["version"]
+                major, minor, patch = version.split(".")
+                if int(major) == majorVersion and int(minor) <= maxMinorVersion:
+                    return True
+                else:
+                    raise Exception(f"Python-sdk is NOT Fully Verified for node version [{version}] yet")
+            except KeyError as e:
+                raise Exception(f"Check node version,Missing field in JSON :{e}. {strInfo}")
+            except ValueError as e:
+                raise Exception(f"Check node version,Invalid version format : {version}",e)
+        return True
+        
     
-    def init_sdk(self):
+    def init_clib_sdk(self):
         self.seq = 0
         self.bcossdk = NativeBcos3sdk()
         self.load_default_account()
@@ -215,6 +248,13 @@ class Bcos3Client:
         self.bcossdk.bcos_rpc_get_peers(self.bcossdk.sdk, cbfuture.callback, byref(cbfuture.context))
         return self.wait_result(cbfuture)
     
+    def getGroupInfo(self):
+        next(self.request_counter)
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
+        self.bcossdk.bcos_rpc_get_group_info(self.bcossdk.sdk,s2b(self.group),cbfuture.callback,
+                                              byref(cbfuture.context));
+        return self.wait_result(cbfuture)
+    
     def getGroupPeers(self):
         next(self.request_counter)
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
@@ -308,7 +348,7 @@ class Bcos3Client:
         
         tick = time.time()
         tickstamp = tick - self.lastblocklimittime
-        if tickstamp < 30:  # get blocklimit every 100sec
+        if tickstamp < 30 and self.blockLimit > 500:  # get blocklimit every 30sec
             return self.blockLimit
         next(self.request_counter)
         new_blockLimit = self.bcossdk.bcos_rpc_get_block_limit(self.bcossdk.sdk, s2b(self.group))
@@ -405,7 +445,6 @@ class Bcos3Client:
 
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
        
-        
         self.bcossdk.bcos_rpc_send_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                p_signed_tx.value,
                                                #signedtx,

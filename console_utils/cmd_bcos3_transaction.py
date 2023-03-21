@@ -19,6 +19,7 @@ import sys
 import traceback
 
 from bcos3sdk.bcos3client import Bcos3Client
+from bcos3sdk.transaction_status import TransactionStatus
 from client.bcoserror import BcosException
 from client.common import common
 from client.common.compiler import Compiler
@@ -197,7 +198,10 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             result = tx_client.sendRawTransaction(address, abiparser.contract_abi, fn_name, args)
             # 解析receipt里的log 和 相关的tx ,output
             print(f"Transaction result >> \n{result}")
-            print(f"Transaction Status >> {result['status']}")
+            status =result['status']
+            print(f"Transaction Status >> {status}")
+            if not TransactionStatus.isOK(status):
+                print("! transaction ERROR",TransactionStatus.get_error_message(status))
             output = result['output']
             output = abiparser.parse_output(fn_name, output)
             print(f"Transaction Output >> {output}")

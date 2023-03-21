@@ -1,6 +1,7 @@
 import ctypes
 import json
 import queue
+import struct
 from ctypes import *
 #----------------------------
 # C语言sdk文档：https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/index.html
@@ -70,11 +71,34 @@ class BcosResponse(Structure):
         c = ctypes.cast(self.context, POINTER(BcosReqContext))
         return c.contents
 
+# cyber2023.3 by kent
+def s2b(data):
+    """
+    将Python数据类型转换为bytes类型
+    :param data: 需要转换的数据
+    :return: 转换后的bytes类型数据
+    """
+    """
+    将Python数据类型转换为bytes类型
+    :param data: 需要转换的数据
+    :return: 转换后的bytes类型数据
+    """
+    if isinstance(data, str):
+        return data.encode('utf-8')
+    elif isinstance(data, int):
+        return data.to_bytes(4, byteorder='big')
+    elif isinstance(data, float):
+        return struct.pack('f', data)
+    elif isinstance(data, bool):
+        return int(data).to_bytes(1, byteorder='big')
+    elif data is None:
+        return b''
+    elif isinstance(data, bytes):
+        return data
+    else:
+        raise TypeError(f"不支持的数据类型转换为bytes类型，方法名：{s2b.__name__}，输入参数类型：{type(data)}")
 
-def s2b(input):
-    if type(input) is str:
-        return bytes(input, "UTF-8")
-    return input
+
 
 
 def b2s(input):
@@ -257,7 +281,10 @@ class NativeBcos3sdk:
         self.nativelib.bcos_rpc_get_block_limit.argtypes = [c_void_p, c_char_p]
         self.nativelib.bcos_rpc_get_block_limit.restype = c_long
         self.bcos_rpc_get_block_limit = self.nativelib.bcos_rpc_get_block_limit
-        
+
+
+
+  
         # void bcos_rpc_get_block_number(void* sdk, const char* group, const char* node,bcos_sdk_c_struct_response_cb callback, void* context)
         self.nativelib.bcos_rpc_get_block_number.argtypes = [
             c_void_p, c_char_p, c_char_p, BCOS_CALLBACK_FUNC, c_void_p]
