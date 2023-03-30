@@ -1,5 +1,8 @@
 import os
 
+from bcos3sdk.bcos3callbackfuture import BcosCallbackFuture
+from bcos3sdk.bcos3datadef import s2b
+
 print("CWD:", os.getcwd())
 import sys
 
@@ -12,8 +15,8 @@ from client.datatype_parser import DatatypeParser
 import json
 from ctypes import *
 import time
-from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk, BCOS_CALLBACK_FUNC, BcosReqContext, BcosCallbackFuture, \
-    BCOS_AMOP_SUB_CALLBACK_FUNC, s2b
+from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk, BCOS_CALLBACK_FUNC, BcosReqContext,  \
+    BCOS_AMOP_SUB_CALLBACK_FUNC
 
 ##---------------------------------------------------------
 ##以下为测试代码

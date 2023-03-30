@@ -19,12 +19,15 @@ import itertools
 import json
 import sys
 import time
-from ctypes import byref, c_char_p
+from ctypes import byref, c_char_p, POINTER, c_void_p, c_int
 
+from bcos3sdk.bcos3callbackfuture import BcosCallbackFuture
+from bcos3sdk.bcos3datadef import *
 from bcos3sdk.bcos3sdkconfig import Bcos3SDKConfig
+from client.datatype_parser import DatatypeParser
 from client_config import client_config
-from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk, BcosCallbackFuture, \
-    s2b, b2s
+from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk,  \
+    BCOS_AMOP_SUB_CALLBACK_FUNC,  BCOS_AMOP_PUBLISH_CALLBACK_FUNC
 from client import clientlogger
 from client.bcoserror import BcosException
 from client.common import common
@@ -126,6 +129,20 @@ class Bcos3Client:
         self.chainid = self.bcossdk.bcos_sdk_get_group_chain_id(self.bcossdk.sdk, s2b(self.group))
         return 0
     
+    def get_last_errormsg(self):
+        res = self.bcossdk.bcos_sdk_get_last_error_msg()
+        return b2s(res)
+    
+    
+    def get_last_error(self):
+        res= self.bcossdk.bcos_sdk_get_last_error()
+        return res
+
+    def get_last_error_full(self):
+        ret = self.get_last_error()
+        msg = self.get_last_errormsg()
+        return (ret,msg)
+    
     # load the account from keyfile
     def load_default_account(self):
         if self.default_from_account_signer is not None:
@@ -174,20 +191,26 @@ class Bcos3Client:
         return info
     
     def wait_result(self, future: BcosCallbackFuture):
-        if future.wait().is_timeout:
+        (is_timeout, response) = future.wait()
+        if is_timeout:
             raise BcosException(f"bcos sdk timeout {future.context.msg}")
         # print(f"response context(callback): {future.context_callback.detail()}")
-        return self.get_result(future.data)
+        return self.get_result(response.data)
     
     def get_result(self, response_data):
         # print(f"data is {response_data}")
         if response_data is None or len(response_data) == 0:
-            raise BcosException(f"Response error: {response_data}")
-        response = json.loads(response_data)
+            raise BcosException(f"Response error: {[response_data]}")
+        try:
+            #处理可能不是json的情况
+            response = json.loads(response_data)
+        except Exception as e:
+            return response_data
         if "error" in response:
             raise BcosException(response_data)
         if "result" not in response:
             raise BcosException(response_data)
+
         # print(f"response :{response}")
         result = response["result"]
         if type(result) is str:
@@ -483,3 +506,70 @@ class Bcos3Client:
             
         result = self.deploy(contractbin, contract_abi, fn_args)
         return result
+
+
+    def event_subscribe(self,address,event_name="",contract_abi="",topics=[],fromBlock=-1,toBlock=-1):
+        event_param = dict()
+        event_param["fromBlock"] = fromBlock # -1 表示最新
+        event_param["toBlock"] = toBlock  # -1表示最新
+        event_param["address"] = [address]  # sample helloWorld address
+        if topics is not None and len(topics)>0:
+            event_param["topics"] = topics
+        else:
+            #根据event_name获取topics，一般采用这种方法
+            parser = DatatypeParser()
+            parser.set_abi(contract_abi)
+            eventtopic = parser.topic_from_event_name(event_name)
+            event_param["topics"]=[eventtopic]
+
+        event_param_json = json.dumps(event_param)
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
+        subid = self.bcossdk.bcos_event_sub_subscribe_event(self.bcossdk.sdk, s2b(self.group), s2b(event_param_json), cbfuture.callback,
+                                                   byref(cbfuture.context))
+        return (subid,cbfuture)
+    
+    def event_unsubscribe(self,subid):
+        self.bcossdk.bcos_event_sub_unsubscribe_event(subid)
+
+
+    def amop_subscribe(self,topiclist):
+        ctopiclist = strarr2ctypes(topiclist)
+        self.bcossdk.bcos_amop_subscribe_topic(self.bcossdk.sdk, ctopiclist, len(ctopiclist))
+        
+    def amop_set_subscribe_topic_cb(self,cbfunc,context_):
+        context = 0
+        if context_ is not None and context_ != 0:
+            context =byref(context_)
+        self.bcossdk.bcos_amop_set_subscribe_topic_cb(self.bcossdk.sdk,(BCOS_AMOP_SUB_CALLBACK_FUNC)(cbfunc),
+                                         context)
+        
+        
+    callback = None
+    def amop_subscribe_with_cb(self,topic):
+    
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
+
+        #self.callback = BCOS_AMOP_SUB_CALLBACK_FUNC(cbfuture.amop_callback)
+        self.bcossdk.bcos_amop_subscribe_topic_with_cb(self.bcossdk.sdk,s2b(topic),
+                                                       cbfuture.amop_callback,
+                                                       byref(cbfuture.context))
+        return cbfuture
+    
+    def amop_publish(self,topic,data,future=None,timeout_=10000):
+        if future ==None:
+            future = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
+        cbfunc =future.amop_publish_callback
+        #print("publish callback: ",cbfunc)
+        self.bcossdk.bcos_amop_publish(self.bcossdk.sdk, s2b(topic),
+                                       (s2b(data)), len(data),
+                                       (c_int)(timeout_),
+                                       cbfunc,
+                                       byref(future.context)
+                                       )
+        return future
+    
+    def amop_broadcast(self,topic,data=None):
+        self.bcossdk.bcos_amop_broadcast(self.bcossdk.sdk,s2b(topic),s2b(data),len(data))
+        
+    def amop_send_response(self,peer,seq,data):
+        self.bcossdk.bcos_amop_send_response(self.bcossdk.sdk,s2b(peer),s2b(seq),s2b(data),len(data))

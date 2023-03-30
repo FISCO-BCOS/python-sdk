@@ -53,8 +53,8 @@ try:
     print("getinfo", json.dumps(res, indent=4))
     print("\n>>---------------------------------------------------------------------")
     try:
-        res = client.getBlockNumber()
-        print("getBlockNumber", json.dumps(res, indent=4))
+        blocknum = client.getBlockNumber()
+        print("getBlockNumber", json.dumps(blocknum, indent=4))
     except BcosError as e:
         print("bcos client error,", e.info())
     print("\n>>---------------------------------------------------------------------")
@@ -62,7 +62,10 @@ try:
     print("\n>>---------------------------------------------------------------------")
     print("getBlockByNumber", json.dumps(client.getBlockByNumber(1)))
     print("\n>>---------------------------------------------------------------------")
-    blockhash = client.getBlockHashByNumber(1)
+    blockn = 0
+    if blocknum >= 0:
+        blockn = blocknum -1
+    blockhash = client.getBlockHashByNumber(blockn)
     print("getBlockHashByNumber", blockhash)
     print("\n>>---------------------------------------------------------------------")
     block = client.getBlockByHash(blockhash)

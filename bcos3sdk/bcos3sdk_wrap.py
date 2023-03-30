@@ -3,6 +3,9 @@ import json
 import queue
 import struct
 from ctypes import *
+
+from bcos3sdk.bcos3datadef import BcosReqContext, BcosResponseCType, BCOS_CALLBACK_FUNC, BCOS_AMOP_SUB_CALLBACK_FUNC, \
+    BCOS_AMOP_PUBLISH_CALLBACK_FUNC
 #----------------------------
 # C语言sdk文档：https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/index.html
 # C语言SDK接口:https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/api.html
@@ -12,178 +15,6 @@ from ctypes import *
 
 # 自定义回调上下文结构体，可以在里面再塞一些有需要的上下文内容
 from client.local_lib_helper import LocalLibHelper
-
-class BcosReqContext(Structure):
-    _fields_ = [('seq', c_int),
-                ('name', c_char_p),
-                ('msg', c_char_p),
-                ]
-    
-    def __init__(self, s, n, m):
-        self.seq = s
-        self.name = n.encode("utf-8")
-        self.msg = m.encode("utf-8")
-    
-    def detail(self):
-        s = f"seq:{self.seq},name:{self.name},msg:{self.msg}";
-        return s
-
-
-'''
-//c语言定义的返回结构体
-struct bcos_sdk_c_struct_response
-{
-    int error;   // 返回状态, 0成功, 其他失败
-    char* desc;  // 失败时描述错误信息
-    void* data;   // 返回数据, error=0 时有效
-    size_t size;  // 返回数据大小, error=0 时有效
-    void* context;  // 回调上下文,调用接口时传入的`context`参数
-};
-'''
-
-
-# bcos sdk返回结构体
-class BcosResponse(Structure):
-    _fields_ = [('error', c_int),
-                ('desc', c_char_p),
-                ('data', c_void_p),
-                ('size', c_size_t),
-                ('context', c_void_p),
-                ]
-    
-    def get_data_str(self):
-        pool = create_string_buffer(self.size)
-        memmove(pool, self.data, self.size)
-        return str(pool, "utf-8")
-    
-    def get_desc(self):
-        if self.desc is None:
-            return ""
-        return str(self.desc, "utf-8")
-    
-    def get_size(self):
-        return self.size
-    
-    def get_error(self):
-        return self.error
-    
-    def get_context(self):
-        c = ctypes.cast(self.context, POINTER(BcosReqContext))
-        return c.contents
-
-# cyber2023.3 by kent
-def s2b(data):
-    """
-    将Python数据类型转换为bytes类型
-    :param data: 需要转换的数据
-    :return: 转换后的bytes类型数据
-    """
-    """
-    将Python数据类型转换为bytes类型
-    :param data: 需要转换的数据
-    :return: 转换后的bytes类型数据
-    """
-    if isinstance(data, str):
-        return data.encode('utf-8')
-    elif isinstance(data, int):
-        return data.to_bytes(4, byteorder='big')
-    elif isinstance(data, float):
-        return struct.pack('f', data)
-    elif isinstance(data, bool):
-        return int(data).to_bytes(1, byteorder='big')
-    elif data is None:
-        return b''
-    elif isinstance(data, bytes):
-        return data
-    else:
-        raise TypeError(f"不支持的数据类型转换为bytes类型，方法名：{s2b.__name__}，输入参数类型：{type(data)}")
-
-
-
-
-def b2s(input):
-    if type(input) is bytes:
-        return str(input, "UTF-8")
-    return input
-
-
-G_SEQ = 0
-
-
-# 模拟一个Future对象，用于接收回调，提供一个wait方法，把异步变成同步
-# 采用queue来模拟wait，原因是一个future里有可能多次被回调,回调的消息put到queue里，应用端可以用wait方法依次将消息pop出来
-# 注意，在此版本里，建议对bcossdk的一次接口调用，就用一个单独的CallbackFuture,不要混用
-# 否则sdk并发时，回调的消息会复用callback入口,导致返回的消息不对应刚才发送的req,或者需要用消息唯一序列号来对应是哪个请求包
-# 所以，一次调用一个future，基本能保证返回的消息，对应的是发送的消息，代码读起来也比较简单
-#todo: 可以扩展一些特性，比如，收到sdk回调后，立刻再递归回调应用层设置的callback，
-# 在event监听场景比较有意义，目前先统一用wait，参见tests/testbcos3event.py
-
-class BcosCallbackFuture:
-    queue = queue.Queue(100)
-    context: BcosReqContext = None
-    is_timeout: False
-    
-    def __init__(self, context_name=None, context_msg=None):
-        self.data = ""
-        self.error = 0
-        self.desc = ""
-        if context_name is not None or context_msg is not None:
-            self.context = BcosReqContext(self.next_seq(), context_name, context_msg)
-            # print(self.context.detail())
-        self.callback = BCOS_CALLBACK_FUNC(self.bcos_callback)
-    
-    def next_seq(self, inc=1):
-        global G_SEQ
-        G_SEQ = G_SEQ + inc
-        return G_SEQ
-    
-    def bcos_callback(self, resp):
-        #print("bcos_callback-->",resp)
-        self.size = resp.contents.get_size()
-        pool = create_string_buffer(resp.contents.size)
-        memmove(pool, resp.contents.data, resp.contents.size)
-        self.data = str(pool, "utf-8")
-        self.error = resp.contents.get_error()
-        self.desc = resp.contents.get_desc()
-        self.context_callback = resp.contents.get_context()
-        # print(f"context_callback {self.context_callback.detail()}")
-        self.queue.put_nowait(1)
-        #print(f"--->QSIZE::{self.queue.qsize()}------<<<<",)
-    
-    def wait(self, timeout=5):
-        try:
-            self.is_timeout = False
-            self.queue.get(True, timeout)
-        except:
-            self.is_timeout = True
-            pass
-        return self
-    
-    def display(self):
-        if not hasattr(self, 'data'):
-            print("empty")
-            return
-        # print("datastr:",datastr)
-        if len(self.data) > 0:
-            j = json.loads(self.data)
-            print(json.dumps(j, indent=4))
-        else:
-            print(">> data is empty", )
-        print(">> datasize:  ", self.size)
-        print(">> error: ", self.error)
-        print(">> desc:  ", self.desc)
-        c = self.context_callback
-        if c is not None:
-            print(">> context:({}),{},[{}]".format(c.seq, str(c.name, "utf-8"), str(c.msg, "utf-8")))
-
-
-# bcos sdk回调函数定义
-# typedef void (*bcos_sdk_c_struct_response_cb)(struct bcos_sdk_c_struct_response* resp)
-BCOS_CALLBACK_FUNC = CFUNCTYPE(None, POINTER(BcosResponse))
-
-# typedef void (*bcos_sdk_c_amop_subscribe_cb)(
-# const char* endpoint, const char* seq, struct bcos_sdk_c_struct_response* resp);
-BCOS_AMOP_SUB_CALLBACK_FUNC = CFUNCTYPE(None, c_char_p, c_char_p, POINTER(BcosResponse))
 
 
 # 用dl load的方式封装接口，在windows、linux平台实测通过
@@ -392,14 +223,13 @@ class NativeBcos3sdk:
         self.nativelib.bcos_amop_set_subscribe_topic_cb.argtypes = [c_void_p, BCOS_AMOP_SUB_CALLBACK_FUNC,
                                                                     c_void_p]
         self.bcos_amop_set_subscribe_topic_cb = self.nativelib.bcos_amop_set_subscribe_topic_cb
-        
         # void bcos_amop_unsubscribe_topic(void* sdk, char** topics, size_t count)
         self.nativelib.bcos_amop_unsubscribe_topic.argtypes = [c_void_p, POINTER(c_char_p), c_long]
         self.bcos_amop_unsubscribe_topic = self.nativelib.bcos_amop_unsubscribe_topic
         
         # void bcos_amop_publish(void* sdk, const char* topic, void* data, size_t size, uint32_t timeout,bcos_sdk_c_amop_publish_cb cb, void* context)
         self.nativelib.bcos_amop_publish.argtypes = [
-            c_void_p, c_char_p, c_long, c_int, BCOS_AMOP_SUB_CALLBACK_FUNC, c_void_p]
+            c_void_p, c_char_p, c_void_p, c_int,c_long, BCOS_AMOP_PUBLISH_CALLBACK_FUNC, c_void_p]
         self.bcos_amop_publish = self.nativelib.bcos_amop_publish
         
         # void bcos_amop_broadcast(void* sdk, const char* topic, void* data, size_t size)
@@ -577,3 +407,5 @@ class NativeBcos3sdk:
         # 根据event名解析event参数
         # const char* bcos_sdk_abi_decode_event_by_topic(const char* abi, const char* topic, const char* data, int crypto_type)
         # 根据topic解析event参数
+
+

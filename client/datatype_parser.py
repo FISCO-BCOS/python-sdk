@@ -44,9 +44,11 @@ class DatatypeParser:
         if abi_file is not None:
             self.load_abi_file(abi_file)
 
+    
     def from_text(self, abitext):
         self.contract_abi = json.loads(abitext)
         self.parse_abi()
+        return self
 
     def set_abi(self, abi):
         self.contract_abi = abi

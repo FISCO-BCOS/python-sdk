@@ -12,3 +12,4 @@ for log in logresult:
         i = i + 1
         print("{}): log name: {} , data: {}".format(i, log['eventname'], log['eventdata']))
 print(cli.get())
+

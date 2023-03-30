@@ -2,6 +2,9 @@ import ctypes
 import datetime
 import sys
 import os
+
+from bcos3sdk.bcos3callbackfuture import BcosCallbackFuture
+
 # sys.path.append("../")
 
 print("CWD: ",os.getcwd())
@@ -10,7 +13,7 @@ import json
 from ctypes import *
 import time
 from client.datatype_parser import DatatypeParser
-from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk, BCOS_CALLBACK_FUNC, BcosReqContext, BcosCallbackFuture
+from bcos3sdk.bcos3sdk_wrap import NativeBcos3sdk, BCOS_CALLBACK_FUNC, BcosReqContext
 
 ##---------------------------------------------------------
 ##以下为测试代码
