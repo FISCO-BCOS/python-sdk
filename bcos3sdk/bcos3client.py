@@ -573,3 +573,4 @@ class Bcos3Client:
         
     def amop_send_response(self,peer,seq,data):
         self.bcossdk.bcos_amop_send_response(self.bcossdk.sdk,s2b(peer),s2b(seq),s2b(data),len(data))
+        
