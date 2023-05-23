@@ -380,14 +380,17 @@ class Bcos3Client:
         self.lastblocklimittime = time.time()
         return self.blockLimit
     
-    def call(self, to_address, contract_abi, fn_name, args=None):
+    def call(self, to_address, contract_abi, fn_name,args=None,raw_func_data=None):
         next(self.request_counter)
         cmd = "call"
         if to_address != "":
             common.check_and_format_address(to_address)
         
         self.load_default_account()
-        functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
+        if raw_func_data is None:
+            functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
+        else:
+            functiondata = raw_func_data
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
         self.bcossdk.bcos_rpc_call(self.bcossdk.sdk, s2b(self.group), s2b(self.node), s2b(to_address),
                                    s2b(functiondata),
@@ -401,7 +404,7 @@ class Bcos3Client:
                 raise BcosException(
                     "call error, status:{},error message: {}".format(status, error_message))
 
-        if "output" in response.keys():
+        if "output" in response.keys() and contract_abi is not None and fn_name is not None:
             outputdata = response["output"]
             # 取得方法的abi，签名，参数 和返回类型，进行call返回值的解析
             fn_abi, fn_selector, fn_arguments = get_function_info(
@@ -422,24 +425,31 @@ class Bcos3Client:
     '''
         可用于所有已知abi的合约，传入abi定义，方法名，正确的参数列表，即可发送交易。交易由BcosClient里加载的账号进行签名。
     '''
+    def sendRawTransactionData(self,  raw_tx_data):
+        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
+        self.bcossdk.bcos_rpc_send_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
+                                               s2b(raw_tx_data),
+                                               0, cbfuture.callback, byref(cbfuture.context))
+        result = self.wait_result(cbfuture)
+        return result
     
     def sendRawTransaction(self, to_address, contract_abi, fn_name, args=None,
-                           bin_data=None, extra_abi=None):
+                           function_bin_data=None, raw_tx_data=None,extra_abi=None):
         next(self.request_counter)
         if to_address is None:
             to_address = ""
         if to_address != "":
             common.check_and_format_address(to_address)
         # 第三个参数是方法的abi，可以传入None，encode_transaction_data做了修改，支持通过方法+参数在整个abi里找到对应的方法abi来编码
-        if bin_data is None:
+        if function_bin_data is None:
             functiondata = encode_transaction_data(fn_name, contract_abi, None, args)
         # the args is None
         elif args is None:
-            functiondata = bin_data
+            functiondata = function_bin_data
         else:
             # deploy with params,need contract_abi and args
             fn_data = get_aligned_function_data(contract_abi, None, args)
-            functiondata = bin_data + fn_data[2:]
+            functiondata = function_bin_data + fn_data[2:]
         blocklimit =self.getBlocklimit()
         # ------------------------------
         # 这一段是验证多个api组合实现交易签名的，等效于bcos_sdk_create_signed_transaction,这一段仅留作示例
@@ -466,24 +476,16 @@ class Bcos3Client:
                                                         blocklimit, 0,
                                                         p_txhash, p_signed_tx)
 
-        cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
-       
-        self.bcossdk.bcos_rpc_send_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
-                                               p_signed_tx.value,
-                                               #signedtx,
-                                               0, cbfuture.callback, byref(cbfuture.context))
-
-        
-
+        result = self.sendRawTransactionData(p_signed_tx.value);
         #must free buffer alloc by bcos_sdk_create_signed_transaction * todo:check memory leak (?)
         self.bcossdk.bcos_sdk_c_free(p_signed_tx)
         self.bcossdk.bcos_sdk_c_free(p_txhash)
-        result = self.wait_result(cbfuture)
+        
         return result
     
     def deploy(self, contractbin, contract_abi=None, fn_args=None):
         return self.sendRawTransaction(to_address="",
-                                       bin_data=contractbin,
+                                       function_bin_data=contractbin,
                                        contract_abi=contract_abi,
                                        fn_name=None,
                                        args=None,

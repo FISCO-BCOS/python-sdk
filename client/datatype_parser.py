@@ -46,6 +46,8 @@ class DatatypeParser:
 
     
     def from_text(self, abitext):
+        if abitext is None or len(abitext)==0   :
+            return
         self.contract_abi = json.loads(abitext)
         self.parse_abi()
         return self
@@ -115,16 +117,25 @@ class DatatypeParser:
             log["eventname"] = eventabi["name"]
         return logs
 
-    # 用于transaction，用于查询交易后解析input数据（方法+参数）
-    # 返回 result['name'] result['args']
-    def parse_transaction_input(self, inputdata):
-        selector = inputdata[0:10]
-        argsdata = inputdata[10:]
-        # print(selector)
-        # print(self.func_abi_map_by_selector.keys())
+    def get_func_abi_by_selector(self,inputdata:str):
+        if inputdata.startswith("0x"):
+            selector = inputdata[0:10]
+        else:
+            selector = inputdata[0:8]
         if selector not in self.func_abi_map_by_selector:
             return None
         func_abi = self.func_abi_map_by_selector[selector]
+        return func_abi
+    
+    # 用于transaction，用于查询交易后解析input数据（方法+参数）
+    # 返回 result['name'] result['args']
+    def parse_transaction_input(self, inputdata):
+        if inputdata.startswith("0x"):
+            argsdata = inputdata[10:]
+        else:
+            argsdata = inputdata[8:]
+        # print(selector)
+        func_abi = self.get_func_abi_by_selector(inputdata)
         # print(func_abi)
         args_abi = get_fn_abi_types_single(func_abi, "inputs")
         args = decode_single(args_abi, decode_hex(argsdata))

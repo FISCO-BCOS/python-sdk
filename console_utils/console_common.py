@@ -86,9 +86,9 @@ def console_run(obj, cmd, inputparams):
     if func is not None and callable(func):
         sig = signature(func)
         if len(sig.parameters) ==0:
-            func()
+            return func()
         else:
-            func(inputparams)
+            return func(inputparams)
         return 0, ''
     else:
         return try_usage(obj)

@@ -24,7 +24,7 @@ logger.setLevel(level=logging.DEBUG)
 logdir = log_config.logdir
 logfile = logdir + "/client.log"
 if os.path.exists(logdir) is False:
-    os.mkdir(logdir)
+    os.makedirs(logdir)
 # handler = logging.FileHandler(logfile)
 handler = logging.handlers.TimedRotatingFileHandler(logfile, 'D', 1, 0)  # 切割日志
 handler.suffix = '%Y%m%d'  # 切割后的日志设置后缀

@@ -146,7 +146,7 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
         if address == "last" or address == "latest":
             address = ContractNote.get_last(tx_client.get_full_name(),contractname)
             if address is None:
-                sys.exit(
+                raise  Exception(
                     "can not get last address for [{}],break;".format(contractname)
                 )
 
