@@ -396,7 +396,7 @@ class Bcos3Client:
                                    s2b(functiondata),
                                    cbfuture.callback, byref(cbfuture.context))
         response = self.wait_result(cbfuture)
-        
+        # print(f"in call response is {response},cbfuture context {cbfuture.context.detail()}")
         if "status" in response.keys():
             status = response["status"]
             error_message = transaction_status_code.TransactionStatusCode.get_error_message(status)
@@ -427,6 +427,7 @@ class Bcos3Client:
     '''
     def sendRawTransactionData(self,  raw_tx_data):
         cbfuture = BcosCallbackFuture(sys._getframe().f_code.co_name, "")
+        
         self.bcossdk.bcos_rpc_send_transaction(self.bcossdk.sdk, s2b(self.group), s2b(self.node),
                                                s2b(raw_tx_data),
                                                0, cbfuture.callback, byref(cbfuture.context))

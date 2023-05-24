@@ -15,16 +15,17 @@ G_SEQ = 0
 # 在event监听场景比较有意义，目前先统一用wait，参见tests/testbcos3event.py
 
 class BcosCallbackFuture:
-    response_queue = queue.Queue(100)
+    response_queue = None
     context: BcosReqContext = None
  
     
     def __init__(self, context_name=None, context_msg=None):
-
+        self.response_queue = queue.Queue(100)
         if context_name is not None or context_msg is not None:
             self.context = BcosReqContext(self.next_seq(), context_name, context_msg)
         
         self.callback = BCOS_CALLBACK_FUNC(self.bcos_callback)
+        # print(f"when INIT {context_name}:{self.callback}:Queue:{self.response_queue}{self.context.detail()}")
         self.amop_callback = BCOS_AMOP_SUB_CALLBACK_FUNC(self.bcos_amop_callback)
         self.amop_publish_callback = BCOS_AMOP_PUBLISH_CALLBACK_FUNC(self.bcos_amop_publish_callback)
     
@@ -41,7 +42,9 @@ class BcosCallbackFuture:
             return
         # print("bcos_callback-->",resp)
         resp = BcosResponse(c_resp)
-        # print(f"context_callback {self.context_callback.detail()}")
+        
+        #if(resp.context is not None):
+        #    print(f"when CALLBACK : {self.context.name},self seq:{self.context.seq}, response seq {resp.context.detail()}")
         self.response_queue.put_nowait(resp)
         # print(f"--->QSIZE::{self.queue.qsize()}------<<<<",)
     

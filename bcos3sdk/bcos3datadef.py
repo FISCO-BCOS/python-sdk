@@ -53,12 +53,12 @@ class BcosResponse:
             self.desc = b2s(c_resp.contents.desc)
         else:
             self.desc = ""
-        self.context_callback = c_resp.contents.get_context()
+        self.context = c_resp.contents.get_context()
         return self
     
     def detail(self):
         str = f"error:{self.error},size:{self.size},data:{self.data},desc:{self.desc}."
-        c = self.context_callback
+        c = self.context
         if c is not None:
             str = str + (" | context:({}),{},[{}]".format(c.seq, b2s(c.name), b2s(c.msg)))
         return str

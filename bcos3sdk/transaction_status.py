@@ -81,7 +81,7 @@ class TransactionStatus:
     def convert_error_code(error_code):
         if isinstance(error_code, int):
             error_code = str(error_code)
-        return TransactionStatus.get_error_message(error_code)
+        return error_code
     
     @staticmethod
     def isOK(input):
