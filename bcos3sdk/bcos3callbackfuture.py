@@ -20,7 +20,7 @@ class BcosCallbackFuture:
  
     
     def __init__(self, context_name=None, context_msg=None):
-        self.response_queue = queue.Queue(100)
+        self.response_queue = queue.Queue(1)
         if context_name is not None or context_msg is not None:
             self.context = BcosReqContext(self.next_seq(), context_name, context_msg)
         
@@ -40,7 +40,8 @@ class BcosCallbackFuture:
     def bcos_callback(self, c_resp):
         if c_resp is None:
             return
-        # print("bcos_callback-->",resp)
+        # print("bcos_callback-->",c_resp)
+        
         resp = BcosResponse(c_resp)
         
         #if(resp.context is not None):

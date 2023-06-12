@@ -44,16 +44,22 @@ class BcosResponse:
     def extract_response(self, c_resp):
         if c_resp == None:
             return
+        #print("1)extract_response:",c_resp.contents.get_size())
         self.size = c_resp.contents.get_size()
         pool = create_string_buffer(c_resp.contents.size)
         memmove(pool, c_resp.contents.data, c_resp.contents.size)
+        #print("2)after memmove:",pool)
         self.data = b2s(pool.value)
+        #print("2-1)data:", self.data)
         self.error = c_resp.contents.get_error()
+        #print("3)error:", self.error)
         if self.error != 0:
             self.desc = b2s(c_resp.contents.desc)
         else:
             self.desc = ""
+        #print("4)desc:", self.desc)
         self.context = c_resp.contents.get_context()
+        #print("5)context:", self.context)
         return self
     
     def detail(self):

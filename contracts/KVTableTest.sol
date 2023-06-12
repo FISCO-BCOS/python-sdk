@@ -1,48 +1,49 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity >=0.6.10 <0.8.20;
+pragma experimental ABIEncoderV2;
+
 import "./Table.sol";
 
 contract KVTableTest {
-    event SetResult(int256 count);
 
-    KVTableFactory tableFactory;
-    string constant TABLE_NAME = "t_kvtest";
+    TableManager tm;
+    KVTable table;
+    string constant tableName = "t_kv_test";
+    event SetEvent(int256 count);
+    constructor () public{
+        tm = TableManager(address(0x1002));
 
-    constructor() public {
-        //The fixed address is 0x1010 for KVTableFactory
-        tableFactory = KVTableFactory(0x1010);
-        // the parameters of createTable are tableName,keyField,"vlaueFiled1,vlaueFiled2,vlaueFiled3,..."
-        tableFactory.createTable(TABLE_NAME, "id", "item_price,item_name");
+        // create table
+        tm.createKVTable(tableName, "id", "item_name");
+
+        // get table address
+        address t_address = tm.openTable(tableName);
+        table = KVTable(t_address);
     }
 
-    //get record
-    function get(string id) public view returns (bool, int256, string) {
-        KVTable table = tableFactory.openTable(TABLE_NAME);
+    function desc() public view returns(string memory, string memory){
+        TableInfo memory tf = tm.desc(tableName);
+        return (tf.keyColumn, tf.valueColumns[0]);
+    }
+
+    function get(string memory id) public view returns (bool, string memory) {
         bool ok = false;
-        Entry entry;
-        (ok, entry) = table.get(id);
-        int256 item_price;
-        string memory item_name;
-        if (ok) {
-            item_price = entry.getInt("item_price");
-            item_name = entry.getString("item_name");
-        }
-        return (ok, item_price, item_name);
+        string memory value;
+        (ok, value) = table.get(id);
+        return (ok, value);
     }
 
-    //set record
-    function set(string id, int256 item_price, string item_name)
-        public
-        returns (int256)
+    function set(string memory id, string memory item_name)
+    public
+    returns (int32)
     {
-        KVTable table = tableFactory.openTable(TABLE_NAME);
-        Entry entry = table.newEntry();
-        // the length of entry's field value should < 16MB
-        entry.set("id", id);
-        entry.set("item_price", item_price);
-        entry.set("item_name", item_name);
-        // the first parameter length of set should <= 255B
-        int256 count = table.set(id, entry);
-        emit SetResult(count);
-        return count;
+        int32 result = table.set(id,item_name);
+        emit SetEvent(result);
+        return result;
+    }
+
+    function createKVTableTest(string memory _tableName,string memory keyName,string memory fieldName) public returns(int32){
+        int32 result = tm.createKVTable(_tableName, keyName, fieldName);
+        return result;
     }
 }
