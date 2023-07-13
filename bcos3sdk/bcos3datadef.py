@@ -2,6 +2,9 @@ import ctypes
 import struct
 from ctypes import Structure, c_int, c_char_p, create_string_buffer, memmove, c_void_p, c_size_t
 
+from eth_utils import encode_hex
+
+
 class BcosReqContext(Structure):
     _fields_ = [('seq', c_int),
                 ('name', c_char_p),
@@ -59,7 +62,7 @@ class BcosResponse:
             self.desc = ""
         #print("4)desc:", self.desc)
         self.context = c_resp.contents.get_context()
-        #print("5)context:", self.context)
+        # print("5)context:", self.context)
         return self
     
     def detail(self):
@@ -69,6 +72,82 @@ class BcosResponse:
             str = str + (" | context:({}),{},[{}]".format(c.seq, b2s(c.name), b2s(c.msg)))
         return str
 
+'''
+struct bcos_sdk_c_bytes
+{
+    uint8_t* buffer;
+    uint32_t length;
+};
+'''
+class BcosBytesCType(Structure):
+    _fields_ = [('buffer', ctypes.POINTER(c_char_p)),
+                ('length',c_int)
+                ]
+    def get_input(self):
+       buffer =  getbuffer(self.buffer,self.length)
+       return buffer.raw
+    def get_input_hex(self):
+        raw = self.get_input()
+        hexstr = encode_hex(raw);
+        return hexstr
+    
+'''
+struct bcos_sdk_c_transaction_data
+{
+    int32_t version;
+    int64_t block_limit;
+    char* chain_id;
+    char* group_id;
+    char* nonce;
+    char* to;
+    char* abi;
+    struct bcos_sdk_c_bytes* input;
+};
+'''
+class BcosTransactionDataCType(Structure):
+    _fields_ = [('version', c_int),
+                ('block_limit', ctypes.c_int64),
+                ('chain_id', c_char_p),
+                ('group_id', c_char_p),
+                ('nonce', c_char_p),
+                ('to', c_char_p),
+                ('abi', c_char_p),
+                ('input', ctypes.POINTER(BcosBytesCType))
+                ]
+    def detail(self):
+        msg = f"version:{self.version},"
+        msg = msg+ f"block_limit:{self.block_limit},"
+        msg = msg + f"chain_id:{self.chain_id},"
+        msg = msg + f"group_id:{self.group_id},"
+        msg = msg + f"nonce:{self.nonce},"
+        msg = msg + f"to:{self.to},"
+        msg = msg + f"abi:{self.abi},"
+        msg = msg + f"input:{self.input.contents.get_input_hex()}"
+        return msg
+    
+'''
+// transaction
+struct bcos_sdk_c_transaction
+{
+    struct bcos_sdk_c_transaction_data* transaction_data;
+    struct bcos_sdk_c_bytes* data_hash;
+    struct bcos_sdk_c_bytes* signature;
+    struct bcos_sdk_c_bytes* sender;
+    int64_t import_time;
+    int32_t attribute;
+    char* extra_data;
+};
+'''
+class BcosTransactionCType(Structure):
+    _fields_ = [
+        ('transaction_data', ctypes.POINTER(BcosTransactionDataCType)),
+        ('data_hash', ctypes.POINTER(BcosBytesCType)),
+        ('signature', ctypes.POINTER(BcosBytesCType)),
+        ('sender', ctypes.POINTER(BcosBytesCType)),
+        ('import_time', ctypes.c_int64),
+        ('attribute', ctypes.c_int32),
+        ('extra_data', ctypes.c_char_p),
+    ]
 
 # bcos sdk返回结构体,ctype定义
 class BcosResponseCType(Structure):
@@ -145,6 +224,10 @@ def b2s(input):
             return input
     return input
 
+def getbuffer(buffer,size):
+    pool = create_string_buffer(size)
+    memmove(pool, buffer, size)
+    return pool
 
 
 # bcos sdk回调函数定义

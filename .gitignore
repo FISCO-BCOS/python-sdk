@@ -3,7 +3,25 @@ __pycache__/
 *.py[cod]
 *$py.class
 bin/contract.ini
-
+bin/*.crt
+bin/*.key
+bin/*.publickey
+bin/
+bcos3sdklib/*.lib
+bcos3sdklib/*.dll
+bcos3sdklib/*.so
+bcos3sdklib/*.crt
+bcos3sdklib/*.key
+bcos3sdklib/*.pem
+bcos3sdklib/*.ini
+bcos3sdklib/*.sh
+bcos3sdklib/*.cnf
+cython_tassl_wrap/
+contracts/*.abi
+contracts/*.bin
+contracts/*.json
+*.dll
+*.lib
 # C extensions
 *.so
 

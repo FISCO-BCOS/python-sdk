@@ -136,6 +136,8 @@ class DatatypeParser:
             argsdata = inputdata[8:]
         # print(selector)
         func_abi = self.get_func_abi_by_selector(inputdata)
+        if func_abi is None : #maybe constructor
+            return
         # print(func_abi)
         args_abi = get_fn_abi_types_single(func_abi, "inputs")
         args = decode_single(args_abi, decode_hex(argsdata))

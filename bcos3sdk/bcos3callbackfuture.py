@@ -40,7 +40,6 @@ class BcosCallbackFuture:
     def bcos_callback(self, c_resp):
         if c_resp is None:
             return
-        # print("bcos_callback-->",c_resp)
         
         resp = BcosResponse(c_resp)
         
@@ -69,7 +68,7 @@ class BcosCallbackFuture:
         # print(self.error, self.desc)
         self.response_queue.put_nowait(resp)
     
-    def wait(self, timeout=5):
+    def wait(self, timeout=5)->(int,BcosResponse):
         is_timeout = False
         resp = None
         try:
@@ -84,6 +83,8 @@ class BcosCallbackFuture:
         print(self.detail())
         
     def detail(self):
-        s = f"queuesize:{self.response_queue.qsize()},reqcontext:{self.context.detail()}"
+        s = f"queuesize:{self.response_queue.qsize()}"
+        if self.context is not None:
+            s += f"reqcontext:{self.context.detail()}"
         return s
 

@@ -18,47 +18,16 @@ from eth_utils import decode_hex,encode_hex
 client = BcosClient()
 info = client.getinfo()
 print(info)
-#bindata = encode_hex("abcdefg中国".encode('utf-8'))
-bindata = b'abcdefg;'
-to_address = ""
-res = client.sendRawTransactionGetReceipt(to_address,contract_abi=None,fn_name=None,bin_data = bindata)
-print("sendRawTransactionGetReceipt data ",res)
-print("status ",res["status"])
-txhash = res["transactionHash"]
-print(txhash)
-code = client.getCode(res["contractAddress"])
-print("code = [{}]".format(code))
 
-
-res = client.getTransactionByHash(txhash)
-print(res)
-
-data = res["input"]
-print("input ",data)
-print("input ",decode_hex(data))
-d = decode_hex(data)
-
-
-
-
-print(d)
-
-i = 1
-for n in range(0,10):
-    i = i*0.7
-    print("第{}天)i={:.3f}".format(n+1,i))
-
-sys.exit(0)
-
-# 从文件加载abi定义
-contractFile = r"sample\SimpleInfo.abi"
+# 从文件加载abi定义 ,可事先用solc生成，或用console2.py deploy一次 SimpleInfo合约
+contractFile = r"contracts\SimpleInfo.abi"
 abi_parser = DatatypeParser()
 abi_parser.load_abi_file(contractFile)
 contract_abi = abi_parser.contract_abi
 
-# 部署合约
+# 部署合约 可事先用solc生成
 print("\n>>Deploy:---------------------------------------------------------------------")
-with open(r"sample\SimpleInfo.bin", 'r') as load_f:
+with open(r"contracts\SimpleInfo.bin", 'r') as load_f:
     contract_bin = load_f.read()
     load_f.close()
 result = client.deploy(contract_bin)

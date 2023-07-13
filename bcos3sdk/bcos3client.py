@@ -126,7 +126,9 @@ class Bcos3Client:
             privkey = decode_hex(privkey)
         #print("privatekey:",privkey)
         self.keypair = self.bcossdk.bcos_sdk_create_keypair_by_private_key(self.crypto_enum, privkey, len(privkey))
-        self.chainid = self.bcossdk.bcos_sdk_get_group_chain_id(self.bcossdk.sdk, s2b(self.group))
+        chainid = self.bcossdk.bcos_sdk_get_group_chain_id(self.bcossdk.sdk, s2b(self.group))
+        self.chainid = ctypes.string_at(chainid)
+        self.bcossdk.bcos_sdk_c_free(chainid)
         return 0
     
     def get_last_errormsg(self):
@@ -183,7 +185,8 @@ class Bcos3Client:
         info += "group:[{}];".format(self.group)
         info += "crypto: [{}];".format(self.config.crypto_type)
         address = self.bcossdk.bcos_sdk_get_keypair_address(self.keypair)
-        info += f"account:[{b2s(address)}];"
+        info += f"account:[{b2s(ctypes.string_at(address))}];"
+        self.bcossdk.bcos_sdk_c_free(address)
         info += f"peers:[{self.bcos3sdkconfig.peers}];"
         if self.sdk_version is None:
             self.sdk_version = b2s(self.bcossdk.bcos_sdk_version())
@@ -460,10 +463,11 @@ class Bcos3Client:
         #------------------------------------
         # txdataObj = self.bcossdk.bcos_sdk_create_transaction_data(s2b(self.group), s2b(self.chainid),s2b(to_address), s2b(functiondata), s2b(extra_abi),
         #                                                           blocklimit )
-        # txdatahash  =self.bcossdk.bcos_sdk_calc_transaction_data_hash(0, txdataObj)
+        # txdatahash_p  =self.bcossdk.bcos_sdk_calc_transaction_data_hash(0, txdataObj) #要free它
+        # txdatahash =  ctypes.string_at(txdatahash_p)
         # signres = self.bcossdk.bcos_sdk_sign_transaction_data_hash(self.keypair,txdatahash)
-        # signedtx = self.bcossdk.bcos_sdk_create_signed_transaction_with_signed_data(txdataObj,signres,txdatahash,0)
-        # print(signedtx)
+        # signedtx_p = self.bcossdk.bcos_sdk_create_signed_transaction_with_signed_data(txdataObj,signres,txdatahash,0) #要free它
+        # print(ctypes.string_at(signedtx) )
         # 最后要调用 bcos_sdk_destroy_transaction_data
         #------------------------------------------
        

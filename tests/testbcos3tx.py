@@ -1,9 +1,12 @@
 import ctypes
 import datetime
+import struct
 import sys
 import os
 
 from bcos3sdk.bcos3callbackfuture import BcosCallbackFuture
+from bcos3sdk.bcos3datadef import s2b, BcosTransactionDataCType
+from eth_utils import encode_hex
 
 # sys.path.append("../")
 
@@ -27,6 +30,7 @@ if res != 0:
     sys.exit(0)
 
 print("sdkobj:", bcossdk)
+
 cbfuture = BcosCallbackFuture();
 cb_func = BCOS_CALLBACK_FUNC(cbfuture.bcos_callback)
 n = 100
@@ -44,7 +48,7 @@ print(" ==> pub: {}".format(pub))
 priv = bcossdk.bcos_sdk_get_keypair_private_key(key_pair)
 print(" ==> pri: {}".format(priv))
 
-group_id = "group0".encode("utf-8")
+group_id = b"group0"
 chain_id = bcossdk.bcos_sdk_get_group_chain_id(bcossdk.sdk, group_id)
 print(" ==> chain_id: {}".format(chain_id))
 
@@ -96,20 +100,20 @@ if do_deploy:
     print("signed tx:", p_signed_tx.value)
     
     bcossdk.bcos_rpc_send_transaction(bcossdk.sdk, group_id, b"", p_signed_tx.value, 0, cb_func, byref(cb_context))
-    cbfuture.wait()
+    (istimeout,rpcresp) = cbfuture.wait()
     cbfuture.display()
     resp = json.loads(cbfuture.data)
     if "result" in resp:
         contract_address = resp["result"]["contractAddress"]
         print("Deploy new addr : ", contract_address)
 else:
-    contract_address = "31ed5233b81c79d5adddeef991f531a9bbc2ad01"
+    contract_address = "0xbe6e9bef148d9c3ac77f28c426e609ea7b7e437a"
 # sys.exit()
 
 
 cb_context = BcosReqContext(n, "send tx", "this is sendtx test")
-inputparams = [f"abcefg:{datetime.datetime.now()}"]
-inputparams = [f"abcdefg"]
+inputparams = [f"abcefg123hhhhh:{datetime.datetime.now()}"]
+
 # 第三个参数是方法的abi，可以传入None，encode_transaction_data做了修改，支持通过方法+参数在整个abi里找到对应的方法abi来编码
 functiondata = abi_parser.encode_function_data("set", inputparams)
 # 对交易数据进行签名
@@ -117,11 +121,93 @@ functiondata = abi_parser.encode_function_data("set", inputparams)
 functiondata = functiondata[2:]
 print("function data len : ", len(functiondata))
 print("function data : ", functiondata)
+
+
+#2023.6增加了transactionData和Transaction结构体，让调用方可以更精细的接触交易结构
+#但同时要更清楚的了解结构体的释放，否则会内存泄露
+if hasattr(bcossdk,'bcos_sdk_create_transaction_data_struct_with_hex_input'):
+
+    txdatastruct:POINTER(BcosTransactionDataCType) = bcossdk.bcos_sdk_create_transaction_data_struct_with_hex_input(s2b(group_id),chain_id,s2b(contract_address),
+                                                            s2b(functiondata),s2b(""),blocklimit)
+    print(txdatastruct.contents.detail())
+
+    inputhex = txdatastruct.contents.input.contents.get_input_hex()
+    print('input ',inputhex)
+    txdatajson = bcossdk.bcos_sdk_encode_transaction_data_struct_to_json(txdatastruct)
+    print(txdatajson)
+    txdatastruct1 = bcossdk.bcos_sdk_decode_transaction_data_struct_with_json(txdatajson)
+    print(txdatastruct1.contents.detail())
+    txhash1 = bcossdk.bcos_sdk_calc_transaction_data_struct_hash(0, txdatastruct1)
+ 
+    b_txhash = ctypes.string_at(txhash1)
+    bcossdk.bcos_sdk_c_free(txhash1)
+    print(b_txhash)
+    
+    txhex = bcossdk.bcos_sdk_encode_transaction_data_struct(txdatastruct1)
+    txhash1 = bcossdk.bcos_sdk_calc_transaction_data_struct_hash_with_hex(0,txhex)
+    txhash2 = bcossdk.bcos_sdk_calc_transaction_data_struct_hash(0, txdatastruct1)
+    print(f"txhex:{txhex}, {string_at(txhex)}")
+    print(f"hash1:{txhash1}:{string_at(txhash1)},hash2:{txhash2}:{string_at(txhash2)}")
+    txsig = bcossdk.bcos_sdk_sign_transaction_data_hash(key_pair,txhash1)
+    print(f"sig:{txsig}: {string_at(txsig)}")
+    
+    bTestTxStruct = True
+    if bTestTxStruct :
+        txstruct = bcossdk.bcos_sdk_create_transaction_struct(txdatastruct1, txsig, txhash1, 0, b"")
+        txjson = bcossdk.bcos_sdk_encode_transaction_struct_to_json(txstruct)
+        jbox = json.loads(string_at(txjson))
+        print(json.dumps(jbox,indent=4))
+        dhash = jbox['signature']
+        bbb = bytes([struct.pack('b', num)[0] for num in dhash])
+        print(encode_hex(bbb))
+        
+        signedtx1 = bcossdk.bcos_sdk_encode_transaction_struct(txstruct)
+        err = bcossdk.bcos_sdk_get_last_error()
+        msg = bcossdk.bcos_sdk_get_last_error_msg()
+        print("last error msg ",err, msg)
+        sss = ctypes.string_at(signedtx1)
+        signedtx = sss
+        bcossdk.bcos_sdk_c_free(signedtx1)
+    else:
+        signedtx = bcossdk.bcos_sdk_create_encoded_transaction(txdatastruct,txsig,txhash1,0,s2b(""))
+        
+    print(f"signtx {signedtx} : {string_at(signedtx)}")
+    bcossdk.bcos_rpc_send_transaction(bcossdk.sdk, group_id, b"", signedtx, 0, cb_func, byref(cb_context))
+    (istimeout, rpcresp) = cbfuture.wait()
+    print(rpcresp.detail())
+    resp = json.loads(rpcresp.data)
+    logs = abi_parser.parse_event_logs(resp["result"]["logEntries"])
+    print(logs)
+
+    cb_context = BcosReqContext(n, "call ", "this is call test")
+    reqdata = abi_parser.encode_function_data("get", [])
+    bcossdk.bcos_rpc_call(bcossdk.sdk, group_id, b"", contract_address.encode("UTF-8"), reqdata.encode("UTF-8"),
+                          cb_func,
+                          byref(cb_context))
+    (istimeout, rpcresp) = cbfuture.wait()
+    print(rpcresp.detail())
+    resp = json.loads(rpcresp.data)
+    output = abi_parser.parse_output("get", resp["result"]["output"])
+    print(">>> call output", output)
+    
+    bcossdk.bcos_sdk_destroy_transaction_data_struct(txdatastruct)
+    bcossdk.bcos_sdk_destroy_transaction_data_struct(txdatastruct1)
+    bcossdk.bcos_sdk_c_free(txjson)
+    bcossdk.bcos_sdk_c_free(txhash1)
+    bcossdk.bcos_sdk_c_free(txhash2)
+    bcossdk.bcos_sdk_c_free(txsig)
+
+    bcossdk.bcos_sdk_c_free(chain_id)
+    #print(f"after {string_at(chain_id)}")
+    print("done")
+    sys.exit(0)
+
+    
+    
 p_txhash = c_char_p(0)
 p_signed_tx = c_char_p(0)
 print("before sign: ", p_signed_tx)
 print("before sign pointer: ", pointer(p_signed_tx))
-
 bcossdk.bcos_sdk_create_signed_transaction(key_pair, group_id, chain_id,
                                            contract_address.encode("UTF-8"), functiondata.encode("UTF-8"), b"",
                                            blocklimit, 0,
@@ -136,13 +222,12 @@ print("tx hash :", p_txhash.value)
 print("tx hash len :", len(p_txhash.value))
 
 bcossdk.bcos_rpc_send_transaction(bcossdk.sdk, group_id, b"", p_signed_tx.value, 0, cb_func, byref(cb_context))
-cbfuture.wait()
-cbfuture.display()
+(istimeout, rpcresp) = cbfuture.wait()
 
 bcossdk.bcos_sdk_c_free(p_signed_tx)
 bcossdk.bcos_sdk_c_free(p_txhash)
 
-resp = json.loads(cbfuture.data)
+resp = json.loads(rpcresp.data)
 if "result" in resp:
     logs = abi_parser.parse_event_logs(resp["result"]["logEntries"])
     print("logs", logs)
@@ -151,27 +236,29 @@ cb_context = BcosReqContext(n, "call ", "this is call test")
 reqdata = abi_parser.encode_function_data("get", [])
 bcossdk.bcos_rpc_call(bcossdk.sdk, group_id, b"", contract_address.encode("UTF-8"), reqdata.encode("UTF-8"), cb_func,
                       byref(cb_context))
-cbfuture.wait()
-cbfuture.display()
+(istimeout, rpcresp) = cbfuture.wait()
+print(rpcresp.detail())
+resp = json.loads(rpcresp.data)
 
-resp = json.loads(cbfuture.data)
 output = abi_parser.parse_output("get", resp["result"]["output"])
 print(">>> call output", output)
 
 n = n + 1
 cb_context = BcosReqContext(n, "bcos_rpc_get_block_number", "this is test " + str(n))
 bcossdk.bcos_rpc_get_block_number(bcossdk.sdk, group_id, None, cb_func, byref(cb_context))
-cbfuture.wait().display()
-
+(istimeout,rpcresp) = cbfuture.wait()
+print(rpcresp.detail())
 n = n + 1
 cb_context = BcosReqContext(n, "bcos_rpc_get_total_transaction_count", "this is test " + str(n))
 bcossdk.bcos_rpc_get_total_transaction_count(bcossdk.sdk, group_id, None, cb_func, byref(cb_context))
-cbfuture.wait().display()
-
+(istimeout,rpcresp) = cbfuture.wait()
+print(rpcresp.detail())
 ver = bcossdk.bcos_sdk_version()
-print("VERSION: ", ver.decode("UTF-8"))
+#print("VERSION: ", ver.decode("UTF-8"))
 
 time.sleep(1)
 bcossdk.bcos_sdk_destroy_keypair(key_pair)
 bcossdk.bcos_sdk_stop(bcossdk.sdk)
 bcossdk.bcos_sdk_destroy(bcossdk.sdk)
+
+print("done")

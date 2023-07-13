@@ -212,7 +212,7 @@ bcos3_sdk_config.ini配置文件可以和库文件等一起放在 bcos3sdklib目
 
 **重要:**
 
-最新版本的C语言的SDK库文件可到[文件下载连接](https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/dylibs.html),下载相应操作系统的库文件。
+[最新版本的C语言的SDK库文件可到文件下载连接](https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/sdk/c_sdk/dylibs.html),获取相应操作系统的库文件。
 
 如windows平台上的bcos-c-sdk.dll,linux平台上的libbcos-c-sdk.so等。
 
@@ -275,39 +275,39 @@ channel_node_key = "bin/node.key"   # 采用channel协议时，需要设置sdk�
 ```
 
 
-**使用Channel协议访问节点**
+## SDK使用简要说明
 
+基于python sdk二次开发,可使用封装好的bcos client对象。
+
+根据FISCO BCOS是2.x或3.x版本，分别封装:
+
+[client/bcosclient.py](client/bcosclient.py)对应2.x版本，其使用示例参见 [tests/testclient.py](tests/testclient.py)
+
+[bcos3sdk/bcos3client.py](bcos3sdk/bcos3client.py)对应3.x版本，其使用示例参见 [tests/testbcos3client.py](tests/testbcos3client.py)
+
+一般的使用次序
 ```bash
-# 获取FISCO BCOS节点版本号
-./console.py getNodeVersion
+1.import不同版本的client对象
+2.指定配置类
+3.初始化客户端client
+4.加载合约的abi定义
+5.用call/sendRawTransaction等方法调用合约
+6.处理返回的结果
 ```
 
-**Event事件回调**
- -  针对已经部署在链上某个地址的合约，先注册要监听的事件，当合约被交易调用，且生成事件时，节点可以向客户端推送相应的事件
- -  事件定义如有indexed类型的输入，可以指定监听某个特定值作为过滤，如事件定义为 on_set(string name,int indexed value),可以增加一个针对value的topic监听，只监听value=5的事件
- -  具体实现参考demo_event_callback.py,使用的命令行为：
+或者调用其他链RPC接口的额方法，如getBlockNumber等，参见客户端代码实现、以及对照FISCO BCOS不同版本的RPC接口定义即可。
+代码比较直观，直接查看示例代码即可。
+
 ```bash
-params: contractname address event_name indexed
-        1. contractname :       合约的文件名,不需要带sol后缀,默认在当前目录的contracts目录下
-        2. address :    十六进制的合约地址,或者可以为:last,表示采用bin/contract.ini里的记录
-        3. event_name : 可选,如不设置监听所有事件
-        4. indexed :    可选,根据event定义里的indexed字段,作为过滤条件)
-
-        eg: for contract sample [contracts/HelloEvent.sol], use cmdline:
-
-        python demo_event_callback.py HelloEvent last
-        --listen all event at all indexed ：
-
-        python demo_event_callback.py HelloEvent last on_set
-        --listen event on_set(string newname) （no indexed）：
-
-        python demo_event_callback.py HelloEvent last on_number 5
-        --listen event on_number(string name,int indexed age), age ONLY  5 ：
-
+注意: 
+对合约的只读接口(view或constant),使用call方法，
+对合约的交易类接口，应使用sendRawTransaction/sendRawTransactionGetReceipt方法
+这里和FISCO BCOS 自带的控制台有一些不同，控制台对两种类型的合约方法都用call调用，以简化操作，
+python-sdk保留原始接口RPC的定义风格，对两种类型的方法进行区格
+python-sdk自带的控制台同理，对不同类型的方法，分别使用call或sendtx
 ```
 
-
-## SDK使用示例
+## 控制台使用示例
 
 注:FISCO BCOS 3.0的控制台文件是** console3.py**,使用方法基本同FISCO BCOS 2.0，主要是查询类接口有数量上的区别
 
@@ -323,7 +323,7 @@ params: contractname address event_name indexed
 > **windows环境下执行console2/3.py请使用`.\console2/3.py`或者`python console2/3.py`**
 
 ```bash
-# 查看SDK使用方法
+# 查看控制台使用方法
 ./console.py usage
 
 # 获取区块高度
@@ -394,6 +394,33 @@ INFO >> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67
 
 INFO >> call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
 INFO >> call result:  'Hello, FISCO!'
+
+
+**Event事件回调**
+ -  针对已经部署在链上某个地址的合约，先注册要监听的事件，当合约被交易调用，且生成事件时，节点可以向客户端推送相应的事件
+ -  事件定义如有indexed类型的输入，可以指定监听某个特定值作为过滤，如事件定义为 on_set(string name,int indexed value),可以增加一个针对value的topic监听，只监听value=5的事件
+ -  具体实现参考demo_event_callback.py,使用的命令行为：
+```bash
+params: contractname address event_name indexed
+        1. contractname :       合约的文件名,不需要带sol后缀,默认在当前目录的contracts目录下
+        2. address :    十六进制的合约地址,或者可以为:last,表示采用bin/contract.ini里的记录
+        3. event_name : 可选,如不设置监听所有事件
+        4. indexed :    可选,根据event定义里的indexed字段,作为过滤条件)
+
+        eg: for contract sample [contracts/HelloEvent.sol], use cmdline:
+
+        python demo_event_callback.py HelloEvent last
+        --listen all event at all indexed ：
+
+        python demo_event_callback.py HelloEvent last on_set
+        --listen event on_set(string newname) （no indexed）：
+
+        python demo_event_callback.py HelloEvent last on_number 5
+        --listen event on_number(string name,int indexed age), age ONLY  5 ：
+
+```
+
+
 ```
 
 ## 控制台输入复杂数据类型概要说明
@@ -460,9 +487,8 @@ source ~/.bashrc
 
 **FISCO BCOS开源社区**是国内活跃的开源社区，社区长期为机构和个人开发者提供各类支持与帮助。已有来自各行业的数千名技术爱好者在研究和使用FISCO BCOS。如您对FISCO BCOS开源技术及应用感兴趣，欢迎加入社区获得更多支持与帮助。
 
-![](https://media.githubusercontent.com/media/FISCO-BCOS/LargeFiles/master/images/QR_image.png)
+![](images/qr_code1.png)
 
 ## License
-![license](https://img.shields.io/github/license/FISCO-BCOS/python-sdk.svg)
 
 Python SDK的开源协议为[MIT License](https://opensource.org/licenses/MIT). 详情参考[LICENSE](./LICENSE)。

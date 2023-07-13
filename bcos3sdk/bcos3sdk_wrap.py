@@ -5,7 +5,7 @@ import struct
 from ctypes import *
 
 from bcos3sdk.bcos3datadef import BcosReqContext, BcosResponseCType, BCOS_CALLBACK_FUNC, BCOS_AMOP_SUB_CALLBACK_FUNC, \
-    BCOS_AMOP_PUBLISH_CALLBACK_FUNC
+    BCOS_AMOP_PUBLISH_CALLBACK_FUNC, BcosTransactionDataCType, BcosTransactionCType
 #----------------------------
 # C语言sdk文档：https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/index.html
 # C语言SDK接口:https://fisco-bcos-doc.readthedocs.io/zh_CN/latest/docs/develop/sdk/c_sdk/api.html
@@ -294,17 +294,17 @@ class NativeBcos3sdk:
         # self.bcos_sdk_load_keypair = self.nativelib.bcos_sdk_load_keypair
         # const char* bcos_sdk_get_keypair_address(void* key_pair);
         self.nativelib.bcos_sdk_get_keypair_address.argtypes = [c_void_p]
-        self.nativelib.bcos_sdk_get_keypair_address.restype = c_char_p
+        self.nativelib.bcos_sdk_get_keypair_address.restype = POINTER(c_char)
         self.bcos_sdk_get_keypair_address = self.nativelib.bcos_sdk_get_keypair_address
         
         # const char* bcos_sdk_get_keypair_public_key(void* key_pair);
         self.nativelib.bcos_sdk_get_keypair_public_key.argtypes = [c_void_p]
-        self.nativelib.bcos_sdk_get_keypair_public_key.restype = c_char_p
+        self.nativelib.bcos_sdk_get_keypair_public_key.restype = POINTER(c_char)
         self.bcos_sdk_get_keypair_public_key = (self.nativelib.bcos_sdk_get_keypair_public_key)
         
         # const char* bcos_sdk_get_keypair_private_key(void* key_pair);
         self.nativelib.bcos_sdk_get_keypair_private_key.argtypes = [c_void_p]
-        self.nativelib.bcos_sdk_get_keypair_private_key.restype = c_char_p
+        self.nativelib.bcos_sdk_get_keypair_private_key.restype = POINTER(c_char)
         self.bcos_sdk_get_keypair_private_key = (self.nativelib.bcos_sdk_get_keypair_private_key)
         
         # void bcos_sdk_destroy_keypair(void* key_pair);
@@ -337,20 +337,101 @@ class NativeBcos3sdk:
         self.bcos_sdk_destroy_transaction_data = self.nativelib.bcos_sdk_destroy_transaction_data
         # const char* bcos_sdk_calc_transaction_data_hash(int crypto_type, void* transaction_data)
         self.nativelib.bcos_sdk_calc_transaction_data_hash.argtypes = [c_int32,c_void_p]
-        self.nativelib.bcos_sdk_calc_transaction_data_hash.restype = c_char_p
+        self.nativelib.bcos_sdk_calc_transaction_data_hash.restype = POINTER(ctypes.c_char)
         self.bcos_sdk_calc_transaction_data_hash = self.nativelib.bcos_sdk_calc_transaction_data_hash
         # 计算TransactionData对象哈希
         # const char* bcos_sdk_sign_transaction_data_hash(void* keypair, const char* transcation_hash)
         self.nativelib.bcos_sdk_sign_transaction_data_hash.argtypes=[c_void_p,c_char_p]
-        self.nativelib.bcos_sdk_sign_transaction_data_hash.restype=c_char_p
+        self.nativelib.bcos_sdk_sign_transaction_data_hash.restype=POINTER(ctypes.c_char)
         self.bcos_sdk_sign_transaction_data_hash = self.nativelib.bcos_sdk_sign_transaction_data_hash
         # 交易哈希签名
         # const char* bcos_sdk_create_signed_transaction_with_signed_data(void* transaction_data, const char* signed_transaction_data, const char* transaction_data_hash, int32_t attribute)
         self.nativelib.bcos_sdk_create_signed_transaction_with_signed_data.argtypes=[c_void_p,c_char_p,c_char_p,c_int32]
-        self.nativelib.bcos_sdk_create_signed_transaction_with_signed_data.restype = c_char_p
+        self.nativelib.bcos_sdk_create_signed_transaction_with_signed_data.restype = POINTER(ctypes.c_char)
         self.bcos_sdk_create_signed_transaction_with_signed_data = self.nativelib.bcos_sdk_create_signed_transaction_with_signed_data
-        # 创建签名的交易
         
+        
+        #struct bcos_sdk_c_transaction_data* bcos_sdk_create_transaction_data_struct_with_hex_input(const char* group_id, const char* chain_id, const char* to, const char* input, const char* abi, int64_t block_limit)
+        #创建 bcos_sdk_c_transaction_data 交易结构体，该对象结构体是未签名的交易对象
+        if hasattr(self.nativelib,'bcos_sdk_create_transaction_data_struct_with_hex_input'):
+            self.nativelib.bcos_sdk_create_transaction_data_struct_with_hex_input.argtypes = [c_char_p,c_char_p,c_char_p,c_char_p,c_char_p,c_long]
+            self.nativelib.bcos_sdk_create_transaction_data_struct_with_hex_input.restype = POINTER(BcosTransactionDataCType)
+            self.bcos_sdk_create_transaction_data_struct_with_hex_input = self.nativelib.bcos_sdk_create_transaction_data_struct_with_hex_input
+
+        if hasattr(self.nativelib, 'bcos_sdk_destroy_transaction_data_struct'):
+            #bcos_sdk_destroy_transaction_data_struct 释放 bcos_sdk_c_transaction_data 交易结构体
+            self.nativelib.bcos_sdk_destroy_transaction_data_struct.argtypes = [POINTER(BcosTransactionDataCType)]
+            self.bcos_sdk_destroy_transaction_data_struct = self.nativelib.bcos_sdk_destroy_transaction_data_struct
+        
+        
+        #bcos_sdk_encode_transaction_data_struct 将 bcos_sdk_c_transaction_data 交易结构体编码为hex字符串
+        if hasattr(self.nativelib, 'bcos_sdk_encode_transaction_data_struct'):
+            self.nativelib.bcos_sdk_encode_transaction_data_struct.argtypes = [POINTER(BcosTransactionDataCType)]
+            self.nativelib.bcos_sdk_encode_transaction_data_struct.restype = POINTER(ctypes.c_char) #c_char_p
+            self.bcos_sdk_encode_transaction_data_struct = self.nativelib.bcos_sdk_encode_transaction_data_struct
+        
+        #bcos_sdk_decode_transaction_data_struct 将编码后的hex字符串解码为 bcos_sdk_c_transaction_data 交易结构体
+        if hasattr(self.nativelib, 'bcos_sdk_decode_transaction_data_struct'):
+            self.nativelib.bcos_sdk_decode_transaction_data_struct.argtypes = [c_char_p]
+            self.nativelib.bcos_sdk_decode_transaction_data_struct.restypes = POINTER(BcosTransactionDataCType)
+            self.bcos_sdk_decode_transaction_data_struct = self.nativelib.bcos_sdk_decode_transaction_data_struct
+        
+        #bcos_sdk_calc_transaction_data_struct_hash 计算 bcos_sdk_c_transaction_data 交易结构体哈希
+        if hasattr(self.nativelib, 'bcos_sdk_calc_transaction_data_struct_hash'):
+            self.nativelib.bcos_sdk_calc_transaction_data_struct_hash.argtypes = [c_int,POINTER(BcosTransactionDataCType)]
+            self.nativelib.bcos_sdk_calc_transaction_data_struct_hash.restype = POINTER(ctypes.c_char) #c_char_p
+            self.bcos_sdk_calc_transaction_data_struct_hash = self.nativelib.bcos_sdk_calc_transaction_data_struct_hash
+        
+        
+        #bcos_sdk_calc_transaction_data_struct_hash_with_hex 通过交易结构体的hex字符串，计算交易结构体哈希
+        if hasattr(self.nativelib,'bcos_sdk_calc_transaction_data_struct_hash_with_hex'):
+            self.nativelib.bcos_sdk_calc_transaction_data_struct_hash_with_hex.argtypes = [c_int,c_char_p]
+            self.nativelib.bcos_sdk_calc_transaction_data_struct_hash_with_hex.restype = POINTER(ctypes.c_char)
+            self.bcos_sdk_calc_transaction_data_struct_hash_with_hex = self.nativelib.bcos_sdk_calc_transaction_data_struct_hash_with_hex
+       
+        #bcos_sdk_decode_transaction_data_struct_with_json
+        if hasattr(self.nativelib,'bcos_sdk_decode_transaction_data_struct_with_json'):
+            self.nativelib.bcos_sdk_decode_transaction_data_struct_with_json.argtypes = [c_char_p]
+            self.nativelib.bcos_sdk_decode_transaction_data_struct_with_json.restype = POINTER(BcosTransactionDataCType)
+            self.bcos_sdk_decode_transaction_data_struct_with_json = self.nativelib.bcos_sdk_decode_transaction_data_struct_with_json
+       
+        if hasattr(self.nativelib,'bcos_sdk_encode_transaction_data_struct_to_json'):
+            self.nativelib.bcos_sdk_encode_transaction_data_struct_to_json.argtypes = [POINTER(BcosTransactionDataCType)]
+            self.nativelib.bcos_sdk_encode_transaction_data_struct_to_json.restype = POINTER(ctypes.c_char)
+            self.bcos_sdk_encode_transaction_data_struct_to_json = self.nativelib.bcos_sdk_encode_transaction_data_struct_to_json
+           
+        #struct bcos_sdk_c_transaction* bcos_sdk_create_transaction_struct(struct bcos_sdk_c_transaction_data* transaction_data, const char* signature, const char* transaction_data_hash, int32_t attribute, const char* extra_data)
+        if hasattr(self.nativelib,'bcos_sdk_create_transaction_struct'):
+            self.nativelib.bcos_sdk_create_transaction_struct.argtypes = [POINTER(BcosTransactionDataCType),c_char_p,c_char_p,c_int32,c_char_p]
+            self.nativelib.bcos_sdk_create_transaction_struct.restype = POINTER(BcosTransactionCType)
+            self.bcos_sdk_create_transaction_struct = self.nativelib.bcos_sdk_create_transaction_struct
+            
+        if hasattr(self.nativelib,'bcos_sdk_encode_transaction_struct'):
+            self.nativelib.bcos_sdk_encode_transaction_struct.argtypes = [POINTER(BcosTransactionCType)]
+            self.nativelib.bcos_sdk_encode_transaction_struct.restype = POINTER(ctypes.c_char)
+            self.bcos_sdk_encode_transaction_struct = self.nativelib.bcos_sdk_encode_transaction_struct
+       
+       
+        if hasattr(self.nativelib,'bcos_sdk_encode_transaction_struct_to_json'):
+            self.nativelib.bcos_sdk_encode_transaction_struct_to_json.argtypes = [POINTER(BcosTransactionCType)]
+            self.nativelib.bcos_sdk_encode_transaction_struct_to_json.restype = POINTER(ctypes.c_char)
+            self.bcos_sdk_encode_transaction_struct_to_json = self.nativelib.bcos_sdk_encode_transaction_struct_to_json
+            
+        if hasattr(self.nativelib,'bcos_sdk_decode_transaction_struct_with_json'):
+            self.nativelib.bcos_sdk_decode_transaction_struct_with_json.argtypes = [c_char_p]
+            self.nativelib.bcos_sdk_decode_transaction_struct_with_json.restype = POINTER(BcosTransactionCType)
+            self.bcos_sdk_decode_transaction_struct_with_json = self.nativelib.bcos_sdk_decode_transaction_struct_with_json
+            
+        if hasattr(self.nativelib,'bcos_sdk_decode_transaction_struct'):
+            self.nativelib.bcos_sdk_decode_transaction_struct.argtypes = [POINTER(BcosTransactionCType)]
+            self.nativelib.bcos_sdk_decode_transaction_struct.restype = POINTER(ctypes.c_char)
+            self.bcos_sdk_decode_transaction_struct = self.nativelib.bcos_sdk_decode_transaction_struct
+            
+        #struct bcos_sdk_c_transaction* bcos_sdk_create_transaction_struct(struct bcos_sdk_c_transaction_data* transaction_data, const char* signature, const char* transaction_data_hash, int32_t attribute, const char* extra_data)
+        if hasattr(self.nativelib,'bcos_sdk_create_encoded_transaction'):
+            self.nativelib.bcos_sdk_create_encoded_transaction.argtypes = [POINTER(BcosTransactionDataCType),c_char_p,c_char_p,c_int32,c_char_p]
+            self.nativelib.bcos_sdk_create_encoded_transaction.restype = POINTER(ctypes.c_char)
+            self.bcos_sdk_create_encoded_transaction = self.nativelib.bcos_sdk_create_encoded_transaction
         # ------------------------------------------------------------------------------------------------
         # call和发送交易
         # void bcos_rpc_call(void* sdk, const char* group, const char* node, const char* to, const char* data,bcos_sdk_c_struct_response_cb callback, void* context);
@@ -374,7 +455,7 @@ class NativeBcos3sdk:
         
         # const char* bcos_sdk_get_group_chain_id(void* sdk, const char* group);
         self.nativelib.bcos_sdk_get_group_chain_id.argtypes = [c_void_p, c_char_p]
-        self.nativelib.bcos_sdk_get_group_chain_id.restype = c_char_p
+        self.nativelib.bcos_sdk_get_group_chain_id.restype = POINTER(c_char)
         self.bcos_sdk_get_group_chain_id = self.nativelib.bcos_sdk_get_group_chain_id
         
         # 内存管理
