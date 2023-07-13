@@ -309,11 +309,11 @@ python-sdk自带的控制台同理，对不同类型的方法，分别使用call
 
 ## 控制台使用示例
 
-注:FISCO BCOS 3.0的控制台文件是** console3.py**,使用方法基本同FISCO BCOS 2.0，主要是查询类接口有数量上的区别
+注:FISCO BCOS 3.0的控制台文件是**console3.py**,使用方法基本同FISCO BCOS 2.0，主要是查询类接口有数量上的区别
 
 具体使用信息，可输入 **python console3.py usage** 查看
 
-**查看SDK使用方法**
+**查看控制台使用方法**
 
 * 注：以下示例不区分2.x和3.x的控制台，
 * 如要使用2.x的控制台，把console.py换成console2.py。
@@ -394,7 +394,7 @@ INFO >> user input : ['call', 'HelloWorld', '0x42883e01ac97a3a5ef8a70c290abe0f67
 
 INFO >> call HelloWorld , address: 0x42883e01ac97a3a5ef8a70c290abe0f67913964e, func: get, args:[]
 INFO >> call result:  'Hello, FISCO!'
-
+```
 
 **Event事件回调**
  -  针对已经部署在链上某个地址的合约，先注册要监听的事件，当合约被交易调用，且生成事件时，节点可以向客户端推送相应的事件
@@ -421,7 +421,6 @@ params: contractname address event_name indexed
 ```
 
 
-```
 
 ## 控制台输入复杂数据类型概要说明
 
