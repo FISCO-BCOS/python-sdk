@@ -32,15 +32,15 @@ print(f"getPendingTxSize:{bcos3.getPendingTxSize()}")
 print(f"getBlocklimit:{bcos3.getBlocklimit()}")
 
 
-contractFile = r"contracts\HelloWorld.abi"
+contractFile = "./contracts/hello_world.abi"
 abi_parser = DatatypeParser()
 abi_parser.load_abi_file(contractFile)
 contract_abi = abi_parser.contract_abi
 to = "31ed5233b81c79d5adddeef991f531a9bbc2ad01"
-response = bcos3.deployFromFile("contracts/HelloWorld.bin")
-print(f"deploy response: {response}")
-contract_address = response["contractAddress"]
-to = contract_address
+# response = bcos3.deployFromFile("./contracts/hello_world.bin")
+# print(f"deploy response: {response}")
+# contract_address = response["contractAddress"]
+# to = contract_address
 print(f"contract address {to}")
 response = bcos3.call(to,abi_parser.contract_abi,"get",[])
 print(f"call HelloWorld: {response}")
