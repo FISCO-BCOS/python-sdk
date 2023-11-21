@@ -474,14 +474,10 @@ echo "eval \"\$(register-python-argcomplete ./console.py)\"" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-## 文档
-
-[**中文**](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/sdk/python_sdk/index.html)
 
 ## 贡献代码
 
-- 我们欢迎并非常感谢您的贡献，请参阅[代码贡献流程](https://mp.weixin.qq.com/s/hEn2rxqnqp0dF6OKH6Ua-A
-)。
+- 我们欢迎并非常感谢您的贡献，包括提出issue,提交代码PR,修订文档等
 - 如项目对您有帮助，欢迎star支持！
 
 
