@@ -81,7 +81,7 @@ class Bcos3Client:
                 self.check_node_version()
             except Exception as e:
                 if client_config.bcos3_when_version_mismatch == "WARN":
-                    print(f"!!! [WARN] CHECK NODE VERSION EXCEPTION(But still continue): {e}  \n")
+                    print(f"[INFO] CHECK NODE VERSION AND GO ON: {e}  \n")
                 else:
                     raise  e
             
@@ -104,7 +104,7 @@ class Bcos3Client:
                 if int(major) == majorVersion and int(minor) <= maxMinorVersion:
                     return True
                 else:
-                    raise Exception(f"Python-sdk is NOT Fully Verified for node version [{version}] yet")
+                    raise Exception(f"Python-sdk will verify for node version [{version}]")
             except KeyError as e:
                 raise Exception(f"Check node version,Missing field in JSON :{e}. {strInfo}")
             except ValueError as e:
