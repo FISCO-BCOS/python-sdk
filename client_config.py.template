@@ -46,7 +46,7 @@ class client_config:
     bcos3_check_node_version = True #是否在初始化后验证一次node版本
     bcos3_when_version_mismatch = "WARN" # WARN 或 "ERROR" ,如果版本不匹配，WARN只是打个警告，ERROR就抛异常了，建议WARN
     bcos3_major_version = 3
-    bcos3_max_miner_version = 2 #目前最大版本号验证到3.2，后续新版本验证后持续更新
+    bcos3_max_miner_version = 6 #最大子版本号验证
     # -------------------FISCO BCOS3.0 End-----------------------------------------
     
     # --------------------------------------
