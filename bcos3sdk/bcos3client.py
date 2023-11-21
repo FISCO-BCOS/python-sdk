@@ -49,7 +49,7 @@ class Bcos3Client:
     group = ""
     node = None
     keypair = None
-    bcos3sdk = None
+    bcossdk = None
     logger = clientlogger.logger  # logging.getLogger("BcosClient")
     config = None
     sdk_version = None
