@@ -35,13 +35,15 @@ class LocalLibHelper:
         elif "mac" in platsys:          # Mac
             if "arm64" in platsys:          # mac m1
                 lib_prefix = 'lib'
-                lib_suffix = '-arch64.dylib'
+                lib_suffix = '-aarch64.dylib'
             else:                           # mac x86
                 lib_prefix = 'lib'
                 lib_suffix = '.dylib'
         elif "linux" in platsys:        # Linux
             if "arm64" in platsys or "aarch64" in platsys:  # linux arm, unsupported
-                raise Exception('''Unsupported linux arch {}'''.format(platsys))
+                lib_prefix = 'lib'
+                lib_suffix = '-aarch64.lib'
+                #'https://github.com/FISCO-BCOS/bcos-c-sdk/releases/download/v3.4.0/libbcos-c-sdk-aarch64.so'
             elif "x86_64" in platsys:          # linux x86
                 lib_prefix = 'lib'
                 lib_suffix = '.so'
