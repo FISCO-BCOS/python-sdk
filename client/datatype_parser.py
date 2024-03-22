@@ -304,3 +304,7 @@ class DatatypeParser:
                 inputabi = abidata["inputs"]
                 args = format_args_by_function_abi(fn_args, inputabi)
         return (contract_abi, args)
+
+    def parse_error_msg(output):
+        outputbody = output[10:] #去掉0x[func_sig]共10个字符
+        return decode_single("(string)", decode_hex(outputbody))

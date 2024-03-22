@@ -200,11 +200,16 @@ call合约的一个只读接口,解析返回值,address可以是last或latest,�
             print(f"Transaction result >> \n{result}")
             status =result['status']
             print(f"Transaction Status >> {status}")
-            if not TransactionStatus.isOK(status):
-                print("! transaction ERROR",TransactionStatus.get_error_message(status))
             output = result['output']
-            output = abiparser.parse_output(fn_name, output)
-            print(f"Transaction Output >> {output}")
+            if not TransactionStatus.isOK(status):
+                #不成功的打印错误
+                print("! transaction ERROR",TransactionStatus.get_error_message(status))
+                errmsg = DatatypeParser.parse_error_msg(output)
+                print("! Error Message: ",errmsg)
+            else:
+                #成功的打印output
+                output = abiparser.parse_output(fn_name, output)
+                print(f"Transaction Output >> {output}")
             if "logEntries" in result:
                 logs = abiparser.parse_event_logs(result["logEntries"])
                 print("transaction receipt events >>")

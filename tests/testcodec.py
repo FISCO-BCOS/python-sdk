@@ -114,3 +114,9 @@ data = "0xffffffffffffffffffffffffffffffffffffffffff" \
        "73202c63616e27742063726561746520616761696e00"
 result = decode_single("(int256,string,uint256,address,string)", decode_hex(data))
 print(result)
+
+errorMsg = "0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000e6e616d65206e6f74206d61746368000000000000000000000000000000000000"
+errorMsg = errorMsg[10:]
+print(errorMsg)
+result = decode_single("(string)",decode_hex(errorMsg))
+print("error result" ,result)

@@ -26,7 +26,7 @@ def make_post_request(endpoint_uri, method, params, data, *args, **kwargs):
     session = _get_session(endpoint_uri, method, params, kwargs)
     response = session.post(endpoint_uri, data=data, *args, **kwargs)
     response.raise_for_status()
-    #Ôö¼ÓÒ»Ð©¼æÈÝÐÔÂß¼­
+    #å¢žåŠ ä¸€äº›å…¼å®¹æ€§é€»è¾‘
     if hasattr(response,"cb_context"):
         return response.cb_context
     if hasattr(response, "context"):
