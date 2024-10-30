@@ -216,8 +216,8 @@ bcos3_sdk_config.ini配置文件可以和库文件等一起放在 bcos3sdklib目
 1. 手工下载：[最新版本的C语言的SDK库文件可到文件下载连接](https://fisco-bcos-doc.readthedocs.io/zh-cn/latest/docs/sdk/c_sdk/dylibs.html),获取相应操作系统的库文件。
 如windows平台上的bcos-c-sdk.dll/lib,linux平台上的libbcos-c-sdk.so,mac平台的dylib等，且注意x86和arm64架构的库有区别。
 
-2. 使用脚本(推荐)：进入./bcos3sdklib,执行脚本**python download_c_lib.py**,将自动下载对应平台的库文件到当前目录。
-如需要下载特定版本的库文件(如3.3.0),可直接修改download_c_lib.py里的版本号变量。
+2. 使用脚本(推荐)：进入./bcos3sdklib,执行脚本**python download_c_libs.py**,将自动下载对应平台的库文件到当前目录。
+如需要下载特定版本的库文件(如3.3.0),可直接修改download_c_libs.py里的版本号变量。
 
 建议下载库文件后放到 ./bcos3sdklib 目录下（参照client_config.py里的bcos3_lib_path字段，可根据自己的部署环境实际路径修改），供python代码调用。
 
