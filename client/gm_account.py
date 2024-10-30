@@ -72,35 +72,38 @@ class GM_Account(object):
                 self.cbc_iv, bytes(self.keypair.private_key, "utf-8"))
             key = str(base64.b64encode(encrypt_value), "utf-8")
             content["encrypt"] = True
+            passwdBytes = bytes(password, "utf-8")
+            content["mac"] = sm3.sm3_hash(passwdBytes)
         content["private_key"] = key
         content["type"] = "gm"
         # set mac of the password
-        passwdBytes = bytes(password, "utf-8")
-        content["mac"] = sm3.sm3_hash(passwdBytes)
+
         with open(filename, "w") as dump_f:
             json.dump(content, dump_f, indent=4)
             dump_f.close()
 
     # 从文件加载，格式是json
     def load_from_file(self, filename, password=None):
-        if password is None:
-            return
+        #if password is None:
+        #    return
         with open(filename, "r") as dump_f:
             content = json.load(dump_f)
             dump_f.close()
 
         if content["type"] != "gm":
             return
-        # get and compare mac
-        expected_mac = content["mac"]
-        password = self.pwd_ljust(password)
-        passwdBytes = bytes(password, "utf-8")
-        mac = sm3.sm3_hash(passwdBytes)
-        if not hmac.compare_digest(mac, expected_mac):
-            raise ValueError("MAC mismatch")
+        
         key = content["private_key"]
-        crypt_sm4 = CryptSM4()
-        crypt_sm4.set_key(bytes(password, "utf-8"), SM4_DECRYPT)
-        key = base64.b64decode(bytes(key, "utf-8"))
-        key = str(crypt_sm4.crypt_cbc(self.cbc_iv, key), "utf-8")
+        # get and compare mac
+        if password is not None:
+            expected_mac = content["mac"]
+            password = self.pwd_ljust(password)
+            passwdBytes = bytes(password, "utf-8")
+            mac = sm3.sm3_hash(passwdBytes)
+            if not hmac.compare_digest(mac, expected_mac):
+                raise ValueError("MAC mismatch")
+            crypt_sm4 = CryptSM4()
+            crypt_sm4.set_key(bytes(password, "utf-8"), SM4_DECRYPT)
+            key = base64.b64decode(bytes(key, "utf-8"))
+            key = str(crypt_sm4.crypt_cbc(self.cbc_iv, key), "utf-8")
         self.from_key(key)

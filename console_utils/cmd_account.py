@@ -78,6 +78,9 @@ class CmdAccount:
             print("account save to :", keyfile)
     
     def create_ecdsa_account(self, name, password):
+        if password is None or len(password) < 6:
+            print("\n!!!-> WARNING: Create ECDSA keystore need Password len >=6. etc: [ ****** ] <-!!! \n")
+            return
         ac = Account.create(password)
         print("new address :\t", ac.address)
         print("new privkey :\t", encode_hex(ac.key))
@@ -133,11 +136,12 @@ class CmdAccount:
                 "account name should no more than {}".format(max_account_len),
             )
             sys.exit(1)
-        password = inputparams[1]
-        forcewrite = False
-        if len(inputparams) == 3 and inputparams[2] == "save":
-            forcewrite = True
-        print("starting : {} {}  , if save:{}".format(name, password, forcewrite))
+        password = None
+        if len(inputparams) > 1:
+            password = inputparams[1]
+        else:
+            print(f"\n!!! -> WARNING : create account WITHOUT Password is NOT Safe. at : [ {name} ] <-!!!\n")
+        print("starting : {} {}  ".format(name, password))
         if self.crypto_type == CRYPTO_TYPE_GM:
             self.create_gm_account(name, password)
         else:
