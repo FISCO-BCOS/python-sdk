@@ -52,7 +52,7 @@ var files = argv._;
 var destination = argv['output-dir'] || '.'
 var contractPath = argv['input-dir'] || '.'
 function abort (msg) {
-  console.error(msg || 'Error occured');
+  console.error(msg || 'Error occurred');
   process.exit(1);
 }
 
